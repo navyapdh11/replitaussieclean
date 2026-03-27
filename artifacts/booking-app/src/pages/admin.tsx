@@ -8,13 +8,13 @@ import { format, parseISO } from "date-fns";
 import {
   Search, MapPin, Calendar, CircleDollarSign, RefreshCw, Users,
   TrendingUp, ClipboardList, BarChart3, Zap, Plus, Trash2, ToggleLeft, ToggleRight,
-  ExternalLink, AlertCircle, ChevronUp, ChevronDown,
+  ExternalLink, AlertCircle, ChevronUp, ChevronDown, Truck, CheckCircle2, XCircle,
 } from "lucide-react";
 
 const BASE_URL = (import.meta.env.BASE_URL ?? "/booking-app").replace(/\/$/, "");
 const STATUS_ORDER = ["confirmed", "pending", "in_progress", "completed", "cancelled", "draft"];
 
-type AdminTab = "bookings" | "pricing";
+type AdminTab = "bookings" | "dispatch" | "pricing";
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<AdminTab>("bookings");
@@ -76,6 +76,7 @@ export default function AdminDashboard() {
         <div className="flex gap-1 border-b border-border">
           {([
             { id: "bookings" as const, label: "Bookings", icon: ClipboardList },
+            { id: "dispatch" as const, label: "Dispatch", icon: Truck },
             { id: "pricing" as const, label: "Pricing Analytics", icon: BarChart3 },
           ] as const).map(({ id, label, icon: Icon }) => (
             <button
@@ -100,8 +101,10 @@ export default function AdminDashboard() {
             statusFilter={statusFilter} setStatusFilter={setStatusFilter}
             filtered={filtered} stats={stats} isLoading={isLoading} isError={isError}
             bookings={bookings as any[]}
+            onRefresh={refetch}
           />
         )}
+        {tab === "dispatch" && <DispatchPanel bookings={bookings as any[]} onRefresh={refetch} />}
         {tab === "pricing" && <PricingAnalyticsTab />}
       </main>
 
@@ -110,14 +113,26 @@ export default function AdminDashboard() {
   );
 }
 
+async function patchBookingStatus(id: string, status: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
 interface BookingsTabProps {
   searchEmail: string; setSearchEmail: (v: string) => void;
   appliedEmail: string; setAppliedEmail: (v: string) => void;
   statusFilter: string; setStatusFilter: (v: string) => void;
   filtered: any[]; stats: any; isLoading: boolean; isError: boolean; bookings: any[];
+  onRefresh: () => void;
 }
 
-function BookingsTab({ searchEmail, setSearchEmail, appliedEmail, setAppliedEmail, statusFilter, setStatusFilter, filtered, stats, isLoading, isError, bookings }: BookingsTabProps) {
+function BookingsTab({ searchEmail, setSearchEmail, appliedEmail, setAppliedEmail, statusFilter, setStatusFilter, filtered, stats, isLoading, isError, bookings, onRefresh }: BookingsTabProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -201,9 +216,12 @@ function BookingsTab({ searchEmail, setSearchEmail, appliedEmail, setAppliedEmai
                       </td>
                       <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                       <td className="px-4 py-3">
-                        <Link to={`/bookings/${b.id}`} className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
-                          View <ExternalLink className="w-3 h-3" />
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link to={`/bookings/${b.id}`} className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
+                            View <ExternalLink className="w-3 h-3" />
+                          </Link>
+                          <QuickStatusSelect bookingId={b.id} current={b.status} onDone={onRefresh} />
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -213,6 +231,130 @@ function BookingsTab({ searchEmail, setSearchEmail, appliedEmail, setAppliedEmai
           )}
         </>
       )}
+    </div>
+  );
+}
+
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  pending:     ["confirmed", "cancelled"],
+  confirmed:   ["in_progress", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed:   [],
+  cancelled:   ["pending"],
+  draft:       ["pending", "cancelled"],
+};
+
+function QuickStatusSelect({ bookingId, current, onDone }: { bookingId: string; current: string; onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const next = STATUS_TRANSITIONS[current] ?? [];
+  if (next.length === 0) return null;
+
+  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (!val) return;
+    setBusy(true);
+    await patchBookingStatus(bookingId, val);
+    setBusy(false);
+    onDone();
+  };
+
+  return (
+    <select
+      onChange={handleChange}
+      defaultValue=""
+      disabled={busy}
+      className="text-xs rounded-lg border border-border bg-background px-2 py-1 text-muted-foreground hover:border-primary/40 transition-colors cursor-pointer focus:outline-none disabled:opacity-50"
+    >
+      <option value="" disabled>Move to…</option>
+      {next.map((s) => (
+        <option key={s} value={s}>{s.replace("_", " ")}</option>
+      ))}
+    </select>
+  );
+}
+
+interface DispatchPanelProps { bookings: any[]; onRefresh: () => void; }
+
+function DispatchPanel({ bookings, onRefresh }: DispatchPanelProps) {
+  const actionable = (bookings ?? []).filter((b) => ["pending", "confirmed", "in_progress"].includes(b.status));
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  const dispatch = async (id: string, status: string) => {
+    setUpdating(id);
+    await patchBookingStatus(id, status);
+    setUpdating(null);
+    onRefresh();
+  };
+
+  if (actionable.length === 0) {
+    return (
+      <div className="text-center py-20 border border-dashed border-border rounded-2xl">
+        <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-3" />
+        <h3 className="font-semibold text-foreground mb-1">All clear!</h3>
+        <p className="text-muted-foreground text-sm">No bookings pending dispatch or active jobs.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">{actionable.length} booking{actionable.length !== 1 ? "s" : ""} requiring action</p>
+      <div className="grid gap-4">
+        {actionable.map((b: any) => {
+          const isUpdating = updating === b.id;
+          const transitions = STATUS_TRANSITIONS[b.status] ?? [];
+          return (
+            <div key={b.id} className="bg-card border border-border rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <StatusBadge status={b.status} />
+                  <span className="font-mono text-xs text-muted-foreground">#{b.id.slice(-6).toUpperCase()}</span>
+                </div>
+                <p className="font-semibold text-foreground">{b.firstName} {b.lastName}</p>
+                <p className="text-xs text-muted-foreground">{b.email}</p>
+                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(parseISO(b.date), "EEE dd MMM")}</span>
+                  <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{b.suburb}, {b.state}</span>
+                  <span className="capitalize">{b.serviceType.replace(/_/g, " ")}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Link to={`/bookings/${b.id}`} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border hover:border-primary/40 text-muted-foreground transition-colors">
+                  View
+                </Link>
+                {transitions.map((next) => {
+                  const isConfirm = next === "confirmed";
+                  const isProgress = next === "in_progress";
+                  const isComplete = next === "completed";
+                  const isCancel = next === "cancelled";
+                  return (
+                    <button
+                      key={next}
+                      disabled={isUpdating}
+                      onClick={() => dispatch(b.id, next)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5",
+                        isConfirm  && "bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20",
+                        isProgress && "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20",
+                        isComplete && "bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20",
+                        isCancel   && "bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20",
+                      )}
+                    >
+                      {isUpdating ? <RefreshCw className="w-3 h-3 animate-spin" /> : (
+                        isConfirm ? <CheckCircle2 className="w-3 h-3" /> :
+                        isProgress ? <Truck className="w-3 h-3" /> :
+                        isComplete ? <CheckCircle2 className="w-3 h-3" /> :
+                        <XCircle className="w-3 h-3" />
+                      )}
+                      {next.replace("_", " ")}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -255,24 +397,40 @@ function PricingAnalyticsTab() {
     loadData();
   };
 
+  /** datetime-local value "2026-01-01T00:00" needs seconds appended for reliable Date parsing */
+  const toIso = (localStr: string): string => {
+    if (!localStr) throw new Error("Date is required");
+    const padded = localStr.length === 16 ? `${localStr}:00` : localStr;
+    const d = new Date(padded);
+    if (isNaN(d.getTime())) throw new Error("Invalid date — please use the date picker");
+    return d.toISOString();
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setFormError("");
     try {
+      const validFrom = toIso(formData.validFrom);
+      const validUntil = toIso(formData.validUntil);
+      const mult = parseFloat(formData.multiplier);
+      if (isNaN(mult) || mult < 0.5 || mult > 3.0) throw new Error("Multiplier must be between 0.5 and 3.0");
       const res = await fetch(`${BASE_URL}/api/pricing-factors`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name,
-          label: formData.label,
-          multiplier: parseFloat(formData.multiplier),
-          validFrom: new Date(formData.validFrom).toISOString(),
-          validUntil: new Date(formData.validUntil).toISOString(),
+          name: formData.name.trim(),
+          label: formData.label.trim(),
+          multiplier: mult,
+          validFrom,
+          validUntil,
           active: true,
         }),
       });
-      if (!res.ok) throw new Error("Failed to create");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as any).error ?? `Server error ${res.status}`);
+      }
       setShowForm(false);
       setFormData({ name: "", label: "", multiplier: "1.10", validFrom: "", validUntil: "" });
       loadData();

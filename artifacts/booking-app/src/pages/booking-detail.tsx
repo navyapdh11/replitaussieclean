@@ -3,7 +3,7 @@ import { useParams, Link } from "wouter";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Calendar, Clock, MapPin, CheckCircle, AlertCircle,
-  CreditCard, Phone, Mail, User, Loader2, RefreshCw, Navigation,
+  CreditCard, Phone, Mail, User, Loader2, Navigation,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 

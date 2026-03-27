@@ -1,7 +1,8 @@
 import { db, priceRulesTable, priceHistoryTable, dynamicPricingFactorsTable, bookingsTable } from "@workspace/db";
-import { eq, and, gte, count } from "drizzle-orm";
+import { eq, and, gte, lte, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { logger } from "./logger";
+import { pricingCache, adminFactorCache } from "./cache";
 
 export interface PricingContext {
   serviceType: string;
@@ -66,13 +67,13 @@ export async function calculateDynamicPrice(ctx: PricingContext): Promise<Pricin
   const addonCents = ctx.extras.length * (priceRule?.addonPriceCents ?? 1500);
   const subBase = baseCents + addonCents;
 
-  const [demandMult, weatherMult, trafficMult, staffMult, adminMult] = await Promise.all([
+  const [demandMult, adminMult] = await Promise.all([
     calculateDemandMultiplier(ctx),
-    Promise.resolve(calculateWeatherMultiplier(ctx)),
-    Promise.resolve(calculateTrafficMultiplier(ctx)),
-    calculateStaffAvailabilityMultiplier(ctx),
     getAdminPricingMultiplier(),
   ]);
+  const weatherMult = calculateWeatherMultiplier(ctx);
+  const trafficMult = calculateTrafficMultiplier(ctx);
+  const staffMult = await calculateStaffAvailabilityMultiplier(ctx);
   const timeSlotMult = calculateTimeSlotMultiplier(ctx.timeSlot);
 
   const rawMultiplier = demandMult * weatherMult * trafficMult * staffMult * timeSlotMult * adminMult;
@@ -117,7 +118,12 @@ export async function calculateDynamicPrice(ctx: PricingContext): Promise<Pricin
   };
 }
 
+/** Demand multiplier — cached 15 min per serviceType */
 async function calculateDemandMultiplier(ctx: PricingContext): Promise<number> {
+  const cacheKey = `demand:${ctx.serviceType}:${ctx.suburb ?? "all"}`;
+  const cached = pricingCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
   try {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
     const [result] = await db
@@ -125,14 +131,13 @@ async function calculateDemandMultiplier(ctx: PricingContext): Promise<number> {
       .from(priceHistoryTable)
       .where(and(eq(priceHistoryTable.serviceType, ctx.serviceType), gte(priceHistoryTable.createdAt, twoHoursAgo)));
     const n = result?.count ?? 0;
-    if (n > 20) return 1.35;
-    if (n > 12) return 1.25;
-    if (n > 6) return 1.15;
-    if (n > 3) return 1.05;
-    return 1.0;
+    const mult = n > 20 ? 1.35 : n > 12 ? 1.25 : n > 6 ? 1.15 : n > 3 ? 1.05 : 1.0;
+    pricingCache.set(cacheKey, mult, 15 * 60 * 1000);
+    return mult;
   } catch { return 1.0; }
 }
 
+/** Weather multiplier — pure function, derived from date + state (no DB, no cache needed) */
 function calculateWeatherMultiplier(ctx: PricingContext): number {
   if (!ctx.date || !ctx.state) return 1.0;
   const month = new Date(ctx.date).getMonth();
@@ -145,6 +150,7 @@ function calculateWeatherMultiplier(ctx: PricingContext): number {
   return 1.0;
 }
 
+/** Traffic multiplier — pure function (no DB) */
 function calculateTrafficMultiplier(ctx: PricingContext): number {
   if (!ctx.date) return 1.0;
   const dayOfWeek = new Date(ctx.date).getDay();
@@ -159,22 +165,26 @@ function calculateTrafficMultiplier(ctx: PricingContext): number {
   return 1.0;
 }
 
+/** Staff availability multiplier — cached 10 min per date */
 async function calculateStaffAvailabilityMultiplier(ctx: PricingContext): Promise<number> {
   if (!ctx.date) return 1.0;
+  const cacheKey = `staff:${ctx.date}`;
+  const cached = pricingCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
   try {
     const [result] = await db
       .select({ count: count() })
       .from(bookingsTable)
       .where(and(eq(bookingsTable.date, ctx.date), eq(bookingsTable.status, "confirmed")));
     const n = result?.count ?? 0;
-    if (n >= 20) return 1.30;
-    if (n >= 14) return 1.20;
-    if (n >= 8) return 1.10;
-    if (n >= 4) return 1.05;
-    return 1.0;
+    const mult = n >= 20 ? 1.30 : n >= 14 ? 1.20 : n >= 8 ? 1.10 : n >= 4 ? 1.05 : 1.0;
+    pricingCache.set(cacheKey, mult, 10 * 60 * 1000);
+    return mult;
   } catch { return 1.0; }
 }
 
+/** Time slot multiplier — pure function */
 function calculateTimeSlotMultiplier(timeSlot?: string): number {
   if (!timeSlot) return 1.0;
   const rawHour = parseInt(timeSlot.split(":")[0] ?? "12", 10);
@@ -187,16 +197,30 @@ function calculateTimeSlotMultiplier(timeSlot?: string): number {
   return 1.0;
 }
 
+/** Admin surge factors — cached 5 min, busted via adminFactorCache.delete("admin") */
 async function getAdminPricingMultiplier(): Promise<number> {
+  const CACHE_KEY = "admin";
+  const cached = adminFactorCache.get(CACHE_KEY);
+  if (cached !== undefined) return cached;
+
   try {
     const now = new Date();
     const activeFactors = await db
       .select()
       .from(dynamicPricingFactorsTable)
-      .where(and(eq(dynamicPricingFactorsTable.active, true), gte(dynamicPricingFactorsTable.validUntil, now)));
-    if (activeFactors.length === 0) return 1.0;
-    return activeFactors.reduce((acc, f) => acc * f.multiplier, 1.0);
+      .where(and(
+        eq(dynamicPricingFactorsTable.active, true),
+        lte(dynamicPricingFactorsTable.validFrom, now),
+        gte(dynamicPricingFactorsTable.validUntil, now)
+      ));
+    const mult = activeFactors.length === 0 ? 1.0 : activeFactors.reduce((acc, f) => acc * f.multiplier, 1.0);
+    adminFactorCache.set(CACHE_KEY, mult, 5 * 60 * 1000);
+    return mult;
   } catch { return 1.0; }
+}
+
+export function bustAdminFactorCache() {
+  adminFactorCache.delete("admin");
 }
 
 export async function getPricingAnalytics() {

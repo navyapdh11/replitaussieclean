@@ -183,15 +183,27 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 - Full bookings table with stats cards (total, confirmed, pending, revenue)
 - Filter by status and customer email
 - Table view with all booking details + "View" link per row
+- **QuickStatusSelect** per row — inline "Move to…" dropdown honouring STATUS_TRANSITIONS
+- **Dispatch tab**: card view of all pending/confirmed/in_progress bookings with one-click action buttons to advance status
 - **Pricing Analytics tab**: avg multiplier stat, surge factor CRUD (create/toggle/delete), price history table
 - Each booking row links to the `/bookings/:id` booking detail page
+- `bustAdminFactorCache()` called after every pricing factor mutation (create/toggle/delete)
 
 ### Booking Detail Page (`/bookings/:id`)
 - Shows full booking details: service, schedule, address, contact, payment
 - **Live GPS Tracker button** appears for confirmed/in_progress bookings
 - Map uses Leaflet + CartoDB dark tiles (lazy-loaded via dynamic import)
 - Real-time cleaner position via Socket.IO `/tracking` namespace
+- **Haversine ETA calculation**: live "ETA X min" cyan badge shown when status=en_route
+- **BoundsController**: auto-fits map to show both cleaner + job markers when location arrives
 - Progress bar shows job status (Assigned → En Route → Arrived → Cleaning → Done)
+- Status icon panel uses explicit color map (no fragile Tailwind class string manipulation)
+
+### In-Memory Pricing Cache (`artifacts/api-server/src/lib/cache.ts`)
+- `TtlCache<T>` — lightweight generic cache with per-key TTL expiry
+- `pricingCache`: demand multiplier (15 min TTL), staff availability (10 min TTL)
+- `adminFactorCache`: active surge factors composite multiplier (5 min TTL)
+- Cache is busted on every pricing factor CRUD mutation via `bustAdminFactorCache()`
 
 ### SEO (home.tsx)
 - JSON-LD `LocalBusiness` schema with `AggregateRating`, `hasOfferCatalog`, `areaServed`

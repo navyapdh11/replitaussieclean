@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db, dynamicPricingFactorsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { getPricingAnalytics } from "../lib/pricing";
+import { getPricingAnalytics, bustAdminFactorCache } from "../lib/pricing";
 
 const router = Router();
 
@@ -23,6 +23,11 @@ function validateFactorBody(body: unknown): { name: string; label: string; multi
     metadata: (typeof b.metadata === "object" && b.metadata !== null) ? b.metadata as Record<string, unknown> : {},
   };
 }
+
+router.get("/analytics", async (_req, res) => {
+  const analytics = await getPricingAnalytics();
+  res.json(analytics);
+});
 
 router.get("/", async (_req, res) => {
   const factors = await db
@@ -53,6 +58,8 @@ router.post("/", async (req, res) => {
       metadata: metadata ?? {},
     })
     .returning();
+
+  bustAdminFactorCache();
   res.status(201).json(created);
 });
 
@@ -70,6 +77,8 @@ router.patch("/:id/toggle", async (req, res) => {
     .set({ active: !factor.active, updatedAt: new Date() })
     .where(eq(dynamicPricingFactorsTable.id, req.params.id))
     .returning();
+
+  bustAdminFactorCache();
   res.json(updated);
 });
 
@@ -77,12 +86,8 @@ router.delete("/:id", async (req, res) => {
   await db
     .delete(dynamicPricingFactorsTable)
     .where(eq(dynamicPricingFactorsTable.id, req.params.id));
+  bustAdminFactorCache();
   res.json({ success: true });
-});
-
-router.get("/analytics", async (_req, res) => {
-  const analytics = await getPricingAnalytics();
-  res.json(analytics);
 });
 
 export { router as pricingFactorsRouter };
