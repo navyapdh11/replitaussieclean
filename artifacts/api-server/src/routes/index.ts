@@ -7,6 +7,10 @@ import serviceAreasRouter from "./serviceAreas";
 import webhooksRouter from "./webhooks";
 import aiRouter from "./ai";
 import trackingRouter from "./tracking";
+import staffRouter from "./staff";
+import mlRouter from "./ml";
+import schedulingRouter from "./scheduling";
+import tenantsRouter from "./tenants";
 import { pricingFactorsRouter } from "./pricingFactors";
 
 const router: IRouter = Router();
@@ -19,6 +23,10 @@ router.use(serviceAreasRouter);
 router.use(webhooksRouter);
 router.use(aiRouter);
 router.use(trackingRouter);
+router.use(staffRouter);
+router.use(mlRouter);
+router.use(schedulingRouter);
+router.use(tenantsRouter);
 router.use("/pricing-factors", pricingFactorsRouter);
 
 export default router;

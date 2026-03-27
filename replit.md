@@ -180,13 +180,70 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 - Gracefully skips if key not set
 
 ### Admin Dashboard (`/admin`)
-- Split into focused sub-components under `src/components/admin/`: `BookingsTab`, `DispatchPanel`, `PricingAnalyticsTab`, `StatusBadge`, `QuickStatusSelect`, shared `STATUS_TRANSITIONS` + `patchBookingStatus`
+- Split into focused sub-components under `src/components/admin/`: `BookingsTab`, `DispatchPanel`, `PricingAnalyticsTab`, `StaffTab`, `SchedulingTab`, `MLForecastTab`, `StatusBadge`, `QuickStatusSelect`, shared `STATUS_TRANSITIONS` + `patchBookingStatus`
 - Full bookings table with stats cards (total, confirmed, pending, revenue); skeleton loaders while fetching
 - Filter by status and customer email; bookings sorted newest-first
 - **QuickStatusSelect** per row — inline "Move to…" dropdown honouring STATUS_TRANSITIONS
 - **Dispatch tab**: card view of all pending/confirmed/in_progress bookings with one-click action buttons
 - **Pricing Analytics tab**: avg multiplier stat, surge factor CRUD (create/toggle/delete), price history table
 - `bustAdminFactorCache()` called after every pricing factor mutation
+- **Staff tab**: grid of staff cards with skills, rating, suburb/state, role badge; Add/Edit staff modal with skills chip toggles; toggle active/inactive
+- **Scheduling tab**: AI Scheduling Optimizer with date picker; run optimizer to get greedy-matched assignment stats; historical assignments table with status controls
+- **ML Forecast tab**: bar chart demand forecast by date; retrain model button; model versions table; service type selector; heuristic fallback banner when insufficient data
+- **SaaS Admin button** (top-right) links to /saas-admin
+
+### SaaS Platform Admin (`/saas-admin`)
+- Super-admin portal for managing all tenants
+- Metrics cards: Active Tenants, Total Bookings, Monthly Recurring Revenue (AUD)
+- Pricing tier showcase: Starter $99/mo, Pro $199/mo, Enterprise $499/mo with feature lists
+- Tenants table: Company, Plan, Bookings, Staff count, MRR, Status (active/suspended), Actions (view/suspend)
+- **New Tenant** modal: Company Name, Slug, Domain, Plan, Brand Colour, ABN, Phone, Email
+
+### Phase 5: ML Forecasting + Staff Scheduling + Multi-tenant SaaS
+
+#### Database Tables (Phase 5)
+- `tenants` — Multi-tenant companies (id, slug, name, domain, plan, branding, suspended flag)
+- `staff` — Cleaners/supervisors with skills[], suburb/state, lat/lng, rating, maxJobsPerDay
+- `staff_availability` — Per-staff availability windows (day-of-week + time ranges)
+- `job_assignments` — Bookings assigned to staff with status + notes
+- `demand_forecasts` — ML-generated demand forecasts stored by tenant+service+date
+- `ml_model_versions` — MLR model version registry with metrics (MAE, RMSE, R²)
+- Default tenant: `id = slug = "aussieclean-default"`, plan = "enterprise"
+
+#### ML Forecasting Engine (`artifacts/api-server/src/lib/mlForecaster.ts`)
+- Custom multivariate linear regression via normal equations: β = (XᵀX)⁻¹Xᵀy with ridge regularisation (λ=0.01)
+- 6 features: dayOfWeek (one-hot), isWeekend, isPublicHoliday, month, dayOfMonth, serviceIndex
+- Day-of-week heuristic fallback when < 5 historical data points
+- In-memory model cache per tenant+service; persists forecasts and model versions to DB
+- API: `POST /api/ml/forecast` (generate), `POST /api/ml/train` (retrain), `GET /api/ml/history`
+
+#### Scheduling Optimizer (`artifacts/api-server/src/lib/scheduler.ts`)
+- Greedy matching: iterates bookings, picks best available staff per job
+- Composite score: 50% proximity (haversine) + 30% rating + 20% workload balance
+- Enforces skills check and maxJobsPerDay limit
+- State capitals used as coordinate proxies for bookings without lat/lng
+- Manual override: `POST /api/scheduling/assign` with `{bookingId, staffId}`
+- API: `POST /api/scheduling/optimize`, `GET /api/scheduling/status`
+
+#### Tenants API (`/api/tenants`)
+- `GET /api/tenants` — list all tenants with MRR rollup
+- `POST /api/tenants` — create new tenant
+- `GET /api/tenants/:id` — get tenant
+- `PATCH /api/tenants/:id` — update tenant (branding, plan, domain)
+- `POST /api/tenants/:id/suspend` — suspend tenant
+
+#### Staff API (`/api/staff`)
+- `GET /api/staff?tenantId=` — list staff
+- `POST /api/staff` — create staff member
+- `PATCH /api/staff/:id` — update staff
+- `DELETE /api/staff/:id` — deactivate staff
+- `GET /api/staff/:id/availability` — get availability windows
+- `POST /api/staff/:id/availability` — set availability
+
+#### Important Notes
+- `tenants.id` for default tenant = `"aussieclean-default"` (matches slug, NOT a UUID) — frontend hardcodes `TENANT_ID = "aussieclean-default"`
+- Staff lat/lng are nullable `real` columns — omit from request body when unknown (scheduler uses state capital proxies)
+- `zod` cannot be imported directly in api-server routes (not in esbuild externals) — use manual validation
 
 ### Cleaner Demo Simulation (`artifacts/booking-app/src/lib/tracking.ts`)
 - `simulateCleaner(bookingId, lat, lng)` — starts a fake cleaner 3–5 km away and drives it toward the job over ~60 s

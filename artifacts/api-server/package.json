@@ -19,9 +19,11 @@
     "drizzle-orm": "catalog:",
     "express": "^5",
     "express-rate-limit": "^8.3.1",
+    "ml-regression": "^6.3.0",
     "pino": "^9",
     "pino-http": "^10",
     "resend": "^6.9.4",
+    "simple-statistics": "^7.8.9",
     "socket.io": "^4.8.3",
     "stripe": "^21.0.0"
   },

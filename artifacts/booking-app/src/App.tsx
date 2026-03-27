@@ -11,6 +11,7 @@ import Home from "@/pages/home";
 import BookingFlow from "@/pages/booking/index";
 import Dashboard from "@/pages/dashboard";
 import Admin from "@/pages/admin";
+import SaasAdmin from "@/pages/saas-admin";
 import Success from "@/pages/success";
 import Cancelled from "@/pages/cancelled";
 import NotFound from "@/pages/not-found";
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/booking" component={BookingFlow} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/admin" component={Admin} />
+      <Route path="/saas-admin" component={SaasAdmin} />
       <Route path="/booking/success" component={Success} />
       <Route path="/booking/cancelled" component={Cancelled} />
       <Route path="/bookings/:id" component={BookingDetailPage} />
