@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { SkipToContent } from "@/components/layout/SkipToContent";
 import { useListBookings } from "@workspace/api-client-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck, ShieldCheck } from "lucide-react";
@@ -67,9 +68,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col pt-20">
+      <SkipToContent />
       <Navbar />
 
-      <main className="flex-1 py-10 px-4 sm:px-6 max-w-7xl mx-auto w-full space-y-8">
+      <main id="main-content" tabIndex={-1} className="flex-1 py-10 px-4 sm:px-6 max-w-7xl mx-auto w-full space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

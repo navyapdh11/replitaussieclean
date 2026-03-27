@@ -13,10 +13,13 @@ import schedulingRouter from "./scheduling";
 import tenantsRouter from "./tenants";
 import { pricingFactorsRouter } from "./pricingFactors";
 import adminSystemRouter from "./adminSystem";
+import docsRouter from "./docs";
+import { adminLimiter } from "../lib/ratelimit";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(docsRouter);
 router.use(bookingsRouter);
 router.use(pricingRouter);
 router.use(checkoutRouter);
@@ -24,11 +27,15 @@ router.use(serviceAreasRouter);
 router.use(webhooksRouter);
 router.use(aiRouter);
 router.use(trackingRouter);
-router.use(staffRouter);
-router.use(mlRouter);
-router.use(schedulingRouter);
+
+/* ── Admin-scoped routes: stricter rate limit ─────────────────────────── */
+router.use(adminLimiter, staffRouter);
+router.use(adminLimiter, mlRouter);
+router.use(adminLimiter, schedulingRouter);
+router.use(adminLimiter, adminSystemRouter);
+router.use("/pricing-factors", adminLimiter, pricingFactorsRouter);
+
+/* ── Tenant routes: public branding + admin management ───────────────── */
 router.use(tenantsRouter);
-router.use("/pricing-factors", pricingFactorsRouter);
-router.use(adminSystemRouter);
 
 export default router;

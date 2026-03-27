@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { SkipToContent } from "@/components/layout/SkipToContent";
 import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -122,13 +123,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col pt-20">
+      <SkipToContent />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON_LD }}
       />
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1" tabIndex={-1}>
 
         {/* ── Hero Section ─────────────────────────────── */}
         <section className="relative overflow-hidden">
@@ -230,13 +232,18 @@ export default function Home() {
             </div>
 
             {/* Filter bar */}
-            <div className="flex flex-wrap items-center gap-3 justify-center">
+            <div
+              role="group"
+              aria-label="Filter services"
+              className="flex flex-wrap items-center gap-3 justify-center"
+            >
               {/* Service type filters */}
-              <div className="flex flex-wrap gap-2 items-center justify-center">
+              <div role="group" aria-label="Filter by service type" className="flex flex-wrap gap-2 items-center justify-center">
                 <button
                   onClick={() => setActiveFilter("all")}
+                  aria-pressed={activeFilter === "all"}
                   className={cn(
-                    "px-4 py-2 rounded-full text-sm font-semibold border transition-all",
+                    "px-4 py-2 rounded-full text-sm font-semibold border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     activeFilter === "all"
                       ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                       : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
@@ -250,14 +257,15 @@ export default function Home() {
                     <button
                       key={s.id}
                       onClick={() => setActiveFilter(s.id)}
+                      aria-pressed={activeFilter === s.id}
                       className={cn(
-                        "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all",
+                        "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                         activeFilter === s.id
                           ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                           : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
                       )}
                     >
-                      <Icon className="w-3.5 h-3.5" />
+                      <Icon className="w-3.5 h-3.5" aria-hidden="true" />
                       {s.label}
                     </button>
                   );
@@ -266,14 +274,29 @@ export default function Home() {
 
               {/* Location filter */}
               <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <label htmlFor="location-filter" className="sr-only">Filter by state</label>
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
                 <select
+                  id="location-filter"
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
-                  className="rounded-full border border-border bg-background px-3 py-2 text-sm font-semibold text-muted-foreground hover:border-primary/50 focus:outline-none focus:border-primary cursor-pointer"
+                  className="rounded-full border border-border bg-background px-3 py-2 text-sm font-semibold text-muted-foreground hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary cursor-pointer"
                 >
                   {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
+              </div>
+
+              {/* Live region: announces filter results to screen readers */}
+              <div
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                className="sr-only"
+              >
+                {activeFilter === "all"
+                  ? `Showing all ${SERVICES.length} services`
+                  : `Showing 1 service: ${SERVICES.find((s) => s.id === activeFilter)?.label}`}
+                {locationFilter !== "All Areas" ? `, filtered to ${locationFilter}` : ""}
               </div>
             </div>
 
