@@ -12,6 +12,7 @@ import {
   UpdateBookingResponse,
 } from "@workspace/api-zod";
 import { randomUUID } from "crypto";
+import { bookingLimiter } from "../lib/ratelimit";
 
 function serializeBooking(booking: Record<string, unknown>) {
   return {
@@ -43,7 +44,7 @@ router.get("/bookings", async (req, res): Promise<void> => {
   res.json(ListBookingsResponse.parse(bookings.map(serializeBooking)));
 });
 
-router.post("/bookings", async (req, res): Promise<void> => {
+router.post("/bookings", bookingLimiter, async (req, res): Promise<void> => {
   const parsed = CreateBookingBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.errors });

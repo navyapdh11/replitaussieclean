@@ -1,10 +1,11 @@
 import { Router, type IRouter } from "express";
 import { GetQuoteBody, GetQuoteResponse } from "@workspace/api-zod";
 import { calculateDynamicPrice } from "../lib/pricing";
+import { quoteLimiter } from "../lib/ratelimit";
 
 const router: IRouter = Router();
 
-router.post("/pricing/quote", async (req, res): Promise<void> => {
+router.post("/pricing/quote", quoteLimiter, async (req, res): Promise<void> => {
   const parsed = GetQuoteBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.errors });

@@ -75,6 +75,8 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "posthog-js": "^1.363.6",
+    "socket.io-client": "^4.8.3",
     "zustand": "^5.0.12"
   }
 }

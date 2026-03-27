@@ -113,18 +113,29 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 ### API Routes (`/api/*`)
 - `GET /api/healthz` — Health check
 - `GET /api/bookings?email=&status=` — List bookings
-- `POST /api/bookings` — Create booking
+- `POST /api/bookings` — Create booking (rate limited: 5/min)
 - `GET /api/bookings/:id` — Get booking
 - `PATCH /api/bookings/:id` — Update booking status
-- `POST /api/pricing/quote` — Dynamic pricing quote (demand + time slot multipliers)
+- `POST /api/pricing/quote` — Dynamic pricing quote (rate limited: 20/min)
 - `POST /api/checkout/session` — Create Stripe checkout session (or mock URL if no STRIPE_SECRET_KEY)
 - `GET /api/service-areas` — List active service areas
+- `POST /api/webhooks/stripe` — Stripe webhook handler (verifies signature, confirms/cancels bookings, sends email)
+- `POST /api/ai/chat` — AI chat SSE endpoint powered by OpenAI (rate limited: 30/min)
+- `GET /api/tracking/:bookingId` — Get current cleaner location for a booking
+
+### WebSocket (Socket.IO)
+- Namespace: `/tracking`
+- Events: `join_job` (subscribe), `update_location` (cleaner pushes GPS), `job_status` (status updates)
+- Emits: `cleaner_location` (lat/lng/heading/speed), `job_status_update` (status)
+- Client lib: `artifacts/booking-app/src/lib/tracking.ts`
 
 ### Database Tables
 - `bookings` — Full booking records with status, pricing, customer details
 - `service_areas` — 18 seeded suburbs across NSW, VIC, QLD, WA, SA, ACT, TAS, NT
 - `price_rules` — Per-service/property-type base pricing + per-room rates
 - `price_history` — Audit log of all dynamic pricing calculations
+- `conversations` — AI chat conversation sessions
+- `messages` — AI chat messages (role/content/timestamps)
 
 ### Dynamic Pricing Engine (`artifacts/api-server/src/lib/pricing.ts`)
 - Looks up price rules from DB by serviceType + propertyType
@@ -134,4 +145,43 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 
 ### Stripe Integration
 - Set `STRIPE_SECRET_KEY` environment variable to enable real Stripe checkout
+- Set `STRIPE_WEBHOOK_SECRET` for webhook signature verification
 - Without the key, the checkout route returns a mock success URL for development
+- Webhook: confirms booking status, sends email confirmation via Resend
+
+### Email Notifications (`artifacts/api-server/src/lib/email.ts`)
+- Powered by Resend SDK — set `RESEND_API_KEY` to enable
+- Sends HTML booking confirmation email after successful Stripe payment
+- Gracefully skips if `RESEND_API_KEY` not set
+
+### AI Chat Widget (`artifacts/booking-app/src/components/AIChatWidget.tsx`)
+- Floating cyan button (bottom-right) on every page
+- Powered by OpenAI via Replit AI Integration (no API key needed)
+- System prompt includes live service areas + pricing from DB
+- SSE streaming with word-by-word display
+- Starter questions for new conversations
+
+### Analytics (`artifacts/booking-app/src/lib/analytics.ts`)
+- PostHog client-side analytics — set `VITE_POSTHOG_KEY` to enable
+- Tracks page views, CTA clicks
+- Gracefully skips if key not set
+
+### Admin Dashboard (`/admin`)
+- Full bookings table with stats cards (total, confirmed, pending, revenue)
+- Filter by status and customer email
+- Table view with all booking details
+
+### SEO (home.tsx)
+- JSON-LD `LocalBusiness` schema with `AggregateRating`, `hasOfferCatalog`, `areaServed`
+- Schema includes all 5 states and 5 service types
+
+### Error Boundary
+- React `ErrorBoundary` class component wraps entire App
+- Shows user-friendly error page with reload button and phone number
+
+### Rate Limiting (`artifacts/api-server/src/lib/ratelimit.ts`)
+- Uses `express-rate-limit` v8
+- `bookingLimiter`: 5 req/min on POST /bookings
+- `quoteLimiter`: 20 req/min on POST /pricing/quote  
+- `chatLimiter`: 30 req/min on POST /ai/chat
+- `webhookLimiter`: 200 req/min on webhooks
