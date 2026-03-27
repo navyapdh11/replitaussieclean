@@ -112,10 +112,10 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 
 ### API Routes (`/api/*`)
 - `GET /api/healthz` — Health check
-- `GET /api/bookings?email=&status=` — List bookings
+- `GET /api/bookings?email=&status=&limit=&offset=` — List bookings (newest-first, paginated, max 200/page)
 - `POST /api/bookings` — Create booking (rate limited: 5/min)
 - `GET /api/bookings/:id` — Get booking
-- `PATCH /api/bookings/:id` — Update booking status
+- `PATCH /api/bookings/:id` — Update booking status (enforces SERVER_STATUS_TRANSITIONS; 409 on invalid move)
 - `POST /api/pricing/quote` — Dynamic pricing quote (rate limited: 20/min)
 - `POST /api/checkout/session` — Create Stripe checkout session (or mock URL if no STRIPE_SECRET_KEY)
 - `GET /api/service-areas` — List active service areas
@@ -180,14 +180,18 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 - Gracefully skips if key not set
 
 ### Admin Dashboard (`/admin`)
-- Full bookings table with stats cards (total, confirmed, pending, revenue)
-- Filter by status and customer email
-- Table view with all booking details + "View" link per row
+- Split into focused sub-components under `src/components/admin/`: `BookingsTab`, `DispatchPanel`, `PricingAnalyticsTab`, `StatusBadge`, `QuickStatusSelect`, shared `STATUS_TRANSITIONS` + `patchBookingStatus`
+- Full bookings table with stats cards (total, confirmed, pending, revenue); skeleton loaders while fetching
+- Filter by status and customer email; bookings sorted newest-first
 - **QuickStatusSelect** per row — inline "Move to…" dropdown honouring STATUS_TRANSITIONS
-- **Dispatch tab**: card view of all pending/confirmed/in_progress bookings with one-click action buttons to advance status
+- **Dispatch tab**: card view of all pending/confirmed/in_progress bookings with one-click action buttons
 - **Pricing Analytics tab**: avg multiplier stat, surge factor CRUD (create/toggle/delete), price history table
-- Each booking row links to the `/bookings/:id` booking detail page
-- `bustAdminFactorCache()` called after every pricing factor mutation (create/toggle/delete)
+- `bustAdminFactorCache()` called after every pricing factor mutation
+
+### Cleaner Demo Simulation (`artifacts/booking-app/src/lib/tracking.ts`)
+- `simulateCleaner(bookingId, lat, lng)` — starts a fake cleaner 3–5 km away and drives it toward the job over ~60 s
+- Emits `en_route` status, then real-time `update_location` events with ease-in motion curve, then `arrived` + `in_progress`
+- "Demo Mode" button visible on confirmed/in_progress booking detail page — auto-opens map if not already visible
 
 ### Booking Detail Page (`/bookings/:id`)
 - Shows full booking details: service, schedule, address, contact, payment

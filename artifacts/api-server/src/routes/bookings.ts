@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { db, bookingsTable } from "@workspace/db";
 import {
   CreateBookingBody,
@@ -13,6 +13,19 @@ import {
 } from "@workspace/api-zod";
 import { randomUUID } from "crypto";
 import { bookingLimiter } from "../lib/ratelimit";
+
+/** Allowed forward transitions for each booking status.
+ *  An empty array means the status is terminal.
+ *  Any transition NOT listed here is rejected with 409.
+ */
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  draft:       ["pending", "cancelled"],
+  pending:     ["confirmed", "cancelled"],
+  confirmed:   ["in_progress", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed:   [],
+  cancelled:   ["pending"], // admin re-open
+};
 
 function serializeBooking(booking: Record<string, unknown>) {
   return {
@@ -35,11 +48,17 @@ router.get("/bookings", async (req, res): Promise<void> => {
   if (query.data.email) conditions.push(eq(bookingsTable.email, query.data.email));
   if (query.data.status) conditions.push(eq(bookingsTable.status, query.data.status));
 
+  // Parse pagination params (cap at 200 rows per page)
+  const limit = Math.min(200, parseInt((req.query.limit as string) ?? "100", 10) || 100);
+  const offset = Math.max(0, parseInt((req.query.offset as string) ?? "0", 10) || 0);
+
   const bookings = await db
     .select()
     .from(bookingsTable)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(bookingsTable.createdAt);
+    .orderBy(desc(bookingsTable.createdAt)) // newest first
+    .limit(limit)
+    .offset(offset);
 
   res.json(ListBookingsResponse.parse(bookings.map(serializeBooking)));
 });
@@ -114,6 +133,29 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
+  }
+
+  // Fetch current booking to validate status transition
+  if (parsed.data.status !== undefined) {
+    const [current] = await db
+      .select({ status: bookingsTable.status })
+      .from(bookingsTable)
+      .where(eq(bookingsTable.id, params.data.id))
+      .limit(1);
+
+    if (!current) {
+      res.status(404).json({ error: "Booking not found" });
+      return;
+    }
+
+    const allowed = STATUS_TRANSITIONS[current.status] ?? [];
+    if (!allowed.includes(parsed.data.status)) {
+      res.status(409).json({
+        error: `Invalid status transition: ${current.status} → ${parsed.data.status}`,
+        allowedTransitions: allowed,
+      });
+      return;
+    }
   }
 
   const updates: Partial<typeof bookingsTable.$inferInsert> = {};
