@@ -94,3 +94,44 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+- `pnpm --filter @workspace/scripts run seed` — Seeds price rules and service areas into the DB
+
+### `artifacts/booking-app` (`@workspace/booking-app`)
+
+React + Vite frontend for the AussieClean booking platform. Premium dark theme (slate-950 bg, cyan-400 accent).
+
+- **8-step booking flow**: Service → Property → Add-ons → Schedule → Address → Details → Review/Quote → Payment
+- **State management**: Zustand store (`src/lib/store.ts`) — `BookingState` with all booking fields
+- **Pages**: `src/pages/home.tsx`, `src/pages/booking/` (Step1–Step8), `src/pages/dashboard.tsx`, `src/pages/success.tsx`, `src/pages/cancelled.tsx`
+- **API integration**: Uses `@workspace/api-client-react` hooks — Step 7 calls `useGetQuote`, Step 8 calls `useCreateCheckoutSession`
+- **Australian locale**: AUD currency, 4-digit postcodes, 04XX phone format
+- Routes: previewPath `/`, port from `$PORT`
+
+## AussieClean Platform Features
+
+### API Routes (`/api/*`)
+- `GET /api/healthz` — Health check
+- `GET /api/bookings?email=&status=` — List bookings
+- `POST /api/bookings` — Create booking
+- `GET /api/bookings/:id` — Get booking
+- `PATCH /api/bookings/:id` — Update booking status
+- `POST /api/pricing/quote` — Dynamic pricing quote (demand + time slot multipliers)
+- `POST /api/checkout/session` — Create Stripe checkout session (or mock URL if no STRIPE_SECRET_KEY)
+- `GET /api/service-areas` — List active service areas
+
+### Database Tables
+- `bookings` — Full booking records with status, pricing, customer details
+- `service_areas` — 18 seeded suburbs across NSW, VIC, QLD, WA, SA, ACT, TAS, NT
+- `price_rules` — Per-service/property-type base pricing + per-room rates
+- `price_history` — Audit log of all dynamic pricing calculations
+
+### Dynamic Pricing Engine (`artifacts/api-server/src/lib/pricing.ts`)
+- Looks up price rules from DB by serviceType + propertyType
+- Adds demand multiplier (based on recent booking volume in past 2 hours)
+- Adds time slot multiplier (1.15x for evening, 1.10x for early morning)
+- Returns quote + GST (10%) breakdown
+
+### Stripe Integration
+- Set `STRIPE_SECRET_KEY` environment variable to enable real Stripe checkout
+- Without the key, the checkout route returns a mock success URL for development

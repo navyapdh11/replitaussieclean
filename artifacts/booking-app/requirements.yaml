@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "For page transitions and interactive micro-animations"
+  "date-fns": "For date formatting and manipulation"
+  "zustand": "For multi-step form state management"
+  "clsx": "Utility for conditionally joining classNames"
+  "tailwind-merge": "Utility to safely merge Tailwind classes"
+
+images:
+  - path: "artifacts/booking-app/public/images/hero-bg.png"
+    description: "Dark, luxurious, abstract gradient mesh background in deep navy blue, slate, and vibrant cyan. Cinematic lighting, very premium feel."
+    aspect_ratio: "16:9"
+  - path: "artifacts/booking-app/public/images/clean-home.png"
+    description: "A breathtakingly clean, modern luxury living room in a high-end Australian home. Sunlight streaming through large windows. Very high resolution, architectural photography style."
+    aspect_ratio: "16:9"
+
+notes:
+  - Uses generated React Query hooks from @workspace/api-client-react
+  - No formal authentication; dashboard relies on simple email entry to fetch bookings

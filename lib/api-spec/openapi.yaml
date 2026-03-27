@@ -1,15 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AussieClean Booking Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: bookings
+    description: Booking CRUD operations
+  - name: pricing
+    description: Quote and pricing operations
+  - name: checkout
+    description: Stripe checkout sessions
+  - name: service-areas
+    description: Service area lookups
 paths:
   /healthz:
     get:
@@ -24,6 +31,182 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /bookings:
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a new booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingRequest"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List bookings
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+          description: Filter by customer email
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, pending, confirmed, completed, cancelled]
+          description: Filter by status
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get a booking by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateBooking
+      tags: [bookings]
+      summary: Update booking status or details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBookingRequest"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /pricing/quote:
+    post:
+      operationId: getQuote
+      tags: [pricing]
+      summary: Calculate a dynamic price quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteRequest"
+      responses:
+        "200":
+          description: Price quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /checkout/session:
+    post:
+      operationId: createCheckoutSession
+      tags: [checkout]
+      summary: Create a Stripe checkout session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCheckoutSessionRequest"
+      responses:
+        "200":
+          description: Stripe checkout session URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSessionResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /service-areas:
+    get:
+      operationId: listServiceAreas
+      tags: [service-areas]
+      summary: List all active service areas
+      responses:
+        "200":
+          description: List of service areas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ServiceArea"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +217,316 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required:
+        - error
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [draft, pending, confirmed, completed, cancelled]
+        serviceType:
+          type: string
+          enum: [standard_clean, deep_clean, end_of_lease, office_clean, ndis_support]
+        propertyType:
+          type: string
+          enum: [house, apartment, townhouse, office]
+        bedrooms:
+          type: integer
+        bathrooms:
+          type: integer
+        extras:
+          type: array
+          items:
+            type: string
+        date:
+          type: string
+        timeSlot:
+          type: string
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+          nullable: true
+        suburb:
+          type: string
+        state:
+          type: string
+        postcode:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        quoteAmountCents:
+          type: integer
+        gstAmountCents:
+          type: integer
+        currency:
+          type: string
+        stripeSessionId:
+          type: string
+          nullable: true
+        stripePaymentId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - status
+        - serviceType
+        - propertyType
+        - bedrooms
+        - bathrooms
+        - extras
+        - date
+        - timeSlot
+        - addressLine1
+        - suburb
+        - state
+        - postcode
+        - firstName
+        - lastName
+        - email
+        - phone
+        - quoteAmountCents
+        - gstAmountCents
+        - currency
+        - createdAt
+        - updatedAt
+
+    CreateBookingRequest:
+      type: object
+      properties:
+        serviceType:
+          type: string
+          enum: [standard_clean, deep_clean, end_of_lease, office_clean, ndis_support]
+        propertyType:
+          type: string
+          enum: [house, apartment, townhouse, office]
+        bedrooms:
+          type: integer
+          minimum: 1
+          maximum: 10
+        bathrooms:
+          type: integer
+          minimum: 1
+          maximum: 10
+        extras:
+          type: array
+          items:
+            type: string
+        date:
+          type: string
+        timeSlot:
+          type: string
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+        suburb:
+          type: string
+        state:
+          type: string
+        postcode:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        notes:
+          type: string
+        quoteAmountCents:
+          type: integer
+        gstAmountCents:
+          type: integer
+      required:
+        - serviceType
+        - propertyType
+        - bedrooms
+        - bathrooms
+        - extras
+        - date
+        - timeSlot
+        - addressLine1
+        - suburb
+        - state
+        - postcode
+        - firstName
+        - lastName
+        - email
+        - phone
+
+    UpdateBookingRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [draft, pending, confirmed, completed, cancelled]
+        stripeSessionId:
+          type: string
+        stripePaymentId:
+          type: string
+        notes:
+          type: string
+
+    QuoteRequest:
+      type: object
+      properties:
+        serviceType:
+          type: string
+          enum: [standard_clean, deep_clean, end_of_lease, office_clean, ndis_support]
+        propertyType:
+          type: string
+          enum: [house, apartment, townhouse, office]
+        bedrooms:
+          type: integer
+          minimum: 1
+          maximum: 10
+        bathrooms:
+          type: integer
+          minimum: 1
+          maximum: 10
+        extras:
+          type: array
+          items:
+            type: string
+        suburb:
+          type: string
+        state:
+          type: string
+        date:
+          type: string
+        timeSlot:
+          type: string
+      required:
+        - serviceType
+        - bedrooms
+        - bathrooms
+
+    QuoteResponse:
+      type: object
+      properties:
+        quoteAmountCents:
+          type: integer
+        gstAmountCents:
+          type: integer
+        totalAmountCents:
+          type: integer
+        currency:
+          type: string
+        dynamicMultiplier:
+          type: number
+        breakdown:
+          type: object
+          properties:
+            base:
+              type: integer
+            demand:
+              type: integer
+            timeSlot:
+              type: integer
+            extras:
+              type: integer
+          required:
+            - base
+            - demand
+            - timeSlot
+            - extras
+        factorsApplied:
+          type: object
+          properties:
+            demand:
+              type: number
+            timeSlot:
+              type: number
+          required:
+            - demand
+            - timeSlot
+        validUntil:
+          type: string
+      required:
+        - quoteAmountCents
+        - gstAmountCents
+        - totalAmountCents
+        - currency
+        - dynamicMultiplier
+        - breakdown
+        - factorsApplied
+        - validUntil
+
+    CreateCheckoutSessionRequest:
+      type: object
+      properties:
+        quoteAmountCents:
+          type: integer
+        bookingId:
+          type: string
+        customerEmail:
+          type: string
+          format: email
+        serviceDescription:
+          type: string
+      required:
+        - quoteAmountCents
+        - bookingId
+        - customerEmail
+
+    CheckoutSessionResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        url:
+          type: string
+      required:
+        - sessionId
+        - url
+
+    ServiceArea:
+      type: object
+      properties:
+        id:
+          type: string
+        suburb:
+          type: string
+        state:
+          type: string
+        postcode:
+          type: string
+        active:
+          type: boolean
+      required:
+        - id
+        - suburb
+        - state
+        - postcode
+        - active
