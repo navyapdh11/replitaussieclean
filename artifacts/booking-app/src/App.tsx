@@ -16,6 +16,7 @@ import Success from "@/pages/success";
 import Cancelled from "@/pages/cancelled";
 import NotFound from "@/pages/not-found";
 import { BookingDetailPage } from "@/pages/booking-detail";
+import SuburbPage from "@/pages/suburb";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/booking/success" component={Success} />
       <Route path="/booking/cancelled" component={Cancelled} />
       <Route path="/bookings/:id" component={BookingDetailPage} />
+      <Route path="/suburb/:slug" component={SuburbPage} />
       <Route component={NotFound} />
     </Switch>
   );

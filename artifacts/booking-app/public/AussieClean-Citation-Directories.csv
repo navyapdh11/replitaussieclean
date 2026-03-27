@@ -1,0 +1,63 @@
+#,Directory Name,URL,Category,Authority,NAP Status,Login Email,Submission Date,Live Date,Status,Notes
+1,Google Business Profile,https://business.google.com,Core,Tier 1,Unclaimed,,,,"Priority #1 — verify NAP exactly; add 10+ geotagged photos"
+2,Apple Maps (Apple Business Connect),https://businessconnect.apple.com,Core,Tier 1,Unclaimed,,,,"Syncs to Apple Maps; Siri citations; add geotagged photos"
+3,Bing Places for Business,https://www.bingplaces.com,Core,Tier 1,Unclaimed,,,,"Syncs from Google Business Profile; also feeds Alexa & Cortana"
+4,TrueLocal,https://www.truelocal.com.au,AU Directory,Tier 1,Unclaimed,,,,"High authority AU directory; add full service description"
+5,WhitePages Australia,https://www.whitepages.com.au,AU Directory,Tier 1,Unclaimed,,,,"Strong authority; verify phone number format exactly"
+6,Yellow Pages Australia,https://www.yellowpages.com.au,AU Directory,Tier 1,Unclaimed,,,,"Premium paid option available; free listing still valuable"
+7,Hotfrog Australia,https://www.hotfrog.com.au,AU Directory,Tier 1,Unclaimed,,,,"Free + fast approval; keyword-rich description important"
+8,LocalSearch,https://www.localsearch.com.au,AU Directory,Tier 1,Unclaimed,,,,"Strong local pack signal; add all service areas"
+9,Oneflare,https://www.oneflare.com.au,Lead Gen + Citation,Tier 1,Unclaimed,,,,"Lead gen + citation value; activate suburb coverage"
+10,HiPages,https://www.hipages.com.au,Lead Gen + Citation,Tier 1,Unclaimed,,,,"High DA; good for end-of-lease and deep clean searches"
+11,ServiceSeeking,https://www.serviceseeking.com.au,Lead Gen + Citation,Tier 1,Unclaimed,,,,"Review generation opportunity; add 3+ photos"
+12,ProductReview.com.au,https://www.productreview.com.au,Review Platform,Tier 1,Unclaimed,,,,"Encourage 5-star verified reviews; Google reads these"
+13,Facebook Business Page,https://www.facebook.com/business,Social + Citation,Tier 1,Unclaimed,,,,"Link GBP to FB; post seasonal content weekly"
+14,Cylex Australia,https://www.cylex.com.au,AU Directory,Tier 2,Unclaimed,,,,"Consistent NAP essential; add opening hours"
+15,dLook,https://www.dlook.com.au,AU Directory,Tier 2,Unclaimed,,,,"Australian-owned directory; suburb targeting available"
+16,BrownBook Australia,https://www.brownbook.net,Global + AU,Tier 2,Unclaimed,,,,"Global directory with AU section; add full description"
+17,StartLocal,https://www.startlocal.com.au,AU Directory,Tier 2,Unclaimed,,,,"Fast indexing; keyword-rich categories"
+18,LocalBusiness.com.au,https://www.localbusiness.com.au,AU Directory,Tier 2,Unclaimed,,,,"Good for suburb-level targeting"
+19,AussieWeb,https://www.aussieweb.com.au,AU Directory,Tier 2,Unclaimed,,,,"Australian business directory; free listing"
+20,Australia Business Directory,https://www.australiabusinessdirectory.com.au,AU Directory,Tier 2,Unclaimed,,,,"Niche AU directory; add service categories"
+21,FindIt Australia,https://www.findit.com.au,AU Directory,Tier 2,Unclaimed,,,,"Local service discovery platform"
+22,iLocal Australia,https://www.ilocal.com.au,AU Directory,Tier 2,Unclaimed,,,,"Location-based local directory"
+23,My Australian Business,https://www.myaustralianbusiness.com.au,AU Directory,Tier 2,Unclaimed,,,,"SME focus; cleaning services category available"
+24,123 Australia,https://www.123australia.com.au,AU Directory,Tier 2,Unclaimed,,,,"Broad AU directory; free tier available"
+25,eLocal Australia,https://www.elocal.com.au,AU Directory,Tier 2,Unclaimed,,,,"Free + fast submission"
+26,CitySearch Australia,https://www.citysearch.com.au,AU Directory,Tier 2,Unclaimed,,,,"City-level targeting; add all service suburbs"
+27,Aussie Directory,https://www.aussiedirectory.com.au,AU Directory,Tier 2,Unclaimed,,,,"Niche Australian directory"
+28,Local Guide Australia,https://www.localguide.com.au,AU Directory,Tier 2,Unclaimed,,,,"Suburb-level guide listings"
+29,Business Directory Australia,https://www.businessdirectory.com.au,AU Directory,Tier 2,Unclaimed,,,,"Category-based; choose House Cleaning Service"
+30,Australia Online,https://www.australiaonline.net.au,AU Directory,Tier 2,Unclaimed,,,,"Established AU directory"
+31,Find a Business,https://www.findabusiness.com.au,AU Directory,Tier 2,Unclaimed,,,,"Search-friendly directory"
+32,Australia Business Guide,https://www.australiabusinessguide.com.au,AU Directory,Tier 2,Unclaimed,,,,"Business guide with suburb filter"
+33,Local Australia,https://www.localaustralia.com.au,AU Directory,Tier 2,Unclaimed,,,,"Local business focus"
+34,Australia Business List,https://www.australiabusinesslist.com.au,AU Directory,Tier 2,Unclaimed,,,,"Aggregator-friendly format"
+35,Australia Business Finder,https://www.australiabusinessfinder.com.au,AU Directory,Tier 2,Unclaimed,,,,"Service-category search"
+36,Yelp Australia,https://www.yelp.com.au,Review Platform,Tier 2,Unclaimed,,,,"Smaller AU presence but global DA boosts entity signal"
+37,RealEstate.com.au Partners,https://www.realestate.com.au,Niche,Tier 2,Unclaimed,,,,"For move-in/out & bond cleans; list as preferred trade"
+38,Domain.com.au Partners,https://www.domain.com.au,Niche,Tier 2,Unclaimed,,,,"End-of-lease positioning; add bond-back guarantee"
+39,Suburb Directory — Sydney (search '[suburb] business directory'),https://[suburb].com.au,Local,Tier 3,Unclaimed,,,,"5–10 suburb-specific directories per service area"
+40,Suburb Directory — Melbourne (search '[suburb] business directory'),https://[suburb].com.au,Local,Tier 3,Unclaimed,,,,"e.g. richmondlocal.com.au or chatswoodbusiness.com.au"
+41,Suburb Directory — Brisbane (search '[suburb] business directory'),https://[suburb].com.au,Local,Tier 3,Unclaimed,,,,"High local signal for AI Overviews"
+42,Suburb Directory — Perth (search '[suburb] business directory'),https://[suburb].com.au,Local,Tier 3,Unclaimed,,,,"Search '[suburb] WA business directory'"
+43,Suburb Directory — Adelaide (search '[suburb] business directory'),https://[suburb].com.au,Local,Tier 3,Unclaimed,,,,"Search '[suburb] SA business directory'"
+44,Google Maps (verify via GBP),https://maps.google.com,Core,Tier 1,Unclaimed,,,,"Auto-populated from GBP; ensure category = House Cleaning Service"
+45,Bing Maps (via Bing Places),https://www.bing.com/maps,Core,Tier 1,Unclaimed,,,,"Auto-populated from Bing Places submission"
+,,,,,,,,,,
+,,NAP CONSISTENCY TEMPLATE — Use Exactly This on Every Directory,,,,,,,,
+,,Business Name,AussieClean,,,,,,,,
+,,Primary Phone,1300 253 262,,,,,,,,
+,,Email,hello@aussieclean.com.au,,,,,,,,
+,,Website,https://aussieclean.com.au,,,,,,,,
+,,Primary Category,House Cleaning Service,,,,,,,,
+,,"Secondary Categories","Commercial Cleaning, End of Lease Cleaning, Carpet Cleaning",,,,,,,,
+,,"Description","Professional seasonal cleaning services in [Suburb] [Postcode] — spring pollen removal, winter mould prevention, same-day availability. Police-checked cleaners, eco-friendly products, 100% satisfaction guarantee.",,,,,,,,
+,,Hours,"Mon–Sat: 7:00 AM – 7:00 PM",,,,,,,,
+,,"Payment Methods","Cash, Card, Bank Transfer, Apple Pay, Google Pay",,,,,,,,
+,,Countries Served,Australia (NSW · VIC · QLD · WA · SA),,,,,,,,
+,,30-Day Submission Plan,,,,,,,,
+,,Week 1,Claim & verify Rows 1-6 (Core Tier 1 citations),,,,,,,,
+,,Week 2,Submit Rows 7-15 (Lead gen + high-authority AU directories),,,,,,,,
+,,Week 3,Submit Rows 16-38 (Tier 2 + niche directories),,,,,,,,
+,,Week 4,Suburb-specific (Rows 39-43) + consistency audit across all 45,,,,,,,,

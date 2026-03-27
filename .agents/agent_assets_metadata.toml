@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "0_z7hZkHp1PvTUBNazYsG"
+uri = "file://artifacts/booking-app/public/AussieClean-Citation-Directories.csv"
+type = "table"
+title = "AussieClean — 45 Australian Citation Directories (Google Sheets ready)"

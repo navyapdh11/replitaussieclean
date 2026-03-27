@@ -12,6 +12,7 @@ import { SkipToContent } from "@/components/layout/SkipToContent";
 import { FaqSection, FAQ_ITEMS } from "@/components/home/FaqSection";
 import { ReviewsSection } from "@/components/home/ReviewsSection";
 import { SeasonalSection } from "@/components/home/SeasonalSection";
+import { HowToSection, HOWTO_STEPS, HOWTO_SUPPLIES, HOWTO_TOOLS } from "@/components/home/HowToSection";
 import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -140,6 +141,26 @@ const JSON_LD = JSON.stringify({
         "@type": "Question",
         "name": item.q,
         "acceptedAnswer": { "@type": "Answer", "text": item.a },
+      })),
+    },
+
+    /* ── HowTo: Winter Mould Prevention ─────────────────────── */
+    {
+      "@type": "HowTo",
+      "@id": "https://aussieclean.com.au/#howto-mould",
+      "name": "Winter Mould Prevention Checklist for Australian Homes",
+      "description": "Step-by-step guide to prevent and remove mould in Australian homes during winter. Includes ventilation tips, deep cleaning, and 6-month anti-mould treatment.",
+      "totalTime": "PT2H",
+      "estimatedCost": { "@type": "MonetaryAmount", "currency": "AUD", "value": "0" },
+      "supply": HOWTO_SUPPLIES,
+      "tool": HOWTO_TOOLS,
+      "isPartOf": { "@id": "https://aussieclean.com.au/#webpage" },
+      "step": HOWTO_STEPS.map((s, i) => ({
+        "@type": "HowToStep",
+        "name": s.name,
+        "text": s.text,
+        "url": `https://aussieclean.com.au/#${s.id}`,
+        "position": i + 1,
       })),
     },
   ],
@@ -518,6 +539,9 @@ export default function Home() {
 
         {/* ── Customer Reviews ─────────────────────────────── */}
         <ReviewsSection />
+
+        {/* ── HowTo: Winter Mould Prevention ───────────────── */}
+        <HowToSection />
 
         {/* ── FAQ Accordion ────────────────────────────────── */}
         <FaqSection />
