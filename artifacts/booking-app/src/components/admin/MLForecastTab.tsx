@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Brain, TrendingUp, RefreshCw, Zap, Info, CheckCircle2, AlertCircle } from "lucide-react";
-import { BASE_URL } from "./shared";
+import { BASE_URL, TENANT_ID } from "./shared";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,8 +31,6 @@ const SERVICE_TYPES = [
   { value: "office_clean",   label: "Office Clean" },
   { value: "carpet_clean",   label: "Carpet Clean" },
 ];
-
-const TENANT_ID = "aussieclean-default";
 
 function getDates(startStr: string, days: number): string[] {
   const result: string[] = [];

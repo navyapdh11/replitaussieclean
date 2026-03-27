@@ -53,7 +53,7 @@ const REVIEWS = [
 
 function StarRating({ rating }: { rating: number }) {
   return (
-    <div className="flex gap-0.5" aria-label={`${rating} out of 5 stars`}>
+    <div role="img" className="flex gap-0.5" aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
@@ -90,9 +90,9 @@ export function ReviewsSection() {
 
         {/* Review grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {REVIEWS.map((review, i) => (
+          {REVIEWS.map((review) => (
             <article
-              key={i}
+              key={review.name}
               aria-label={`Review by ${review.name} from ${review.suburb}`}
               className="relative bg-background rounded-2xl border border-border p-6 flex flex-col gap-4 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
             >

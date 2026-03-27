@@ -199,24 +199,27 @@ export default function SaasAdminPage() {
 
         {/* Pricing tier cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {PRICING_TIERS.map(({ plan, price, features, highlight }) => (
-            <div key={plan} className={cn(
+          {PRICING_TIERS.map((tier) => {
+            const highlight = "highlight" in tier && tier.highlight;
+            return (
+            <div key={tier.plan} className={cn(
               "border rounded-2xl p-5 space-y-3",
               highlight ? "border-primary bg-primary/5" : "border-border bg-card",
             )}>
               <div>
-                <p className="font-bold text-lg">{plan}</p>
-                <p className={cn("text-2xl font-extrabold", highlight ? "text-primary" : "text-foreground")}>{price}</p>
+                <p className="font-bold text-lg">{tier.plan}</p>
+                <p className={cn("text-2xl font-extrabold", highlight ? "text-primary" : "text-foreground")}>{tier.price}</p>
               </div>
               <ul className="space-y-1.5">
-                {features.map((f) => (
+                {tier.features.map((f) => (
                   <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> {f}
                   </li>
                 ))}
               </ul>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Tenants table */}

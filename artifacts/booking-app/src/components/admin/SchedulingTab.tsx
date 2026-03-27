@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Play, UserCheck, XCircle, RefreshCw, CheckCircle2 } from "lucide-react";
-import { BASE_URL } from "./shared";
+import { BASE_URL, TENANT_ID } from "./shared";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,8 +27,6 @@ interface AssignmentRecord {
   };
   staff: { id: string; name: string; phone: string; rating: number; vehicleType: string } | null;
 }
-
-const TENANT_ID = "aussieclean-default";
 
 export function SchedulingTab() {
   const { toast } = useToast();

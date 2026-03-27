@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Loader2, Bot } from "lucide-react";
 
@@ -28,6 +28,8 @@ export function AIChatWidget() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const msgCountRef = useRef(0);
+  const nextId = useCallback(() => String(++msgCountRef.current), []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,14 +41,14 @@ export function AIChatWidget() {
     const userMessage: Message = {
       role: "user",
       content: text.trim(),
-      id: Date.now().toString(),
+      id: nextId(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
-    const assistantId = (Date.now() + 1).toString();
+    const assistantId = nextId();
     setMessages((prev) => [
       ...prev,
       { role: "assistant", content: "", id: assistantId },
@@ -109,7 +111,9 @@ export function AIChatWidget() {
       <button
         onClick={() => setIsOpen((v) => !v)}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-2xl shadow-cyan-500/30 flex items-center justify-center hover:scale-110 transition-transform"
-        aria-label="Open chat"
+        aria-label={isOpen ? "Close chat" : "Open chat with AussieClean assistant"}
+        aria-expanded={isOpen}
+        aria-controls="ai-chat-panel"
       >
         {isOpen ? <X className="w-6 h-6 text-white" /> : <MessageCircle className="w-6 h-6 text-white" />}
       </button>
@@ -117,6 +121,10 @@ export function AIChatWidget() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="ai-chat-panel"
+            role="dialog"
+            aria-label="AussieClean chat assistant"
+            aria-modal="false"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -134,7 +142,11 @@ export function AIChatWidget() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+            <div
+              aria-live="polite"
+              aria-label="Chat messages"
+              className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0"
+            >
               {messages.map((m) => (
                 <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
@@ -177,6 +189,7 @@ export function AIChatWidget() {
             >
               <input
                 type="text"
+                aria-label="Ask AussieClean assistant"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a question..."

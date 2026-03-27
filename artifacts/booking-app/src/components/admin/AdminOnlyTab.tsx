@@ -4,11 +4,9 @@ import {
   Save, CheckCircle2, AlertCircle, Loader2, Server,
   BookOpen, Users, Calendar, Brain, TrendingDown, Settings,
 } from "lucide-react";
-import { BASE_URL } from "./shared";
+import { BASE_URL, TENANT_ID } from "./shared";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-
-const TENANT_ID = "aussieclean-default";
 
 interface SystemStats {
   status: "healthy" | "error";
@@ -114,11 +112,11 @@ export function AdminOnlyTab() {
       if (form.name)           body.name           = form.name;
       if (form.email)          body.email          = form.email;
       if (form.phone)          body.phone          = form.phone;
-      if (form.abn !== undefined) body.abn         = form.abn;
+      if (form.abn !== undefined) body.abn         = form.abn ?? undefined;
       if (form.primaryColor)   body.primaryColor   = form.primaryColor;
       if (form.secondaryColor) body.secondaryColor = form.secondaryColor;
-      if (form.domain !== undefined) body.domain   = form.domain;
-      if (form.logo !== undefined)   body.logo     = form.logo;
+      if (form.domain !== undefined) body.domain   = form.domain ?? undefined;
+      if (form.logo !== undefined)   body.logo     = form.logo ?? undefined;
 
       const res = await fetch(`${BASE_URL}/api/admin/system/tenant?tenantId=${TENANT_ID}`, {
         method: "PATCH",

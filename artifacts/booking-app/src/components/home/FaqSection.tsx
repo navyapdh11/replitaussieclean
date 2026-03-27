@@ -91,7 +91,7 @@ export function FaqSection() {
 
             return (
               <div
-                key={i}
+                key={item.q}
                 role="listitem"
                 className={cn(
                   "rounded-2xl border transition-all duration-200",

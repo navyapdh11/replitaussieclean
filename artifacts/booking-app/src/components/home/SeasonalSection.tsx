@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, type KeyboardEvent } from "react";
 import { Link } from "wouter";
 import { Flower2, Sun, Leaf, Snowflake, CheckCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -110,6 +110,21 @@ export function SeasonalSection() {
   const season = SEASONS.find((s) => s.id === active)!;
   const Icon = season.icon;
 
+  const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const handleTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, currentIdx: number) => {
+    let nextIdx: number | null = null;
+    if (e.key === "ArrowRight") nextIdx = (currentIdx + 1) % SEASONS.length;
+    else if (e.key === "ArrowLeft") nextIdx = (currentIdx - 1 + SEASONS.length) % SEASONS.length;
+    else if (e.key === "Home") nextIdx = 0;
+    else if (e.key === "End") nextIdx = SEASONS.length - 1;
+    else return;
+    e.preventDefault();
+    const nextSeason = SEASONS[nextIdx];
+    setActive(nextSeason.id);
+    tabRefs.current.get(nextSeason.id)?.focus();
+  };
+
   return (
     <section
       id="seasonal"
@@ -138,17 +153,23 @@ export function SeasonalSection() {
           aria-label="Select season"
           className="flex justify-center gap-2 flex-wrap"
         >
-          {SEASONS.map((s) => {
+          {SEASONS.map((s, idx) => {
             const TabIcon = s.icon;
             const isActive = s.id === active;
             return (
               <button
                 key={s.id}
+                ref={(el) => {
+                  if (el) tabRefs.current.set(s.id, el);
+                  else tabRefs.current.delete(s.id);
+                }}
                 role="tab"
                 id={`tab-${s.id}`}
                 aria-selected={isActive}
                 aria-controls={`panel-${s.id}`}
+                tabIndex={isActive ? 0 : -1}
                 onClick={() => setActive(s.id)}
+                onKeyDown={(e) => handleTabKeyDown(e, idx)}
                 className={cn(
                   "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   isActive

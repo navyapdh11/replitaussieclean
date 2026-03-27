@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import {
   CheckCircle2, Clock, Package, Wrench, ArrowRight, ChevronDown,
@@ -101,16 +101,18 @@ export function HowToSection({
   const activeName     = overrideName     ?? null;
   const activeDesc     = overrideDescription ?? null;
 
-  /* Duration label */
-  const parsedMinutes = (() => {
-    if (!overrideTotalTime) return 95;
-    const hours   = parseInt(overrideTotalTime.match(/(\d+)H/)?.[1] ?? "0", 10);
-    const minutes = parseInt(overrideTotalTime.match(/(\d+)M/)?.[1] ?? "0", 10);
-    return hours * 60 + minutes;
-  })();
-  const h            = Math.floor(parsedMinutes / 60);
-  const m            = parsedMinutes % 60;
-  const durationLabel = m > 0 ? `${h}h ${m}m total` : `${h}h total`;
+  /* Duration label — memoised; only recalculates when overrideTotalTime changes */
+  const durationLabel = useMemo(() => {
+    const parsedMinutes = (() => {
+      if (!overrideTotalTime) return 95;
+      const hours   = parseInt(overrideTotalTime.match(/(\d+)H/)?.[1] ?? "0", 10);
+      const minutes = parseInt(overrideTotalTime.match(/(\d+)M/)?.[1] ?? "0", 10);
+      return hours * 60 + minutes;
+    })();
+    const h = Math.floor(parsedMinutes / 60);
+    const m = parsedMinutes % 60;
+    return m > 0 ? `${h}h ${m}m total` : `${h}h total`;
+  }, [overrideTotalTime]);
 
   return (
     <section

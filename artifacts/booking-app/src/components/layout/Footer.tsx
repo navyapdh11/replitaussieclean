@@ -1,5 +1,7 @@
 import { Sparkles } from "lucide-react";
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card mt-auto">
@@ -10,7 +12,7 @@ export function Footer() {
             <span className="font-display font-bold text-lg">AussieClean</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} AussieClean Enterprise Services. All rights reserved.
+            © {CURRENT_YEAR} AussieClean Enterprise Services. All rights reserved.
           </p>
         </div>
       </div>

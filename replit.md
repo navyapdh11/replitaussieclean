@@ -145,3 +145,31 @@ All 13 suburb entries must have `neighbourPostcodes.length === neighbours.length
 - **Jane Cooper** — VIC, Melbourne, supervisor (all skills)
 - **Marcus Wong** — QLD, Brisbane, cleaner (carpet/office clean skills)
 All seeded under tenant `aussieclean-default`.
+
+## Code Quality Standards Enforced
+
+### React Key Stability
+- `FaqSection.tsx`: `key={item.q}` (question string — unique, stable)
+- `ReviewsSection.tsx`: `key={review.name}` (reviewer name — unique, stable)
+- Never use `key={i}` for lists that can reorder or have identity
+
+### Accessibility (ARIA) Contracts
+- `AIChatWidget`: `aria-live="polite"` on message list; `aria-label` on text input; `role="dialog"` + `aria-modal="false"` on panel; `aria-expanded` + `aria-controls` on toggle button; collision-free message IDs via ref counter (`msgCountRef`)
+- `SeasonalSection`: full roving tabindex pattern — active tab `tabIndex=0`, others `-1`; ArrowLeft/ArrowRight/Home/End keyboard navigation; focus management via `tabRefs` Map
+- `ReviewsSection` `StarRating`: `role="img"` on container + `aria-label` (stars are `aria-hidden`)
+- `HowToSection`: step buttons use `aria-expanded` + `aria-controls`; panels use `role="region"` + `aria-labelledby`
+- `Admin tabs` (admin.tsx): `role="tablist"` / `role="tab"` / `role="tabpanel"` with `aria-selected` / `aria-controls` / `aria-labelledby`
+
+### Performance / Render Hygiene
+- `Footer.tsx`: `CURRENT_YEAR` is a module-level constant (computed once at import time)
+- `HowToSection.tsx`: `durationLabel` wrapped in `useMemo([overrideTotalTime])`
+- `SuburbPerformanceTab.tsx`: sorted list + totals wrapped in `useMemo`
+- `suburb.tsx`: JSON-LD object wrapped in `useMemo`
+
+### Shared Constants
+- `artifacts/booking-app/src/components/admin/shared.ts` exports **both** `BASE_URL` and `TENANT_ID`
+- All admin tab components (`StaffTab`, `SchedulingTab`, `MLForecastTab`, `AdminOnlyTab`) import from `shared` — no local duplicates
+
+### TypeScript Cleanliness
+- `saas-admin.tsx` `PRICING_TIERS.map`: block-body callback extracts `highlight` via `"highlight" in tier` guard; `tier.features` reference (not destructured)
+- `AdminOnlyTab.tsx` form body: nullable fields cast with `?? undefined` before assignment to `Record<string, string | undefined>`

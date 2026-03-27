@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Pencil, ToggleLeft, ToggleRight, Star, MapPin, Wrench, X, Check } from "lucide-react";
-import { BASE_URL } from "./shared";
+import { BASE_URL, TENANT_ID } from "./shared";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,7 +28,6 @@ const SKILLS_OPTIONS = [
   { value: "window_clean", label: "Window Clean" },
 ];
 const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
-const TENANT_ID = "aussieclean-default";
 
 export function StaffTab() {
   const { toast } = useToast();

@@ -1,5 +1,7 @@
 export const BASE_URL = (import.meta.env.BASE_URL ?? "/booking-app").replace(/\/$/, "");
 
+export const TENANT_ID = "aussieclean-default";
+
 export const STATUS_ORDER = ["confirmed", "pending", "in_progress", "completed", "cancelled", "draft"];
 
 export const STATUS_TRANSITIONS: Record<string, string[]> = {
