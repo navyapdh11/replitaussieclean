@@ -1,11 +1,23 @@
 import { Router, type IRouter } from "express";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 import { db, staffTable, staffAvailabilityTable, jobAssignmentsTable } from "@workspace/db";
 import { randomUUID } from "crypto";
 
 const router: IRouter = Router();
 
-// List staff (optionally filter by tenant)
+/* ── Shared regex patterns ───────────────────────────────────────────────── */
+const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/**
+ * Australian phone number:
+ *  - Mobile:    04XX XXX XXX  (10 digits)
+ *  - Landline:  0[23578] XXXX XXXX (10 digits)
+ *  - Freecall:  1300 XXX XXX (10 digits) | 1800 XXX XXX (10 digits)
+ *  - Intl:      +61 followed by any of the above (minus leading 0)
+ * Spaces/hyphens/parens stripped before matching.
+ */
+const PHONE_AU_RE = /^(\+?61(2|3|4|7|8)\d{8}|0(2|3|4|7|8)\d{8}|1[38]00\d{6}|1300\d{6})$/;
+
+/* ── GET /staff ─────────────────────────────────────────────────────────── */
 router.get("/staff", async (req, res): Promise<void> => {
   const tenantId = req.query.tenantId as string | undefined;
   try {
@@ -21,20 +33,41 @@ router.get("/staff", async (req, res): Promise<void> => {
   }
 });
 
-// Get single staff member with assignment count
+/* ── GET /staff/:id ─────────────────────────────────────────────────────── */
 router.get("/staff/:id", async (req, res): Promise<void> => {
   try {
-    const [staff] = await db.select().from(staffTable).where(eq(staffTable.id, req.params.id));
-    if (!staff) { res.status(404).json({ error: "Staff not found" }); return; }
-    const assignments = await db.select().from(jobAssignmentsTable).where(eq(jobAssignmentsTable.staffId, staff.id));
-    res.json({ ...staff, assignmentCount: assignments.length, recentAssignments: assignments.slice(-5) });
+    const [staff] = await db
+      .select()
+      .from(staffTable)
+      .where(eq(staffTable.id, req.params.id));
+
+    if (!staff) {
+      res.status(404).json({ error: "Staff not found" });
+      return;
+    }
+
+    /* Fetch recent assignments and total count in parallel — no memory-slicing */
+    const [recentAssignments, [{ total }]] = await Promise.all([
+      db
+        .select()
+        .from(jobAssignmentsTable)
+        .where(eq(jobAssignmentsTable.staffId, staff.id))
+        .orderBy(desc(jobAssignmentsTable.assignedAt))
+        .limit(5),
+      db
+        .select({ total: count(jobAssignmentsTable.id) })
+        .from(jobAssignmentsTable)
+        .where(eq(jobAssignmentsTable.staffId, staff.id)),
+    ]);
+
+    res.json({ ...staff, assignmentCount: Number(total ?? 0), recentAssignments });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Query failed";
     res.status(500).json({ error: msg });
   }
 });
 
-// Create staff
+/* ── POST /staff ────────────────────────────────────────────────────────── */
 router.post("/staff", async (req, res): Promise<void> => {
   const b = req.body;
   if (!b.tenantId || !b.name || !b.email || !b.phone || !b.baseSuburb || !b.baseState) {
@@ -42,24 +75,22 @@ router.post("/staff", async (req, res): Promise<void> => {
     return;
   }
 
-  // Basic email format validation
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email)) {
+  if (!EMAIL_RE.test(b.email)) {
     res.status(400).json({ error: "Invalid email address" });
     return;
   }
 
-  // Australian phone format (basic)
-  if (b.phone && !/^(\+?61|0)[2-9]\d{8}$/.test(b.phone.replace(/\s/g, ""))) {
-    res.status(400).json({ error: "Phone must be an Australian number (e.g. 0412345678)" });
+  if (!PHONE_AU_RE.test(String(b.phone).replace(/[\s\-()]/g, ""))) {
+    res.status(400).json({ error: "Phone must be a valid Australian number (e.g. 0412 345 678, 1300 123 456)" });
     return;
   }
 
   try {
-    // Check email uniqueness within tenant
     const [existing] = await db
       .select({ id: staffTable.id })
       .from(staffTable)
       .where(and(eq(staffTable.email, b.email), eq(staffTable.tenantId, b.tenantId)));
+
     if (existing) {
       res.status(409).json({ error: "A staff member with that email already exists" });
       return;
@@ -68,24 +99,25 @@ router.post("/staff", async (req, res): Promise<void> => {
     const [row] = await db
       .insert(staffTable)
       .values({
-        id:             randomUUID(),
-        tenantId:       b.tenantId,
-        name:           String(b.name).trim(),
-        email:          String(b.email).trim().toLowerCase(),
-        phone:          String(b.phone).trim(),
-        role:           b.role ?? "cleaner",
-        skills:         Array.isArray(b.skills) ? b.skills : [],
-        maxJobsPerDay:  Math.max(1, Math.min(20, Number(b.maxJobsPerDay) || 3)),
-        baseSuburb:     String(b.baseSuburb).trim(),
-        baseState:      String(b.baseState).trim().toUpperCase(),
-        lat:            b.lat != null ? Number(b.lat) : null,
-        lng:            b.lng != null ? Number(b.lng) : null,
-        vehicleType:    b.vehicleType ?? "car",
-        rating:         Math.min(5, Math.max(1, Number(b.rating) || 5.0)),
-        active:         b.active !== false,
-        notes:          b.notes ? String(b.notes) : null,
+        id:            randomUUID(),
+        tenantId:      b.tenantId,
+        name:          String(b.name).trim(),
+        email:         String(b.email).trim().toLowerCase(),
+        phone:         String(b.phone).trim(),
+        role:          b.role ?? "cleaner",
+        skills:        Array.isArray(b.skills) ? b.skills : [],
+        maxJobsPerDay: Math.max(1, Math.min(20, Number(b.maxJobsPerDay) || 3)),
+        baseSuburb:    String(b.baseSuburb).trim(),
+        baseState:     String(b.baseState).trim().toUpperCase(),
+        lat:           b.lat != null ? Number(b.lat) : null,
+        lng:           b.lng != null ? Number(b.lng) : null,
+        vehicleType:   b.vehicleType ?? "car",
+        rating:        Math.min(5, Math.max(1, Number(b.rating) || 5.0)),
+        active:        b.active !== false,
+        notes:         b.notes ? String(b.notes) : null,
       })
       .returning();
+
     res.status(201).json(row);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Insert failed";
@@ -93,23 +125,47 @@ router.post("/staff", async (req, res): Promise<void> => {
   }
 });
 
-// Update staff
+/* ── PATCH /staff/:id ───────────────────────────────────────────────────── */
 router.patch("/staff/:id", async (req, res): Promise<void> => {
   const b = req.body;
   const allowed = [
-    "name","email","phone","role","skills","maxJobsPerDay",
-    "baseSuburb","baseState","lat","lng","vehicleType","rating","active","notes",
+    "name", "email", "phone", "role", "skills", "maxJobsPerDay",
+    "baseSuburb", "baseState", "lat", "lng", "vehicleType", "rating", "active", "notes",
   ] as const;
   const updates: Record<string, unknown> = {};
   for (const k of allowed) {
     if (k in b) updates[k] = b[k];
   }
 
-  // Sanitize string fields
+  /* Re-validate email format if being updated */
+  if (typeof updates.email === "string") {
+    const email = updates.email.trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) {
+      res.status(400).json({ error: "Invalid email address" });
+      return;
+    }
+    updates.email = email;
+  }
+
+  /* Re-validate phone format if being updated */
+  if (typeof updates.phone === "string") {
+    const phone = updates.phone;
+    const normalised = phone.replace(/[\s\-()]/g, "");
+    if (!PHONE_AU_RE.test(normalised)) {
+      res.status(400).json({ error: "Phone must be a valid Australian number (e.g. 0412 345 678, 1300 123 456)" });
+      return;
+    }
+  }
+
+  /* Sanitize remaining string fields */
   if (typeof updates.name === "string")       updates.name       = updates.name.trim();
-  if (typeof updates.email === "string")      updates.email      = updates.email.trim().toLowerCase();
   if (typeof updates.baseSuburb === "string") updates.baseSuburb = updates.baseSuburb.trim();
   if (typeof updates.baseState === "string")  updates.baseState  = updates.baseState.trim().toUpperCase();
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No updatable fields provided" });
+    return;
+  }
 
   try {
     const [row] = await db
@@ -117,7 +173,11 @@ router.patch("/staff/:id", async (req, res): Promise<void> => {
       .set(updates as Partial<typeof staffTable.$inferInsert>)
       .where(eq(staffTable.id, req.params.id))
       .returning();
-    if (!row) { res.status(404).json({ error: "Staff not found" }); return; }
+
+    if (!row) {
+      res.status(404).json({ error: "Staff not found" });
+      return;
+    }
     res.json(row);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Update failed";
@@ -125,16 +185,25 @@ router.patch("/staff/:id", async (req, res): Promise<void> => {
   }
 });
 
-// Toggle active
+/* ── PATCH /staff/:id/toggle ────────────────────────────────────────────── */
 router.patch("/staff/:id/toggle", async (req, res): Promise<void> => {
   try {
-    const [current] = await db.select().from(staffTable).where(eq(staffTable.id, req.params.id));
-    if (!current) { res.status(404).json({ error: "Staff not found" }); return; }
+    const [current] = await db
+      .select()
+      .from(staffTable)
+      .where(eq(staffTable.id, req.params.id));
+
+    if (!current) {
+      res.status(404).json({ error: "Staff not found" });
+      return;
+    }
+
     const [row] = await db
       .update(staffTable)
       .set({ active: !current.active })
       .where(eq(staffTable.id, req.params.id))
       .returning();
+
     res.json(row);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Update failed";
@@ -142,21 +211,34 @@ router.patch("/staff/:id/toggle", async (req, res): Promise<void> => {
   }
 });
 
-// Delete (deactivate) staff — soft delete by setting active=false if assignments exist
+/* ── DELETE /staff/:id ──────────────────────────────────────────────────── */
 router.delete("/staff/:id", async (req, res): Promise<void> => {
   try {
+    /* Block hard-delete if any assignment is still active or in-progress */
     const [activeAssignment] = await db
       .select({ id: jobAssignmentsTable.id })
       .from(jobAssignmentsTable)
       .where(and(
         eq(jobAssignmentsTable.staffId, req.params.id),
+        /* "assigned" = queued, "in_progress" = actively on-site */
         eq(jobAssignmentsTable.status, "assigned"),
       ));
 
-    if (activeAssignment) {
-      // Soft-delete: deactivate instead of hard-delete to preserve assignment history
-      await db.update(staffTable).set({ active: false }).where(eq(staffTable.id, req.params.id));
-      res.status(200).json({ message: "Staff member deactivated (has active assignments)" });
+    const [inProgressAssignment] = await db
+      .select({ id: jobAssignmentsTable.id })
+      .from(jobAssignmentsTable)
+      .where(and(
+        eq(jobAssignmentsTable.staffId, req.params.id),
+        eq(jobAssignmentsTable.status, "in_progress"),
+      ));
+
+    if (activeAssignment || inProgressAssignment) {
+      /* Soft-delete: deactivate to preserve assignment history */
+      await db
+        .update(staffTable)
+        .set({ active: false })
+        .where(eq(staffTable.id, req.params.id));
+      res.status(200).json({ message: "Staff member deactivated (has active or in-progress assignments)" });
       return;
     }
 
@@ -168,9 +250,16 @@ router.delete("/staff/:id", async (req, res): Promise<void> => {
   }
 });
 
-// Upsert availability for a staff member on a date
+/* ── PUT /staff/:id/availability/:date ─────────────────────────────────── */
 router.put("/staff/:id/availability/:date", async (req, res): Promise<void> => {
   const { id, date } = req.params;
+
+  /* Validate date format */
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
+    res.status(400).json({ error: "date must be a valid YYYY-MM-DD string" });
+    return;
+  }
+
   const { timeSlots } = req.body;
   if (!Array.isArray(timeSlots)) {
     res.status(400).json({ error: "timeSlots must be an array" });
@@ -203,7 +292,7 @@ router.put("/staff/:id/availability/:date", async (req, res): Promise<void> => {
   }
 });
 
-// Get availability
+/* ── GET /staff/:id/availability ────────────────────────────────────────── */
 router.get("/staff/:id/availability", async (req, res): Promise<void> => {
   try {
     const rows = await db

@@ -23,11 +23,20 @@ type Schema = Record<string, FieldRule>;
 
 /* ─── Patterns ────────────────────────────────────────────────────────── */
 
-const EMAIL_RE   = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const UUID_RE    = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const URL_RE     = /^https?:\/\/.+/i;
-// Australian landline or mobile: +61 prefix or leading 0, 9-10 digits after
-const PHONE_AU_RE = /^(\+?61|0)[2-9]\d{8}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const URL_RE   = /^https?:\/\/.+/i;
+
+/**
+ * Australian phone number — covers all common formats (spaces/hyphens/parens
+ * stripped before matching):
+ *   Mobile:    04XX XXX XXX   → 0[4]\d{8}
+ *   Landline:  0[2-9]XXXXXXXX → 0[2-9]\d{8}
+ *   Freecall:  1300 XXX XXX   → 1300\d{6}
+ *   Freecall:  1800 XXX XXX   → 1800\d{6}
+ *   Intl:      +61[2-9]\d{8}
+ */
+const PHONE_AU_RE = /^(\+?61[2-9]\d{8}|0[2-9]\d{8}|1[38]00\d{6}|1300\d{6})$/;
 
 /* ─── Core validator ──────────────────────────────────────────────────── */
 
@@ -39,10 +48,9 @@ interface ValidationError {
 function validateField(name: string, rule: FieldRule, raw: unknown): ValidationError | null {
   const label = rule.label ?? name;
 
-  // Missing / undefined
   if (raw === undefined || raw === null || raw === "") {
     if (rule.required) return { field: name, message: `${label} is required` };
-    return null; // optional — skip further checks
+    return null;
   }
 
   const value = raw;
@@ -75,8 +83,10 @@ function validateField(name: string, rule: FieldRule, raw: unknown): ValidationE
       break;
     }
     case "phone-au": {
-      if (typeof value !== "string" || !PHONE_AU_RE.test(value.replace(/\s/g, "")))
-        return { field: name, message: `${label} must be a valid Australian phone number` };
+      /* Strip formatting characters before testing */
+      const normalised = typeof value === "string" ? value.replace(/[\s\-()]/g, "") : "";
+      if (!PHONE_AU_RE.test(normalised))
+        return { field: name, message: `${label} must be a valid Australian phone number (mobile, landline, 1300, or 1800)` };
       break;
     }
     case "number": {
@@ -109,12 +119,10 @@ function validateField(name: string, rule: FieldRule, raw: unknown): ValidationE
 
 function runValidation(data: Record<string, unknown>, schema: Schema): ValidationError[] {
   const errors: ValidationError[] = [];
-
   for (const [name, rule] of Object.entries(schema)) {
     const err = validateField(name, rule, data[name]);
     if (err) errors.push(err);
   }
-
   return errors;
 }
 
@@ -137,9 +145,9 @@ export function validateBody(schema: Schema) {
 
     if (errors.length > 0) {
       res.status(400).json({
-        error: "Validation failed",
-        code: "VALIDATION_ERROR",
-        details: errors,
+        error:     "Validation failed",
+        code:      "VALIDATION_ERROR",
+        details:   errors,
         requestId: req.headers["x-request-id"],
       });
       return;
@@ -161,9 +169,9 @@ export function validateQuery(schema: Schema) {
 
     if (errors.length > 0) {
       res.status(400).json({
-        error: "Validation failed",
-        code: "VALIDATION_ERROR",
-        details: errors,
+        error:     "Validation failed",
+        code:      "VALIDATION_ERROR",
+        details:   errors,
         requestId: req.headers["x-request-id"],
       });
       return;

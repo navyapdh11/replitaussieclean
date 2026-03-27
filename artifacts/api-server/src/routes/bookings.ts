@@ -51,6 +51,7 @@ router.get("/bookings", async (req, res): Promise<void> => {
     if (query.data.email)  conditions.push(eq(bookingsTable.email,  query.data.email));
     if (query.data.status) conditions.push(eq(bookingsTable.status, query.data.status));
 
+    /* limit/offset are not in the Zod schema — parse from req.query with safe defaults */
     const limit  = Math.min(200, parseInt((req.query.limit  as string) ?? "100", 10) || 100);
     const offset = Math.max(0,   parseInt((req.query.offset as string) ?? "0",   10) || 0);
 

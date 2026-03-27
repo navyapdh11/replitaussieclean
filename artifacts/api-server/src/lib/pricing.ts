@@ -150,17 +150,28 @@ function calculateWeatherMultiplier(ctx: PricingContext): number {
   return 1.0;
 }
 
+/**
+ * Shared helper: parse a time-slot string (e.g. "9:00 AM", "17:00", "2:00pm")
+ * into a 24-hour integer (0–23).  Returns NaN on bad input.
+ */
+function parseSlotHour(timeSlot: string): number {
+  const raw   = parseInt(timeSlot.split(":")[0] ?? "NaN", 10);
+  if (isNaN(raw)) return NaN;
+  const lower = timeSlot.toLowerCase();
+  let h = raw;
+  if (lower.includes("pm") && h !== 12) h += 12;
+  if (lower.includes("am") && h === 12) h = 0;
+  return h;
+}
+
 /** Traffic multiplier — pure function (no DB) */
 function calculateTrafficMultiplier(ctx: PricingContext): number {
   if (!ctx.date) return 1.0;
   const dayOfWeek = new Date(ctx.date).getDay();
   if (dayOfWeek === 0 || dayOfWeek === 6) return 1.10;
   if (!ctx.timeSlot) return 1.0;
-  const rawHour = parseInt(ctx.timeSlot.split(":")[0] ?? "12", 10);
-  const lower = ctx.timeSlot.toLowerCase();
-  let h = rawHour;
-  if (lower.includes("pm") && h !== 12) h += 12;
-  if (lower.includes("am") && h === 12) h = 0;
+  const h = parseSlotHour(ctx.timeSlot);
+  if (isNaN(h)) return 1.0;
   if ((h >= 7 && h <= 9) || (h >= 16 && h <= 19)) return 1.15;
   return 1.0;
 }
@@ -184,16 +195,13 @@ async function calculateStaffAvailabilityMultiplier(ctx: PricingContext): Promis
   } catch { return 1.0; }
 }
 
-/** Time slot multiplier — pure function */
+/** Time slot multiplier — pure function (uses shared parseSlotHour) */
 function calculateTimeSlotMultiplier(timeSlot?: string): number {
   if (!timeSlot) return 1.0;
-  const rawHour = parseInt(timeSlot.split(":")[0] ?? "12", 10);
-  const lower = timeSlot.toLowerCase();
-  let h = rawHour;
-  if (lower.includes("pm") && h !== 12) h += 12;
-  if (lower.includes("am") && h === 12) h = 0;
+  const h = parseSlotHour(timeSlot);
+  if (isNaN(h)) return 1.0;
   if (h >= 17) return 1.15;
-  if (h < 9) return 1.10;
+  if (h < 9)   return 1.10;
   return 1.0;
 }
 

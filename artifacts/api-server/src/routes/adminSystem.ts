@@ -109,6 +109,12 @@ router.patch("/admin/system/tenant", async (req, res): Promise<void> => {
     if (k in b && b[k] !== undefined) updates[k] = b[k];
   }
 
+  /* Guard: nothing to update */
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No updatable fields provided" });
+    return;
+  }
+
   if (typeof updates.email === "string" && updates.email) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updates.email as string)) {
       res.status(400).json({ error: "Invalid email address" });

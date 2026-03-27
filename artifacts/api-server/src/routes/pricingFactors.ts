@@ -1,93 +1,140 @@
-import { Router } from "express";
+import { Router, type IRouter } from "express";
 import { db, dynamicPricingFactorsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getPricingAnalytics, bustAdminFactorCache } from "../lib/pricing";
 
-const router = Router();
+const router: IRouter = Router();
 
-function validateFactorBody(body: unknown): { name: string; label: string; multiplier: number; active: boolean; validFrom: string; validUntil: string; metadata: Record<string, unknown> } | null {
+/* ── Validation helper ──────────────────────────────────────────────────── */
+function validateFactorBody(body: unknown): {
+  name: string;
+  label: string;
+  multiplier: number;
+  active: boolean;
+  validFrom: string;
+  validUntil: string;
+  metadata: Record<string, unknown>;
+} | null {
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
   if (typeof b.name !== "string" || !b.name.trim()) return null;
   if (typeof b.label !== "string" || !b.label.trim()) return null;
   if (typeof b.multiplier !== "number" || b.multiplier < 0.5 || b.multiplier > 3.0) return null;
   if (typeof b.validFrom !== "string" || typeof b.validUntil !== "string") return null;
+  /* Validate dates are parseable */
+  if (isNaN(Date.parse(b.validFrom)) || isNaN(Date.parse(b.validUntil))) return null;
   return {
-    name: b.name,
-    label: b.label,
+    name:       b.name,
+    label:      b.label,
     multiplier: b.multiplier,
-    active: typeof b.active === "boolean" ? b.active : true,
-    validFrom: b.validFrom,
+    active:     typeof b.active === "boolean" ? b.active : true,
+    validFrom:  b.validFrom,
     validUntil: b.validUntil,
-    metadata: (typeof b.metadata === "object" && b.metadata !== null) ? b.metadata as Record<string, unknown> : {},
+    metadata:   (typeof b.metadata === "object" && b.metadata !== null)
+      ? b.metadata as Record<string, unknown>
+      : {},
   };
 }
 
-router.get("/analytics", async (_req, res) => {
-  const analytics = await getPricingAnalytics();
-  res.json(analytics);
+/* ── GET /analytics ─────────────────────────────────────────────────────── */
+router.get("/analytics", async (_req, res): Promise<void> => {
+  try {
+    const analytics = await getPricingAnalytics();
+    res.json(analytics);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Query failed";
+    res.status(500).json({ error: `Failed to fetch pricing analytics: ${msg}` });
+  }
 });
 
-router.get("/", async (_req, res) => {
-  const factors = await db
-    .select()
-    .from(dynamicPricingFactorsTable)
-    .orderBy(desc(dynamicPricingFactorsTable.createdAt));
-  res.json(factors);
+/* ── GET / ──────────────────────────────────────────────────────────────── */
+router.get("/", async (_req, res): Promise<void> => {
+  try {
+    const factors = await db
+      .select()
+      .from(dynamicPricingFactorsTable)
+      .orderBy(desc(dynamicPricingFactorsTable.createdAt));
+    res.json(factors);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Query failed";
+    res.status(500).json({ error: `Failed to fetch pricing factors: ${msg}` });
+  }
 });
 
-router.post("/", async (req, res) => {
+/* ── POST / ─────────────────────────────────────────────────────────────── */
+router.post("/", async (req, res): Promise<void> => {
   const data = validateFactorBody(req.body);
   if (!data) {
-    res.status(400).json({ error: "Invalid request body" });
+    res.status(400).json({ error: "Invalid request body — check name, label, multiplier (0.5–3.0), validFrom, validUntil" });
     return;
   }
+
   const { name, label, multiplier, active, validFrom, validUntil, metadata } = data;
 
-  const [created] = await db
-    .insert(dynamicPricingFactorsTable)
-    .values({
-      id: randomUUID(),
-      name,
-      label,
-      multiplier,
-      active: active ?? true,
-      validFrom: new Date(validFrom),
-      validUntil: new Date(validUntil),
-      metadata: metadata ?? {},
-    })
-    .returning();
+  try {
+    const [created] = await db
+      .insert(dynamicPricingFactorsTable)
+      .values({
+        id:         randomUUID(),
+        name,
+        label,
+        multiplier,
+        active:     active ?? true,
+        validFrom:  new Date(validFrom),
+        validUntil: new Date(validUntil),
+        metadata:   metadata ?? {},
+      })
+      .returning();
 
-  bustAdminFactorCache();
-  res.status(201).json(created);
+    bustAdminFactorCache();
+    res.status(201).json(created);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Insert failed";
+    res.status(500).json({ error: `Failed to create pricing factor: ${msg}` });
+  }
 });
 
-router.patch("/:id/toggle", async (req, res) => {
-  const [factor] = await db
-    .select()
-    .from(dynamicPricingFactorsTable)
-    .where(eq(dynamicPricingFactorsTable.id, req.params.id))
-    .limit(1);
+/* ── PATCH /:id/toggle ──────────────────────────────────────────────────── */
+router.patch("/:id/toggle", async (req, res): Promise<void> => {
+  try {
+    const [factor] = await db
+      .select()
+      .from(dynamicPricingFactorsTable)
+      .where(eq(dynamicPricingFactorsTable.id, req.params.id))
+      .limit(1);
 
-  if (!factor) { res.status(404).json({ error: "Not found" }); return; }
+    if (!factor) {
+      res.status(404).json({ error: "Pricing factor not found" });
+      return;
+    }
 
-  const [updated] = await db
-    .update(dynamicPricingFactorsTable)
-    .set({ active: !factor.active, updatedAt: new Date() })
-    .where(eq(dynamicPricingFactorsTable.id, req.params.id))
-    .returning();
+    const [updated] = await db
+      .update(dynamicPricingFactorsTable)
+      .set({ active: !factor.active, updatedAt: new Date() })
+      .where(eq(dynamicPricingFactorsTable.id, req.params.id))
+      .returning();
 
-  bustAdminFactorCache();
-  res.json(updated);
+    bustAdminFactorCache();
+    res.json(updated);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Update failed";
+    res.status(500).json({ error: `Failed to toggle pricing factor: ${msg}` });
+  }
 });
 
-router.delete("/:id", async (req, res) => {
-  await db
-    .delete(dynamicPricingFactorsTable)
-    .where(eq(dynamicPricingFactorsTable.id, req.params.id));
-  bustAdminFactorCache();
-  res.json({ success: true });
+/* ── DELETE /:id ────────────────────────────────────────────────────────── */
+router.delete("/:id", async (req, res): Promise<void> => {
+  try {
+    await db
+      .delete(dynamicPricingFactorsTable)
+      .where(eq(dynamicPricingFactorsTable.id, req.params.id));
+    bustAdminFactorCache();
+    res.json({ success: true });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Delete failed";
+    res.status(500).json({ error: `Failed to delete pricing factor: ${msg}` });
+  }
 });
 
 export { router as pricingFactorsRouter };

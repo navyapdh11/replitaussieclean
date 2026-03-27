@@ -26,12 +26,13 @@ router.post(
       return;
     }
 
-    let event: any;
+    let event: import("stripe").Stripe.Event;
     try {
       const Stripe = (await import("stripe")).default;
-      const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" as any });
+      const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" as never });
       event = stripe.webhooks.constructEvent(
-        (req as any).rawBody || JSON.stringify(req.body),
+        /* rawBody is set by the express.raw() middleware in app.ts */
+        (req as Request & { rawBody?: Buffer }).rawBody ?? Buffer.from(JSON.stringify(req.body)),
         signature,
         STRIPE_WEBHOOK_SECRET
       );
