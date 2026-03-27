@@ -14,6 +14,7 @@ import tenantsRouter from "./tenants";
 import { pricingFactorsRouter } from "./pricingFactors";
 import adminSystemRouter from "./adminSystem";
 import docsRouter from "./docs";
+import analyticsRouter from "./analytics";
 import { adminLimiter } from "../lib/ratelimit";
 
 const router: IRouter = Router();
@@ -29,6 +30,7 @@ router.use(aiRouter);
 router.use(trackingRouter);
 
 /* ── Admin-scoped routes: stricter rate limit ─────────────────────────── */
+router.use(adminLimiter, analyticsRouter);
 router.use(adminLimiter, staffRouter);
 router.use(adminLimiter, mlRouter);
 router.use(adminLimiter, schedulingRouter);
