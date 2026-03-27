@@ -11,4 +11,7 @@ export type QuoteResponseBreakdown = {
   demand: number;
   timeSlot: number;
   extras: number;
+  weather: number;
+  traffic: number;
+  staffAvailability: number;
 };

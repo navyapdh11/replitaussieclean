@@ -9,4 +9,7 @@
 export type QuoteResponseFactorsApplied = {
   demand: number;
   timeSlot: number;
+  weather: number;
+  traffic: number;
+  staffAvailability: number;
 };

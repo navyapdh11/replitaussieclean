@@ -122,12 +122,18 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 - `POST /api/webhooks/stripe` — Stripe webhook handler (verifies signature, confirms/cancels bookings, sends email)
 - `POST /api/ai/chat` — AI chat SSE endpoint powered by OpenAI (rate limited: 30/min)
 - `GET /api/tracking/:bookingId` — Get current cleaner location for a booking
+- `GET /api/pricing-factors` — List all admin surge pricing factors
+- `POST /api/pricing-factors` — Create a new surge pricing factor
+- `PATCH /api/pricing-factors/:id/toggle` — Toggle a pricing factor active/inactive
+- `DELETE /api/pricing-factors/:id` — Delete a pricing factor
+- `GET /api/pricing-factors/analytics` — Get pricing analytics (avg multiplier, price history)
 
 ### WebSocket (Socket.IO)
 - Namespace: `/tracking`
 - Events: `join_job` (subscribe), `update_location` (cleaner pushes GPS), `job_status` (status updates)
 - Emits: `cleaner_location` (lat/lng/heading/speed), `job_status_update` (status)
 - Client lib: `artifacts/booking-app/src/lib/tracking.ts`
+- Cleaner hook: `artifacts/booking-app/src/lib/useCleanerTracker.ts` — for cleaner-side GPS broadcasting
 
 ### Database Tables
 - `bookings` — Full booking records with status, pricing, customer details
@@ -136,12 +142,19 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 - `price_history` — Audit log of all dynamic pricing calculations
 - `conversations` — AI chat conversation sessions
 - `messages` — AI chat messages (role/content/timestamps)
+- `dynamic_pricing_factors` — Admin-controlled surge pricing factors with date range validity
 
 ### Dynamic Pricing Engine (`artifacts/api-server/src/lib/pricing.ts`)
 - Looks up price rules from DB by serviceType + propertyType
-- Adds demand multiplier (based on recent booking volume in past 2 hours)
-- Adds time slot multiplier (1.15x for evening, 1.10x for early morning)
-- Returns quote + GST (10%) breakdown
+- **5 dynamic multipliers** applied in sequence:
+  - **Demand**: based on recent booking volume in past 2 hours (1.0–1.35×)
+  - **Weather**: season/state-based Australian climate surcharge (1.0–1.12×)
+  - **Traffic**: weekend + peak hour surcharge (1.0–1.15×)
+  - **Staff availability**: bookings confirmed for same day (1.0–1.30×)
+  - **Time slot**: evening/early-morning premium (1.0–1.15×)
+  - **Admin factors**: multiplied from active `dynamic_pricing_factors` DB records
+- Total multiplier capped at 0.8×–2.0×
+- Returns full breakdown with GST (10%)
 
 ### Stripe Integration
 - Set `STRIPE_SECRET_KEY` environment variable to enable real Stripe checkout
@@ -169,7 +182,16 @@ React + Vite frontend for the AussieClean booking platform. Premium dark theme (
 ### Admin Dashboard (`/admin`)
 - Full bookings table with stats cards (total, confirmed, pending, revenue)
 - Filter by status and customer email
-- Table view with all booking details
+- Table view with all booking details + "View" link per row
+- **Pricing Analytics tab**: avg multiplier stat, surge factor CRUD (create/toggle/delete), price history table
+- Each booking row links to the `/bookings/:id` booking detail page
+
+### Booking Detail Page (`/bookings/:id`)
+- Shows full booking details: service, schedule, address, contact, payment
+- **Live GPS Tracker button** appears for confirmed/in_progress bookings
+- Map uses Leaflet + CartoDB dark tiles (lazy-loaded via dynamic import)
+- Real-time cleaner position via Socket.IO `/tracking` namespace
+- Progress bar shows job status (Assigned → En Route → Arrived → Cleaning → Done)
 
 ### SEO (home.tsx)
 - JSON-LD `LocalBusiness` schema with `AggregateRating`, `hasOfferCatalog`, `areaServed`

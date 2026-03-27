@@ -228,10 +228,16 @@ export const GetQuoteResponse = zod.object({
     demand: zod.number(),
     timeSlot: zod.number(),
     extras: zod.number(),
+    weather: zod.number(),
+    traffic: zod.number(),
+    staffAvailability: zod.number(),
   }),
   factorsApplied: zod.object({
     demand: zod.number(),
     timeSlot: zod.number(),
+    weather: zod.number(),
+    traffic: zod.number(),
+    staffAvailability: zod.number(),
   }),
   validUntil: zod.string(),
 });

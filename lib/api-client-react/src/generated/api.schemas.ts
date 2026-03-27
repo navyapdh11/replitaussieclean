@@ -191,11 +191,17 @@ export type QuoteResponseBreakdown = {
   demand: number;
   timeSlot: number;
   extras: number;
+  weather: number;
+  traffic: number;
+  staffAvailability: number;
 };
 
 export type QuoteResponseFactorsApplied = {
   demand: number;
   timeSlot: number;
+  weather: number;
+  traffic: number;
+  staffAvailability: number;
 };
 
 export interface QuoteResponse {

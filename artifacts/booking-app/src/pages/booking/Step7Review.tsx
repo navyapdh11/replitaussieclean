@@ -145,6 +145,24 @@ export function Step7Review() {
                 <span>+{formatCurrency(quoteData.breakdown.demand)}</span>
               </div>
             )}
+            {quoteData.breakdown.weather > 0 && (
+              <div className="flex justify-between text-sky-400 text-sm font-medium">
+                <span>Weather Surcharge</span>
+                <span>+{formatCurrency(quoteData.breakdown.weather)}</span>
+              </div>
+            )}
+            {quoteData.breakdown.traffic > 0 && (
+              <div className="flex justify-between text-yellow-400 text-sm font-medium">
+                <span>Traffic / Weekend Premium</span>
+                <span>+{formatCurrency(quoteData.breakdown.traffic)}</span>
+              </div>
+            )}
+            {quoteData.breakdown.staffAvailability > 0 && (
+              <div className="flex justify-between text-rose-400 text-sm font-medium">
+                <span>Limited Availability</span>
+                <span>+{formatCurrency(quoteData.breakdown.staffAvailability)}</span>
+              </div>
+            )}
             {quoteData.breakdown.timeSlot > 0 && (
               <div className="flex justify-between text-blue-400 text-sm font-medium">
                 <span>Time Slot Premium</span>
