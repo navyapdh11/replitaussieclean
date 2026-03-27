@@ -3,17 +3,18 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useListBookings } from "@workspace/api-client-react";
 import { formatCurrency, cn } from "@/lib/utils";
-import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck } from "lucide-react";
+import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck, ShieldCheck } from "lucide-react";
 import { BookingsTab } from "@/components/admin/BookingsTab";
 import { DispatchPanel } from "@/components/admin/DispatchPanel";
 import { PricingAnalyticsTab } from "@/components/admin/PricingAnalyticsTab";
 import { StaffTab } from "@/components/admin/StaffTab";
 import { SchedulingTab } from "@/components/admin/SchedulingTab";
 import { MLForecastTab } from "@/components/admin/MLForecastTab";
+import { AdminOnlyTab } from "@/components/admin/AdminOnlyTab";
 
-type AdminTab = "bookings" | "dispatch" | "pricing" | "staff" | "scheduling" | "ml";
+type AdminTab = "bookings" | "dispatch" | "pricing" | "staff" | "scheduling" | "ml" | "system";
 
-const VALID_TABS: AdminTab[] = ["bookings", "dispatch", "pricing", "staff", "scheduling", "ml"];
+const VALID_TABS: AdminTab[] = ["bookings", "dispatch", "pricing", "staff", "scheduling", "ml", "system"];
 
 function getHashTab(): AdminTab {
   const hash = window.location.hash.replace("#", "") as AdminTab;
@@ -61,6 +62,7 @@ export default function AdminDashboard() {
     { id: "staff"       as const, label: "Staff",       icon: Users         },
     { id: "scheduling"  as const, label: "Scheduling",  icon: UserCheck     },
     { id: "ml"          as const, label: "ML Forecast", icon: Brain         },
+    { id: "system"      as const, label: "Admin Only",  icon: ShieldCheck   },
   ];
 
   return (
@@ -144,6 +146,7 @@ export default function AdminDashboard() {
         {tab === "staff"      && <StaffTab />}
         {tab === "scheduling" && <SchedulingTab />}
         {tab === "ml"         && <MLForecastTab />}
+        {tab === "system"     && <AdminOnlyTab />}
       </main>
 
       <Footer />

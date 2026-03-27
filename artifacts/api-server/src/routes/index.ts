@@ -12,6 +12,7 @@ import mlRouter from "./ml";
 import schedulingRouter from "./scheduling";
 import tenantsRouter from "./tenants";
 import { pricingFactorsRouter } from "./pricingFactors";
+import adminSystemRouter from "./adminSystem";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(mlRouter);
 router.use(schedulingRouter);
 router.use(tenantsRouter);
 router.use("/pricing-factors", pricingFactorsRouter);
+router.use(adminSystemRouter);
 
 export default router;
