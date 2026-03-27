@@ -102,7 +102,7 @@ export async function calculateDynamicPrice(ctx: PricingContext): Promise<Pricin
       factorsApplied: { demand: demandMult, weather: weatherMult, traffic: trafficMult, staffAvailability: staffMult, timeSlot: timeSlotMult, admin: adminMult },
     });
   } catch (err) {
-    logger.error("Failed to record price history", { err });
+    logger.error({ err }, "Failed to record price history");
   }
 
   return {

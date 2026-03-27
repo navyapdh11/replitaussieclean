@@ -4,9 +4,11 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import { eq } from "drizzle-orm";
 import { chatLimiter } from "../lib/ratelimit";
 import { logger } from "../lib/logger";
-import type OpenAI from "openai";
-
 const router: IRouter = Router();
+
+const ALLOWED_ROLES = new Set(["user", "assistant", "system"]);
+const MAX_CONTENT_LENGTH = 2000;
+const MAX_MESSAGES = 20;
 
 router.post("/ai/chat", chatLimiter, async (req, res): Promise<void> => {
   const { messages } = req.body;
@@ -14,6 +16,22 @@ router.post("/ai/chat", chatLimiter, async (req, res): Promise<void> => {
   if (!Array.isArray(messages) || messages.length === 0) {
     res.status(400).json({ error: "messages array is required" });
     return;
+  }
+
+  if (messages.length > MAX_MESSAGES) {
+    res.status(400).json({ error: "Too many messages in conversation" });
+    return;
+  }
+
+  for (const m of messages) {
+    if (!ALLOWED_ROLES.has(m?.role)) {
+      res.status(400).json({ error: "Invalid message role" });
+      return;
+    }
+    if (typeof m.content !== "string" || m.content.length > MAX_CONTENT_LENGTH) {
+      res.status(400).json({ error: "Message content too long or invalid" });
+      return;
+    }
   }
 
   try {
@@ -49,13 +67,13 @@ Be warm, helpful, and conversational. Use plain Australian English. Keep respons
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const chatMessages: OpenAI.ChatCompletionMessageParam[] = messages.map((m: any) => ({
-      role: m.role,
-      content: m.content,
+    const chatMessages = messages.map((m: any) => ({
+      role: m.role as "user" | "assistant" | "system",
+      content: m.content as string,
     }));
 
     const stream = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-4o-mini",
       max_completion_tokens: 512,
       messages: [{ role: "system", content: systemPrompt }, ...chatMessages],
       stream: true,
@@ -71,7 +89,7 @@ Be warm, helpful, and conversational. Use plain Australian English. Keep respons
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
   } catch (err) {
-    logger.error("AI chat error", { err });
+    logger.error({ err }, "AI chat error");
     if (!res.headersSent) {
       res.status(500).json({ error: "AI chat failed" });
     } else {

@@ -114,7 +114,7 @@ router.patch("/staff/:id", async (req, res): Promise<void> => {
   try {
     const [row] = await db
       .update(staffTable)
-      .set(updates as Parameters<typeof staffTable.$inferInsert>[0])
+      .set(updates as Partial<typeof staffTable.$inferInsert>)
       .where(eq(staffTable.id, req.params.id))
       .returning();
     if (!row) { res.status(404).json({ error: "Staff not found" }); return; }

@@ -102,7 +102,7 @@ router.patch("/scheduling/assignments/:id/status", async (req, res): Promise<voi
 
     const [row] = await db
       .update(jobAssignmentsTable)
-      .set({ status, ...extra } as Parameters<typeof jobAssignmentsTable.$inferInsert>[0] & Record<string, unknown>)
+      .set({ status, ...extra } as Partial<typeof jobAssignmentsTable.$inferInsert>)
       .where(eq(jobAssignmentsTable.id, req.params.id))
       .returning();
     if (!row) { res.status(404).json({ error: "Assignment not found" }); return; }

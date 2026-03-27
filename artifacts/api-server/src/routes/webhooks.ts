@@ -36,7 +36,7 @@ router.post(
         STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      logger.error("Stripe webhook signature verification failed", { err });
+      logger.error({ err }, "Stripe webhook signature verification failed");
       res.status(400).json({ error: "Webhook signature verification failed" });
       return;
     }
@@ -73,7 +73,7 @@ router.post(
                   gstAmountCents: booking.gstAmountCents,
                 });
               }
-              logger.info("Booking confirmed via Stripe webhook", { bookingId });
+              logger.info({ bookingId }, "Booking confirmed via Stripe webhook");
             }
           }
           break;
@@ -87,7 +87,7 @@ router.post(
               .update(bookingsTable)
               .set({ status: "cancelled" })
               .where(eq(bookingsTable.id, bookingId));
-            logger.info("Booking cancelled — session expired", { bookingId });
+            logger.info({ bookingId }, "Booking cancelled — session expired");
           }
           break;
         }
@@ -100,18 +100,18 @@ router.post(
               .update(bookingsTable)
               .set({ status: "pending" })
               .where(eq(bookingsTable.id, bookingId));
-            logger.info("Booking reverted to pending — payment failed", { bookingId });
+            logger.info({ bookingId }, "Booking reverted to pending — payment failed");
           }
           break;
         }
 
         default:
-          logger.info(`Unhandled Stripe webhook: ${event.type}`);
+          logger.info({ eventType: event.type }, "Unhandled Stripe webhook");
       }
 
       res.json({ received: true });
     } catch (err) {
-      logger.error("Stripe webhook handler error", { err });
+      logger.error({ err }, "Stripe webhook handler error");
       res.status(500).json({ error: "Webhook handler failed" });
     }
   }

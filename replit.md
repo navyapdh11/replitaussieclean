@@ -159,6 +159,13 @@ All seeded under tenant `aussieclean-default`.
 - `ReviewsSection` `StarRating`: `role="img"` on container + `aria-label` (stars are `aria-hidden`)
 - `HowToSection`: step buttons use `aria-expanded` + `aria-controls`; panels use `role="region"` + `aria-labelledby`
 - `Admin tabs` (admin.tsx): `role="tablist"` / `role="tab"` / `role="tabpanel"` with `aria-selected` / `aria-controls` / `aria-labelledby`
+- **Booking Steps 1–6 full accessibility pass**:
+  - All toggle/selection buttons have `type="button"` + `aria-pressed={isSelected}`
+  - All form inputs have `id` attributes; all labels have `htmlFor` attributes (programmatic association)
+  - All error paragraphs have `role="alert"` (screen reader announcement on validation failure)
+  - Bedroom/bathroom stepper buttons have `aria-label` + counter div has `role="status"` + `aria-live="polite"`
+  - Postcode input has `inputMode="numeric"` + `pattern="[0-9]{4}"` + `autoComplete="postal-code"`
+  - All inputs have appropriate `autoComplete` values (given-name, family-name, email, tel, street-address, etc.)
 
 ### Performance / Render Hygiene
 - `Footer.tsx`: `CURRENT_YEAR` is a module-level constant (computed once at import time)
@@ -173,3 +180,23 @@ All seeded under tenant `aussieclean-default`.
 ### TypeScript Cleanliness
 - `saas-admin.tsx` `PRICING_TIERS.map`: block-body callback extracts `highlight` via `"highlight" in tier` guard; `tier.features` reference (not destructured)
 - `AdminOnlyTab.tsx` form body: nullable fields cast with `?? undefined` before assignment to `Record<string, string | undefined>`
+- API server: **zero TypeScript errors** — all 19 prior errors resolved
+- `lib/db`, `lib/api-zod`, `lib/integrations-openai-ai-server`: `noEmitOnError: false` so declarations emit despite drizzle-zod version mismatch
+- Route files: `Partial<typeof table.$inferInsert>` instead of broken `Parameters<typeof table.$inferInsert>[0]`
+- `ai.ts`: removed direct `import type OpenAI from "openai"` (not in api-server deps) — uses inline role union type instead
+
+### Security
+- **HSTS**: `Strict-Transport-Security: max-age=31536000; includeSubDomains` added to `securityHeaders.ts`
+- **Email HTML injection**: all user-supplied strings (firstName, serviceName, address, etc.) HTML-escaped via `escHtml()` before template injection
+- **AI chat input validation**: message role must be `"user"|"assistant"|"system"`; content capped at 2000 chars; max 20 messages per request
+- **checkout.ts**: Stripe `checkout.sessions.create()` wrapped in try/catch → returns 502 on Stripe failure instead of crashing
+
+### Pino Logger Arg Order
+Correct: `logger.info({ meta }, "message")` — metadata FIRST, string SECOND.
+All call sites fixed: `email.ts`, `pricing.ts`, `ai.ts`, `webhooks.ts` (was reversed, silently losing metadata).
+
+### AI Model
+- `ai.ts`: corrected from `"gpt-5-mini"` (non-existent) → `"gpt-4o-mini"` (runtime-viable model)
+
+### Australian Phone Validation (Step6Details)
+Regex covers: mobile `04XXXXXXXX`, landline `0[23578]XXXXXXXX`, `1300XXXXXX`, `1800XXXXXX`, international `+61` prefix. Spaces/hyphens/parens stripped before matching.

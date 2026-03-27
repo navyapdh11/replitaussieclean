@@ -26,17 +26,22 @@ export function Step5Address() {
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <MapPin className="w-6 h-6 text-primary" /> Property Address
+          <MapPin className="w-6 h-6 text-primary" aria-hidden="true" /> Property Address
         </h2>
         <p className="text-muted-foreground mt-2">Where is the cleaning taking place?</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Street Address <span className="text-destructive">*</span></label>
+          <label htmlFor="address-line1" className="block text-sm font-medium text-foreground mb-1.5">
+            Street Address <span className="text-destructive" aria-hidden="true">*</span>
+            <span className="sr-only">(required)</span>
+          </label>
           <input 
+            id="address-line1"
             type="text" 
             placeholder="123 Example St"
+            autoComplete="street-address"
             value={store.addressLine1 || ""}
             onChange={(e) => store.updateData({ addressLine1: e.target.value })}
             className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
@@ -44,10 +49,14 @@ export function Step5Address() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Apartment, suite, etc. (Optional)</label>
+          <label htmlFor="address-line2" className="block text-sm font-medium text-foreground mb-1.5">
+            Apartment, suite, etc. (Optional)
+          </label>
           <input 
+            id="address-line2"
             type="text" 
             placeholder="Unit 4"
+            autoComplete="address-line2"
             value={store.addressLine2 || ""}
             onChange={(e) => store.updateData({ addressLine2: e.target.value })}
             className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
@@ -56,34 +65,51 @@ export function Step5Address() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Suburb <span className="text-destructive">*</span></label>
+            <label htmlFor="address-suburb" className="block text-sm font-medium text-foreground mb-1.5">
+              Suburb <span className="text-destructive" aria-hidden="true">*</span>
+              <span className="sr-only">(required)</span>
+            </label>
             <input 
+              id="address-suburb"
               type="text" 
               placeholder="Sydney"
+              autoComplete="address-level2"
               value={store.suburb || ""}
               onChange={(e) => store.updateData({ suburb: e.target.value })}
               className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Postcode <span className="text-destructive">*</span></label>
+            <label htmlFor="address-postcode" className="block text-sm font-medium text-foreground mb-1.5">
+              Postcode <span className="text-destructive" aria-hidden="true">*</span>
+              <span className="sr-only">(required, 4 digits)</span>
+            </label>
             <input 
-              type="text" 
+              id="address-postcode"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{4}"
               placeholder="2000"
               maxLength={4}
+              autoComplete="postal-code"
               value={store.postcode || ""}
-              onChange={(e) => store.updateData({ postcode: e.target.value })}
+              onChange={(e) => store.updateData({ postcode: e.target.value.replace(/\D/g, "") })}
               className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">State <span className="text-destructive">*</span></label>
-          <div className="flex flex-wrap gap-2">
+          <p id="state-label" className="block text-sm font-medium text-foreground mb-2">
+            State <span className="text-destructive" aria-hidden="true">*</span>
+            <span className="sr-only">(required)</span>
+          </p>
+          <div className="flex flex-wrap gap-2" role="group" aria-labelledby="state-label">
             {STATES.map((state) => (
               <button
                 key={state}
+                type="button"
+                aria-pressed={store.state === state}
                 onClick={() => store.updateData({ state })}
                 className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
                   store.state === state 
@@ -98,13 +124,13 @@ export function Step5Address() {
         </div>
       </div>
 
-      {error && <p className="text-destructive text-sm font-medium">{error}</p>}
+      {error && <p role="alert" className="text-destructive text-sm font-medium">{error}</p>}
 
       <div className="flex gap-4 pt-6 border-t border-border/50">
-        <button onClick={store.prevStep} className="px-6 py-3 rounded-xl font-semibold border border-border hover:bg-secondary transition-colors">
+        <button type="button" onClick={store.prevStep} className="px-6 py-3 rounded-xl font-semibold border border-border hover:bg-secondary transition-colors">
           Back
         </button>
-        <button onClick={handleNext} className="flex-1 px-6 py-3 rounded-xl font-bold bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all">
+        <button type="button" onClick={handleNext} className="flex-1 px-6 py-3 rounded-xl font-bold bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all">
           Continue
         </button>
       </div>

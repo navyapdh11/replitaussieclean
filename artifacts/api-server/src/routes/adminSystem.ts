@@ -119,7 +119,7 @@ router.patch("/admin/system/tenant", async (req, res): Promise<void> => {
   try {
     const [row] = await db
       .update(tenantsTable)
-      .set(updates as Parameters<typeof tenantsTable.$inferInsert>[0])
+      .set(updates as Partial<typeof tenantsTable.$inferInsert>)
       .where(eq(tenantsTable.id, tenantId))
       .returning();
     if (!row) { res.status(404).json({ error: "Tenant not found" }); return; }

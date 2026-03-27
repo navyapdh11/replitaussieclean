@@ -12,6 +12,16 @@ function formatCurrency(cents: number): string {
   }).format(cents / 100);
 }
 
+/** Escape user-supplied strings before injecting into HTML */
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendBookingConfirmation({
   email,
   firstName,
@@ -46,11 +56,20 @@ export async function sendBookingConfirmation({
   const serviceName = serviceType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const shortId = bookingId.slice(-8).toUpperCase();
 
+  const safeFirstName = escHtml(firstName);
+  const safeServiceName = escHtml(serviceName);
+  const safeAddressLine1 = escHtml(addressLine1);
+  const safeSuburb = escHtml(suburb);
+  const safeState = escHtml(state);
+  const safeDate = escHtml(date);
+  const safeTimeSlot = escHtml(timeSlot);
+  const safeShortId = escHtml(shortId);
+
   try {
     await resend.emails.send({
       from: "AussieClean <bookings@aussieclean.com.au>",
       to: email,
-      subject: `Booking Confirmed – #${shortId}`,
+      subject: `Booking Confirmed – #${safeShortId}`,
       html: `
 <!DOCTYPE html>
 <html>
@@ -59,15 +78,15 @@ export async function sendBookingConfirmation({
   <div style="max-width:560px;margin:0 auto;">
     <div style="background:linear-gradient(135deg,#0891b2,#1d4ed8);border-radius:16px;padding:32px;text-align:center;margin-bottom:24px;">
       <h1 style="margin:0;font-size:28px;font-weight:900;color:#fff;">Booking Confirmed! 🎉</h1>
-      <p style="margin:8px 0 0;color:#bae6fd;font-size:15px;">Reference #${shortId}</p>
+      <p style="margin:8px 0 0;color:#bae6fd;font-size:15px;">Reference #${safeShortId}</p>
     </div>
-    <p style="color:#cbd5e1;">Hi ${firstName}, your AussieClean booking is confirmed. Here are the details:</p>
+    <p style="color:#cbd5e1;">Hi ${safeFirstName}, your AussieClean booking is confirmed. Here are the details:</p>
     <div style="background:#1e293b;border-radius:12px;padding:24px;margin:16px 0;">
       <table style="width:100%;border-collapse:collapse;color:#f1f5f9;">
-        <tr><td style="padding:8px 0;color:#94a3b8;">Service</td><td style="padding:8px 0;font-weight:600;">${serviceName}</td></tr>
-        <tr><td style="padding:8px 0;color:#94a3b8;">Date</td><td style="padding:8px 0;font-weight:600;">${date}</td></tr>
-        <tr><td style="padding:8px 0;color:#94a3b8;">Time</td><td style="padding:8px 0;font-weight:600;">${timeSlot}</td></tr>
-        <tr><td style="padding:8px 0;color:#94a3b8;">Address</td><td style="padding:8px 0;font-weight:600;">${addressLine1}, ${suburb} ${state}</td></tr>
+        <tr><td style="padding:8px 0;color:#94a3b8;">Service</td><td style="padding:8px 0;font-weight:600;">${safeServiceName}</td></tr>
+        <tr><td style="padding:8px 0;color:#94a3b8;">Date</td><td style="padding:8px 0;font-weight:600;">${safeDate}</td></tr>
+        <tr><td style="padding:8px 0;color:#94a3b8;">Time</td><td style="padding:8px 0;font-weight:600;">${safeTimeSlot}</td></tr>
+        <tr><td style="padding:8px 0;color:#94a3b8;">Address</td><td style="padding:8px 0;font-weight:600;">${safeAddressLine1}, ${safeSuburb} ${safeState}</td></tr>
         <tr><td style="padding:8px 0;color:#94a3b8;">Subtotal</td><td style="padding:8px 0;">${formatCurrency(quoteAmountCents)}</td></tr>
         <tr><td style="padding:8px 0;color:#94a3b8;">GST (10%)</td><td style="padding:8px 0;">${formatCurrency(gstAmountCents)}</td></tr>
         <tr style="border-top:1px solid #334155;">
@@ -85,8 +104,8 @@ export async function sendBookingConfirmation({
 </html>
       `.trim(),
     });
-    logger.info("Booking confirmation email sent", { bookingId, email });
+    logger.info({ bookingId, email }, "Booking confirmation email sent");
   } catch (err) {
-    logger.error("Failed to send booking confirmation email", { err, bookingId });
+    logger.error({ err, bookingId }, "Failed to send booking confirmation email");
   }
 }

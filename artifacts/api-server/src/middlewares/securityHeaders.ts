@@ -23,6 +23,12 @@ export function securityHeaders(_req: Request, res: Response, next: NextFunction
     "camera=(), microphone=(), geolocation=(), payment=(self)",
   );
 
+  // Enforce HTTPS with a one-year max-age (only meaningful in production behind TLS)
+  res.setHeader(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains",
+  );
+
   // Loose CSP for a JSON API — tighten further in production
   res.setHeader(
     "Content-Security-Policy",

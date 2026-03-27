@@ -34,10 +34,11 @@ export function Step4Schedule() {
 
       <div className="space-y-6">
         <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Calendar className="w-4 h-4 text-primary" /> Select Date
+          <label htmlFor="booking-date" className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Calendar className="w-4 h-4 text-primary" aria-hidden="true" /> Select Date
           </label>
           <input 
+            id="booking-date"
             type="date" 
             min={today}
             value={store.date || ""}
@@ -48,15 +49,17 @@ export function Step4Schedule() {
         </div>
 
         <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Clock className="w-4 h-4 text-primary" /> Arrival Window
-          </label>
-          <div className="grid gap-3">
+          <p id="arrival-window-label" className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Clock className="w-4 h-4 text-primary" aria-hidden="true" /> Arrival Window
+          </p>
+          <div className="grid gap-3" role="group" aria-labelledby="arrival-window-label">
             {TIME_SLOTS.map((slot) => {
               const isSelected = store.timeSlot === slot.id;
               return (
                 <button
                   key={slot.id}
+                  type="button"
+                  aria-pressed={isSelected}
                   onClick={() => store.updateData({ timeSlot: slot.id })}
                   className={cn(
                     "flex items-center justify-between p-4 rounded-xl border text-left transition-all",
@@ -74,13 +77,13 @@ export function Step4Schedule() {
         </div>
       </div>
 
-      {error && <p className="text-destructive text-sm font-medium">{error}</p>}
+      {error && <p role="alert" className="text-destructive text-sm font-medium">{error}</p>}
 
       <div className="flex gap-4 pt-6 border-t border-border/50">
-        <button onClick={store.prevStep} className="px-6 py-3 rounded-xl font-semibold border border-border hover:bg-secondary transition-colors">
+        <button type="button" onClick={store.prevStep} className="px-6 py-3 rounded-xl font-semibold border border-border hover:bg-secondary transition-colors">
           Back
         </button>
-        <button onClick={handleNext} className="flex-1 px-6 py-3 rounded-xl font-bold bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all">
+        <button type="button" onClick={handleNext} className="flex-1 px-6 py-3 rounded-xl font-bold bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all">
           Continue
         </button>
       </div>

@@ -30,13 +30,15 @@ export function Step1Service() {
         <p className="text-muted-foreground mt-2">Select the primary service type for your property.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2" role="group" aria-label="Service type">
         {SERVICES.map((s) => {
           const isSelected = serviceType === s.id;
           const Icon = s.icon;
           return (
             <button
               key={s.id}
+              type="button"
+              aria-pressed={isSelected}
               onClick={() => handleSelect(s.id)}
               className={cn(
                 "flex items-start gap-4 p-5 rounded-2xl border text-left transition-all duration-300",
@@ -50,7 +52,7 @@ export function Step1Service() {
                 "p-3 rounded-xl",
                 isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
               )}>
-                <Icon className="w-6 h-6" />
+                <Icon className="w-6 h-6" aria-hidden="true" />
               </div>
               <div>
                 <h3 className={cn("font-bold", isSelected ? "text-foreground" : "text-foreground")}>{s.label}</h3>

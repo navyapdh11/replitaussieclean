@@ -35,33 +35,38 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" as any });
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    customer_email: customerEmail,
-    line_items: [
-      {
-        price_data: {
-          currency: "aud",
-          product_data: {
-            name: serviceDescription ?? "Cleaning Service Booking",
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: customerEmail,
+      line_items: [
+        {
+          price_data: {
+            currency: "aud",
+            product_data: {
+              name: serviceDescription ?? "Cleaning Service Booking",
+            },
+            unit_amount: quoteAmountCents,
           },
-          unit_amount: quoteAmountCents,
+          quantity: 1,
         },
-        quantity: 1,
-      },
-    ],
-    metadata: { bookingId },
-    success_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
-    cancel_url: `${appUrl}/booking/cancelled?booking_id=${bookingId}`,
-  });
+      ],
+      metadata: { bookingId },
+      success_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
+      cancel_url: `${appUrl}/booking/cancelled?booking_id=${bookingId}`,
+    });
 
-  res.json(
-    CreateCheckoutSessionResponse.parse({
-      sessionId: session.id,
-      url: session.url!,
-    })
-  );
+    res.json(
+      CreateCheckoutSessionResponse.parse({
+        sessionId: session.id,
+        url: session.url!,
+      })
+    );
+  } catch (err) {
+    logger.error({ err, bookingId }, "Stripe checkout session creation failed");
+    res.status(502).json({ error: "Payment provider error. Please try again." });
+  }
 });
 
 export default router;
