@@ -12,17 +12,23 @@ router.post("/pricing/quote", quoteLimiter, async (req, res): Promise<void> => {
     return;
   }
 
-  const result = await calculateDynamicPrice({
-    serviceType: parsed.data.serviceType,
-    propertyType: parsed.data.propertyType,
-    bedrooms: parsed.data.bedrooms,
-    bathrooms: parsed.data.bathrooms,
-    extras: parsed.data.extras ?? [],
-    suburb: parsed.data.suburb,
-    state: parsed.data.state,
-    date: parsed.data.date,
-    timeSlot: parsed.data.timeSlot,
-  });
+  let result;
+  try {
+    result = await calculateDynamicPrice({
+      serviceType: parsed.data.serviceType,
+      propertyType: parsed.data.propertyType,
+      bedrooms: parsed.data.bedrooms,
+      bathrooms: parsed.data.bathrooms,
+      extras: parsed.data.extras ?? [],
+      suburb: parsed.data.suburb,
+      state: parsed.data.state,
+      date: parsed.data.date,
+      timeSlot: parsed.data.timeSlot,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Pricing calculation failed", details: String(err) });
+    return;
+  }
 
   res.json(GetQuoteResponse.parse(result));
 });

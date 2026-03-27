@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import {
@@ -90,7 +90,7 @@ function SuburbFaq({ data }: { data: SuburbData }) {
             const btnId    = `sfaq-btn-${i}`;
             return (
               <div
-                key={i}
+                key={item.q}
                 role="listitem"
                 className={cn(
                   "rounded-2xl border transition-all",
@@ -141,7 +141,7 @@ export default function SuburbPage({ params }: SuburbPageProps) {
     return <SuburbNotFound slug={params.slug} />;
   }
 
-  const jsonLd = JSON.stringify(buildSuburbJsonLd(data));
+  const jsonLd = useMemo(() => JSON.stringify(buildSuburbJsonLd(data)), [data]);
   const currentMonth   = new Date().getMonth(); // 0-indexed
   const currentSeason  =
     currentMonth >= 8  && currentMonth <= 10 ? "spring" :

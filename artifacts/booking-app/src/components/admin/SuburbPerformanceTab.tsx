@@ -1,4 +1,4 @@
-import { useState, Fragment } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { Link } from "wouter";
 import {
   MapPin, DollarSign, CheckCircle2, XCircle, BarChart3,
@@ -254,22 +254,22 @@ export function SuburbPerformanceTab() {
   const totalRevenueCents = data?.summary.totalRevenueCents ?? 0;
 
   /* ── Sort rows ─────────────────────────────────────────── */
-  const sorted = [...(data?.suburbs ?? [])].sort((a, b) => {
+  const sorted = useMemo(() => [...(data?.suburbs ?? [])].sort((a, b) => {
     if (sort === "revenue")    return b.totalRevenueCents  - a.totalRevenueCents;
     if (sort === "bookings")   return b.bookingCount       - a.bookingCount;
     if (sort === "aov")        return b.avgOrderValueCents - a.avgOrderValueCents;
     if (sort === "conversion") return b.conversionRate     - a.conversionRate;
     if (sort === "share")      return b.totalRevenueCents  - a.totalRevenueCents;
     return 0;
-  });
+  }), [data?.suburbs, sort]);
 
   /* ── Totals row ────────────────────────────────────────── */
-  const totals = {
+  const totals = useMemo(() => ({
     bookings:   sorted.reduce((s, r) => s + r.bookingCount,       0),
     completed:  sorted.reduce((s, r) => s + r.completedCount,     0),
     revenue:    sorted.reduce((s, r) => s + r.totalRevenueCents,  0),
     cancelled:  sorted.reduce((s, r) => s + r.cancelledCount,     0),
-  };
+  }), [sorted]);
 
   /* ── Loading ───────────────────────────────────────────── */
   if (isLoading) {

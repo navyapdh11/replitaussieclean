@@ -94,7 +94,22 @@ The project is structured as a pnpm monorepo, separating deployable applications
 - **React keys in suburb-season**: Use `faq.question` (not index) for FAQs; use `a.question` for atomic answers; use `` `${n}-${i}` `` for neighbours.
 - **`useMemo` in suburb-season**: All 6 `fillXxx()` computations memoised so they run once per route change (not once per render + once in `useEffect`).
 
-### 9. Analytics Mock Rankings
+### 9. Schema.org Compliance — home.tsx
+- `home.tsx` `JSON_LD` constant: `ratingValue`, `reviewCount`, `bestRating`, `worstRating` are all **numbers** (not strings).
+- `@type` for LocalBusiness is `["LocalBusiness", "CleaningService"]` — **not** `"HousePainter"`.
+- Applies to both the static `JSON_LD` constant in `home.tsx` AND the dynamic builders in `suburbs.ts` / `schema-builder.ts`.
+
+### 10. Suburb Neighbour Postcode Alignment
+All 13 suburb entries must have `neighbourPostcodes.length === neighbours.length`. Fixed mismatches:
+- **Chatswood**: added Gordon `"2072"` (was 4 entries for 5 neighbours)
+- **Richmond**: added East Melbourne `"3002"` slot with Cremorne fixed to `"3121"` (5 entries)
+- **South Yarra**: added Armadale `"3143"` (5 entries total)
+- **New Farm**: inserted Teneriffe `"4005"` at index 2 (5 entries total)
+- **Subiaco**: added Floreat `"6014"` (Leederville stays `"6007"` at end; 5 entries)
+- **Norwood**: fixed Beulah Park `"5007"→"5067"`, added College Park `"5069"` (5 entries)
+- **Manly**: fully rebuilt — `["2093","2094","2092","2096","2096"]` for Balgowlah/Fairlight/Seaforth/Freshwater/Queenscliff
+
+### 11. Analytics Mock Rankings
 - `djb2(keyword)` hash provides per-keyword variation that is completely independent of the arithmetic `i` loop index.
 - Formula: `posRaw = (seedA * 1031 ^ kwHash * 17 ^ i * 59) & 0xffff` — non-linear, no arithmetic sequences.
 - Change formula: `chgRaw = (kwHash * 3 + seedA * 7 + i * 11) & 0xffff` — independent from position, can't collapse to ramp.

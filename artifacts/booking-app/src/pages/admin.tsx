@@ -118,10 +118,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab navigation */}
-        <div className="flex gap-0.5 border-b border-border overflow-x-auto">
+        <div role="tablist" aria-label="Admin sections" className="flex gap-0.5 border-b border-border overflow-x-auto">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
+              role="tab"
+              aria-selected={tab === id}
+              aria-controls={`tabpanel-${id}`}
               onClick={() => switchTab(id)}
               className={cn(
                 "flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px whitespace-nowrap",
@@ -136,25 +139,27 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab bodies */}
-        {tab === "bookings" && (
-          <BookingsTab
-            searchEmail={searchEmail}   setSearchEmail={setSearchEmail}
-            appliedEmail={appliedEmail} setAppliedEmail={setAppliedEmail}
-            statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-            filtered={filtered} stats={stats}
-            isLoading={isLoading} isError={isError}
-            bookings={list}
-            onRefresh={refetch}
-          />
-        )}
-        {tab === "dispatch"   && <DispatchPanel bookings={list} onRefresh={refetch} />}
-        {tab === "pricing"    && <PricingAnalyticsTab />}
-        {tab === "staff"      && <StaffTab />}
-        {tab === "scheduling" && <SchedulingTab />}
-        {tab === "ml"         && <MLForecastTab />}
-        {tab === "suburbs"    && <SuburbPerformanceTab />}
-        {tab === "seo"        && <SeoRankingTab />}
-        {tab === "system"     && <AdminOnlyTab />}
+        <div role="tabpanel" id={`tabpanel-${tab}`} aria-label={TABS.find(t => t.id === tab)?.label}>
+          {tab === "bookings" && (
+            <BookingsTab
+              searchEmail={searchEmail}   setSearchEmail={setSearchEmail}
+              appliedEmail={appliedEmail} setAppliedEmail={setAppliedEmail}
+              statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+              filtered={filtered} stats={stats}
+              isLoading={isLoading} isError={isError}
+              bookings={list}
+              onRefresh={refetch}
+            />
+          )}
+          {tab === "dispatch"   && <DispatchPanel bookings={list} onRefresh={refetch} />}
+          {tab === "pricing"    && <PricingAnalyticsTab />}
+          {tab === "staff"      && <StaffTab />}
+          {tab === "scheduling" && <SchedulingTab />}
+          {tab === "ml"         && <MLForecastTab />}
+          {tab === "suburbs"    && <SuburbPerformanceTab />}
+          {tab === "seo"        && <SeoRankingTab />}
+          {tab === "system"     && <AdminOnlyTab />}
+        </div>
       </main>
 
       <Footer />

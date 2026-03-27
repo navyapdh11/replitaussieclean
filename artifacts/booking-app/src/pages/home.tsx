@@ -40,7 +40,7 @@ const JSON_LD = JSON.stringify({
 
     /* ── LocalBusiness ─────────────────────────────────────── */
     {
-      "@type": ["LocalBusiness", "HousePainter", "CleaningService"],
+      "@type": ["LocalBusiness", "CleaningService"],
       "@id": "https://aussieclean.com.au/#business",
       "name": "AussieClean",
       "description": "Australia's premium professional cleaning service. Book vetted, insured cleaners online in 60 seconds with instant transparent quoting.",
@@ -66,10 +66,10 @@ const JSON_LD = JSON.stringify({
       ],
       "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "reviewCount": "2847",
-        "bestRating": "5",
-        "worstRating": "1",
+        "ratingValue": 4.9,
+        "reviewCount": 2847,
+        "bestRating": 5,
+        "worstRating": 1,
       },
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
