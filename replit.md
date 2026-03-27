@@ -86,7 +86,21 @@ The project is structured as a pnpm monorepo, separating deployable applications
 - Events: `join_job`, `update_location`, `job_status`.
 - Demo mode: `simulateCleaner()`.
 
-### 8. Database (`lib/db`)
+### 8. SEO / AEO — Known Patterns
+- **JSON-LD `reviewCount`**: Must be a **number** (not `String()`). Both `buildSuburbJsonLd()` (suburbs.ts) and `buildSeasonalSuburbSchema()` (schema-builder.ts) use `data.reviewCount` (number) and `bestRating: 5` (number).
+- **`ratingValue`**: Cast with `Number(data.rating)` to ensure schema.org compliance.
+- **Canonical link**: Injected in `useEffect` in `suburb-season.tsx` (`<link rel="canonical" href="...">`). Cleaned up on unmount.
+- **Season badge year**: Computed as `new Date().getFullYear()` — never hardcoded.
+- **React keys in suburb-season**: Use `faq.question` (not index) for FAQs; use `a.question` for atomic answers; use `` `${n}-${i}` `` for neighbours.
+- **`useMemo` in suburb-season**: All 6 `fillXxx()` computations memoised so they run once per route change (not once per render + once in `useEffect`).
+
+### 9. Analytics Mock Rankings
+- `djb2(keyword)` hash provides per-keyword variation that is completely independent of the arithmetic `i` loop index.
+- Formula: `posRaw = (seedA * 1031 ^ kwHash * 17 ^ i * 59) & 0xffff` — non-linear, no arithmetic sequences.
+- Change formula: `chgRaw = (kwHash * 3 + seedA * 7 + i * 11) & 0xffff` — independent from position, can't collapse to ramp.
+- Verified output for Parramatta: positions 28, 27, 44, 21, 33, 38, 33, 42, 21 — all different.
+
+### 10. Database (`lib/db`)
 - Drizzle ORM with PostgreSQL.
 - Schemas: `bookings`, `service_areas`, `price_rules`, `price_history`, `conversations`, `messages`, `dynamic_pricing_factors`, `tenants`, `staff`, `staff_availability`, `job_assignments`, `demand_forecasts`, `ml_model_versions`.
 - Default tenant: `id = slug = "aussieclean-default"` (FK used by staff, ML, scheduling).

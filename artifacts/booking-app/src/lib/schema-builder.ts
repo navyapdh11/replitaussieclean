@@ -105,9 +105,9 @@ export function buildSeasonalSuburbSchema({
         }],
         aggregateRating: {
           "@type": "AggregateRating",
-          ratingValue: data.rating,
-          reviewCount: String(data.reviewCount),
-          bestRating: "5",
+          ratingValue: Number(data.rating),
+          reviewCount: data.reviewCount,
+          bestRating: 5,
         },
         hasOfferCatalog: {
           "@type": "OfferCatalog",

@@ -166,33 +166,50 @@ function targetKeywords(suburb: string, postcode: string): string[] {
   ];
 }
 
-/* ── Improved mock data — varied seed per keyword ──────────
-   Uses TWO seed components so position change varies per
-   keyword rather than being identical across all of them.
+/* ── Non-linear hash mix ─────────────────────────────────────
+   Mixes three components to avoid arithmetic sequences:
+     seedA — suburb fingerprint
+     kwHash — full DJB2 hash of the keyword string (varies per kw)
+     i      — positional salt
+   Guarantees each keyword gets genuinely independent values.
    ─────────────────────────────────────────────────────────── */
+function djb2(s: string): number {
+  let h = 5381;
+  for (let j = 0; j < s.length; j++) {
+    h = ((h * 33) ^ s.charCodeAt(j)) & 0xffff;
+  }
+  return h;
+}
+
 function mockRankings(suburb: string, postcode: string): KeywordRow[] {
-  /* Suburb seed: mix first char code + length + postcode digits */
   const postcodeNum = parseInt(postcode, 10) || 0;
+  /* Suburb-level seed — mixes char code, length, postcode digits */
   const seedA = (suburb.charCodeAt(0) * 7 + suburb.length * 3 + postcodeNum) & 0xffff;
 
-  const volumes    = [480, 1200, 590, 320, 210, 720, 390, 150, 110];
-  const keywords   = targetKeywords(suburb, postcode);
+  const volumes  = [480, 1200, 590, 320, 210, 720, 390, 150, 110];
+  const keywords = targetKeywords(suburb, postcode);
 
   return keywords.map((keyword, i) => {
-    /* Vary base position per keyword using a different multiplier */
-    const seedB       = (seedA + i * 37 + i * i * 11) & 0xffff;
-    const base        = (seedB % 45) + 1;                         /* 1–45 */
+    /* Full keyword hash — completely unique per keyword string */
+    const kwHash = djb2(keyword);
 
-    /* Vary change per keyword: −5 … +7 */
-    const changeRaw   = ((seedA * (i + 1) * 17) % 13) - 5;       /* −5…+7 */
-    const prev        = Math.max(1, base + changeRaw);
+    /* Position: combine suburb seed + keyword hash + index (non-linear) */
+    const posRaw  = (seedA * 1031 ^ kwHash * 17 ^ i * 59) & 0xffff;
+    const base    = (posRaw % 45) + 1;                                /* 1–45 */
 
-    const volume      = volumes[i % volumes.length];
-    /* CTR drops with position: CTR ≈ 30% at #1, ≈ 1% at #10+ */
-    const ctr         = base <= 3 ? 0.28 : base <= 10 ? 0.07 : 0.01;
-    const traffic     = Math.round(volume * ctr);
+    /* Change: separate mix that cannot produce arithmetic sequences */
+    const chgRaw  = (kwHash * 3 + seedA * 7 + i * 11) & 0xffff;
+    const change  = (chgRaw % 13) - 5;                                /* −5…+7 */
+    const prev    = Math.max(1, base + change);
 
-    const difficulty  = 20 + ((seedB * 7 + i * 31) % 65);         /* 20–84 */
+    const volume  = volumes[i % volumes.length];
+    /* Realistic CTR model: ~28% at #1, ~7% at #2-10, ~1% beyond */
+    const ctr     = base === 1 ? 0.28 : base <= 10 ? 0.07 : 0.01;
+    const traffic = Math.round(volume * ctr);
+
+    /* Difficulty: keyword-specific, not suburb-specific */
+    const diffRaw = (kwHash * 5 + seedA + i * 23) & 0xffff;
+    const difficulty = 20 + (diffRaw % 65);                           /* 20–84 */
 
     return {
       keyword,
