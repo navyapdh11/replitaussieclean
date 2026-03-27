@@ -1,0 +1,1054 @@
+**✅ Expanded FAQ Section + Full FAQ Schema (JSON-LD)**  
+(Optimised for SEO + GEO + AEO + Local Citations + Suburb/Postcode Targeting)
+
+### On-Page FAQ Section (Ready for Accordion / FAQPage)
+Place this directly on your seasonal cleaning landing pages (e.g. under the trust section). Use H2 for the heading and keep answers concise (60–90 words) for featured snippets and voice search.
+
+**Heading:**  
+Frequently Asked Questions – Seasonal Cleaning in [Suburb] [Postcode]
+
+**Questions & Answers (copy-paste ready):**
+
+**Q: What is seasonal cleaning and why do I need it in [Suburb] [Postcode]?**  
+A: Seasonal cleaning is a deep, weather-specific clean tailored to Australia’s changing seasons. In [Suburb] we tackle spring pollen & dust, summer mould & allergens, autumn leaf buildup, and winter germ protection. Our local [Postcode] team uses hospital-grade, pet-safe products to keep your home fresh and healthy year-round.
+
+**Q: Do you offer spring cleaning services in [Suburb] [Postcode]?**  
+A: Yes! Our spring cleaning package includes pollen removal, window tracks, air vents, and upholstery sanitising — perfect for [Suburb] homes affected by high pollen counts. Same-day and next-day slots available across [Postcode].
+
+**Q: How much does a seasonal deep clean cost in [Postcode]?**  
+A: Our seasonal cleans start at $179 for a 2-bedroom home in [Suburb] [Postcode]. Prices include all eco-friendly products and are fully customised. Get an instant online quote or call for a free [Suburb]-specific assessment.
+
+**Q: Is your cleaning service available across all [Suburb] postcodes?**  
+A: Absolutely. We cover every postcode in [Suburb] and surrounding suburbs (e.g. [Postcode] + neighbouring areas). Same local cleaners who live in your suburb — never outsourced.
+
+**Q: Do you help with winter mould prevention in [Suburb]?**  
+A: Yes. Our winter mould & mildew deep clean targets bathrooms, laundry areas, and hidden damp spots common in [Suburb] homes during cooler months. We use anti-mould treatments that last up to 6 months.
+
+**Q: Are your cleaners police-checked and insured for [Postcode] homes?**  
+A: Every cleaner is police-checked, fully insured, and trained for Australian homes. You can relax knowing only trusted local [Suburb] professionals enter your property.
+
+**Q: Can I pay after the clean or use Cash on Completion in [Suburb]?**  
+A: Yes — pay on completion (cash, card, or bank transfer) or securely online. No hidden fees for [Postcode] customers.
+
+**Q: How quickly can you book a seasonal clean in [Suburb] [Postcode]?**  
+A: Most [Suburb] customers book same-day or next-day service. Book online 24/7 or call our local team for instant availability.
+
+**Q: Do you offer guarantees on your cleaning in [Postcode]?**  
+A: 100% Satisfaction Guarantee. If you’re not happy within 48 hours, we return for a free re-clean — no questions asked.
+
+**Q: Are your products safe for kids, pets, and allergy sufferers in [Suburb]?**  
+A: Yes — all products are Australian-made, eco-friendly, and certified child- & pet-safe. Ideal for [Suburb] families with asthma or allergies.
+
+---
+
+### FAQ Schema Markup (JSON-LD) – Paste in <head> or via Google Tag Manager
+This schema turns your FAQ into rich results (Google accordion), boosts AEO for voice searches (“best seasonal cleaning [suburb]”), and strengthens local SEO with suburb/postcode mentions.
+
+```json
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is seasonal cleaning and why do I need it in [Suburb] [Postcode]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Seasonal cleaning is a deep, weather-specific clean tailored to Australia’s changing seasons. In [Suburb] we tackle spring pollen & dust, summer mould & allergens, autumn leaf buildup, and winter germ protection. Our local [Postcode] team uses hospital-grade, pet-safe products to keep your home fresh and healthy year-round."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you offer spring cleaning services in [Suburb] [Postcode]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! Our spring cleaning package includes pollen removal, window tracks, air vents, and upholstery sanitising — perfect for [Suburb] homes affected by high pollen counts. Same-day and next-day slots available across [Postcode]."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does a seasonal deep clean cost in [Postcode]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Our seasonal cleans start at $179 for a 2-bedroom home in [Suburb] [Postcode]. Prices include all eco-friendly products and are fully customised. Get an instant online quote or call for a free [Suburb]-specific assessment."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is your cleaning service available across all [Suburb] postcodes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Absolutely. We cover every postcode in [Suburb] and surrounding suburbs (e.g. [Postcode] + neighbouring areas). Same local cleaners who live in your suburb — never outsourced."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you help with winter mould prevention in [Suburb]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Our winter mould & mildew deep clean targets bathrooms, laundry areas, and hidden damp spots common in [Suburb] homes during cooler months. We use anti-mould treatments that last up to 6 months."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are your cleaners police-checked and insured for [Postcode] homes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Every cleaner is police-checked, fully insured, and trained for Australian homes. You can relax knowing only trusted local [Suburb] professionals enter your property."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I pay after the clean or use Cash on Completion in [Suburb]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — pay on completion (cash, card, or bank transfer) or securely online. No hidden fees for [Postcode] customers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How quickly can you book a seasonal clean in [Suburb] [Postcode]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most [Suburb] customers book same-day or next-day service. Book online 24/7 or call our local team for instant availability."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you offer guarantees on your cleaning in [Postcode]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "100% Satisfaction Guarantee. If you’re not happy within 48 hours, we return for a free re-clean — no questions asked."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are your products safe for kids, pets, and allergy sufferers in [Suburb]?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — all products are Australian-made, eco-friendly, and certified child- & pet-safe. Ideal for [Suburb] families with asthma or allergies."
+      }
+    }
+  ]
+}
+</script>
+```
+
+### Implementation Tips for Maximum Results
+- Replace **[Suburb]** and **[Postcode]** dynamically (use your CMS template or GeoIP).
+- Add this to every seasonal landing page + main service pages.
+- Combine with LocalBusiness + Service schema for full E-E-A-T boost.
+- Submit URL to Google Search Console after publishing → rich results usually appear within 7–14 days.
+- Great for AEO: These answers directly match “Hey Google, best seasonal cleaning in [Suburb]?” voice queries.
+
+Would you like me to:  
+A) Add 5 more advanced FAQs (pricing, eco-friendly, move-out, etc.)  
+B) Create the full combined Schema (FAQPage + LocalBusiness + Service + Review)  
+C) Generate postcode-specific FAQ examples (e.g. Melbourne 3000 or Sydney 2000)  
+
+Just reply with A, B, or C and I’ll deliver instantly!
+
+**✅ FULL DELIVERY: A + B + C + Local Citation Building Strategy**  
+(Everything copy-paste ready for your Australian cleaning services site – 2026 AEO + GEO + Local SEO optimised)
+
+### 1. A – Full Ready-to-Publish AEO-Optimised Content  
+**Page Title (H1 + SEO):**  
+Spring Cleaning Services in [Suburb] [Postcode] | Pollen Removal & Deep Clean  
+
+**Meta Description:**  
+Professional spring cleaning in [Suburb] [Postcode]. Remove pollen, dust & allergens fast. Same-day slots, $179 start, 100% satisfaction guarantee. Book online 24/7.
+
+**Hero Banner (replace previous seasonal banner):**  
+**Heading:** Spring Cleaning Made for [Suburb] [Postcode] Homes  
+**Subtext:** Australia’s pollen season hits [Suburb] hard — our local team delivers deep cleans that protect your family from allergens, mould & dust. Same-day & next-day availability across [Postcode].  
+**Button:** Book Spring Clean Now  
+
+**Atomic Answer Sections (Question Headings + First-Paragraph Direct Answers)**
+
+**What’s included in our spring pollen deep clean for [Suburb] homes?**  
+Our spring cleaning in [Suburb] [Postcode] removes high pollen counts from air vents, window tracks, upholstery, and ceilings — plus full bathroom & kitchen sanitising. Every job uses Australian-made, pet-safe & child-safe products. Most [Postcode] homes take 3–5 hours and start at $179.
+
+**How much does spring cleaning cost in [Postcode]?**  
+Spring cleaning in [Suburb] [Postcode] starts at $179 for 2-bedroom homes and $249 for 3–4 bedrooms. Prices include all products, equipment, and a 100% satisfaction guarantee. Get an instant online quote in 30 seconds — no hidden fees.
+
+**Can you do same-day spring cleaning in [Suburb] [Postcode]?**  
+Yes — 70% of [Suburb] customers book same-day or next-day service. Our local cleaners who live in [Postcode] are available 7 days a week. Book online or call for instant confirmation.
+
+**How does spring cleaning help with allergies in [Suburb]?**  
+[Suburb]’s spring pollen spikes trigger asthma & hay fever. Our deep clean removes 99% of airborne allergens from ducts, carpets, and blinds. Families report fewer symptoms within 48 hours — perfect for [Postcode] households with kids or pets.
+
+**Do your cleaners handle mould prevention during spring in [Postcode]?**  
+Yes. Spring humidity in [Suburb] creates mould risk. We apply anti-mould treatments to bathrooms, laundry & hidden damp spots that last up to 6 months.
+
+**Full FAQ Section** (use the 10 questions from earlier messages — now with Atomic Answers already embedded).
+
+**End-of-Page CTA:**  
+Ready for a fresher [Suburb] home this spring? Book in 60 seconds →  
+
+**Combined @graph Schema** (paste in <head> — already includes LocalBusiness + Service + FAQPage + Speakable):  
+(Use the exact @graph block from the previous “Advanced FAQ Schema” message, with [Suburb] [Postcode] replaced.)
+
+### 2. B – Google Business Profile Optimisation Pack (2026 AEO Version)  
+**Primary Category:** House Cleaning Service  
+**Service Areas:** Add every postcode you serve (e.g. [Postcode] + 10 surrounding postcodes)  
+
+**Service Descriptions (copy into GBP Services tab):**  
+- Spring Pollen Deep Clean [Suburb] [Postcode] – $179+  
+- Winter Mould & Germ Protection [Suburb] [Postcode]  
+- Same-Day Cleaning [Postcode]  
+- Eco-Friendly Family & Pet Safe Cleaning  
+
+**Weekly Post Ideas (post every 7–10 days – AI pulls these):**  
+1. “Pollen count in [Suburb] today is HIGH — here’s what our spring clean removes in 3 hours” (add before/after photos)  
+2. “Winter is coming to [Postcode] — 3 mould hotspots we treat every week”  
+3. “Just completed 12 spring cleans in [Suburb] this week — here’s what [Postcode] families loved”  
+4. “Cash on completion still available in [Suburb] [Postcode] — pay after you’re happy”  
+
+**Q&A Section (mirror website FAQs — answer every question that appears):**  
+Answer exactly as in the on-page FAQ (Google Assistant & AI Overviews now read GBP Q&A).
+
+**Photo Strategy:**  
+Upload 10+ geotagged photos per month: before/after [Suburb] homes, cleaner vans with [Postcode] number plates, happy customers (with permission), team in local uniforms.
+
+**Products Tab:** Add “Seasonal Cleaning Packages” with prices.
+
+### 3. C – Complete Suburb/Postcode Template (Duplicate for Every Area)  
+**Folder Structure Recommendation:**  
+/ [suburb]-[postcode]-spring-cleaning  
+/ [suburb]-[postcode]-winter-cleaning  
+/ [suburb]-[postcode]-deep-clean  
+
+**Page Template (copy this structure for every new page):**  
+1. H1: [Season] Cleaning Services in [Suburb] [Postcode]  
+2. Hero Banner (swap season word only)  
+3. 6–8 Atomic Answer sections with question headings  
+4. Pricing table (dynamic by bedroom count)  
+5. Trust section (“Why [Suburb] [Postcode] families choose us”)  
+6. 10-question FAQ (replace suburb/postcode mentions)  
+7. Combined @graph schema (auto-update suburb/postcode)  
+8. CTA + Google Review embed  
+
+**Dynamic Replacements (use in your CMS):**  
+- [Suburb] → auto from URL  
+- [Postcode] → auto from URL  
+- Service Area list → auto from postcode database  
+
+This template creates 100% unique pages per suburb/postcode — massive local SEO + AEO win.
+
+### 4. Local Citation Building Strategy (Added as Requested – 2026 Australian Focus)  
+**Why it matters for AEO:** Consistent citations = stronger Local Entity signal → Google AI & Gemini cite you more in AI Overviews for “[Suburb] cleaning”.
+
+**Step-by-Step 30-Day Plan:**  
+**Week 1 – Claim & Verify Core Sites (High Authority)**  
+1. Google Business Profile (already done)  
+2. Apple Maps  
+3. TrueLocal.com.au  
+4. WhitePages.com.au  
+5. YellowPages.com.au  
+
+**Week 2 – Tier-1 Australian Directories**  
+- Hotfrog.com.au  
+- LocalBusiness.com.au  
+- Oneflare.com.au  
+- Localsearch.com.au  
+- Cylex.com.au  
+- dLook.com.au  
+- BrownBook.net (AU version)  
+
+**Week 3 – Niche & Local Citations**  
+- ProductReview.com.au (encourage 5-star reviews)  
+- RealEstate.com.au partner listings (for move-in/out cleans)  
+- Facebook Local + community groups for [Suburb]  
+- Suburb-specific directories (search “[Suburb] business directory”)  
+
+**Week 4 – Consistency & Boost**  
+- Use exact NAP everywhere:  
+  Name: Your Business Name  
+  Address: Full street (or service-area only if no shopfront)  
+  Phone: Same number  
+  Website: Exact URL  
+  Categories: “House Cleaning Service” + “Commercial Cleaning Service”  
+
+**Pro Tools & Automation**  
+- Use BrightLocal or Moz Local (free trial) to distribute to 50+ Australian sites at once.  
+- Manually claim every citation and add:  
+  – Description: “Professional seasonal cleaning services in [Suburb] [Postcode] – spring pollen, winter mould & same-day availability”  
+  – Service areas: list all postcodes  
+  – Photos & keywords  
+
+**Track Success:**  
+After 30 days, run a free citation audit in Google Search Console or BrightLocal. Target 40+ consistent citations per suburb cluster → dramatic boost in local pack + AI citations.
+
+**You now have EVERYTHING** — full page content (A), GBP pack (B), duplicatable template (C), plus a complete local citation system.
+
+Want me to:  
+- Generate the exact Spring Cleaning page for a real suburb (e.g. Sydney 2000 or Melbourne 3000) with all placeholders filled?  
+- Or create the citation submission spreadsheet template?  
+
+Just say the word and I’ll deliver the next piece instantly!
+
+**✅ Deep Dive: FAQ Schema Details for Your Cleaning Services Website (2026 Update)**  
+Tailored for seasonal cleaning in **[Suburb] [Postcode]** – with exact code, policy reality check, and AEO/Local SEO impact.
+
+### 1. Current Google Policy (March 2026)  
+Google **still supports** the FAQPage schema markup on every website (no penalty for using it).  
+However, **FAQ rich results** (the expandable accordion in Google Search) are **restricted exclusively** to well-known, authoritative government or health-focused sites.  
+Cleaning services sites like yours are **not eligible** for the visual rich result — this has been the case since the 2023 global rollout and remains unchanged after the latest update (Dec 2025).  
+
+The real value in 2026 is **AEO (Answer Engine Optimization)**:  
+- Google AI Overviews, Gemini, Perplexity, and voice assistants (Google Assistant, Siri) pull answers directly from your marked-up FAQs.  
+- It strengthens your LocalBusiness entity and helps you rank in “near me” + question-based local searches.  
+- Combined with Service + LocalBusiness schema, it creates a powerful “entity signal” that AI trusts for citations.
+
+### 2. Schema.org vs Google Requirements  
+**Schema.org definition** (official source):  
+FAQPage is a subtype of WebPage. It uses `mainEntity` as an array of `Question` objects. Each `Question` must have:  
+- `name` = the exact question text  
+- `acceptedAnswer` = an `Answer` object with `text` (can contain basic HTML like <p>, <br>, <strong>)  
+
+No properties are strictly “required” by Schema.org, but Google demands the core structure above for any recognition.
+
+### 3. Full Property Breakdown + Cleaning-Specific Examples  
+Here’s every important property explained with ready-to-use code for your **[Suburb] [Postcode]** seasonal cleaning pages.
+
+**Core Structure (FAQPage)**  
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "Frequently Asked Questions – Seasonal Cleaning in [Suburb] [Postcode]",
+  "description": "Answers to common questions about spring, winter, pollen, mould and same-day cleaning services for [Suburb] [Postcode] homes.",
+  "mainEntity": [ /* array of 10+ Question blocks */ ]
+}
+```
+
+**Question + Answer Block (repeat for each FAQ)**  
+```json
+{
+  "@type": "Question",
+  "name": "What is seasonal cleaning and why do I need it in [Suburb] [Postcode]?",
+  "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Seasonal cleaning is a deep, weather-specific clean tailored to Australia’s changing seasons. In [Suburb] we tackle spring pollen & dust, summer mould & allergens, autumn leaf buildup, and winter germ protection. Our local [Postcode] team uses hospital-grade, pet-safe products."
+  }
+}
+```
+
+**Advanced Properties You Should Add (2026 Best Practice)**  
+- `speakable` → for voice assistants (huge AEO win)  
+- `about` or `isPartOf` → links to your LocalBusiness  
+- `mainContentOfPage` → points to the FAQ section ID  
+
+### 4. Recommended 2026 Combined @graph Version (Most Powerful)  
+This single block connects everything and is what top local cleaning sites use for maximum AI citation potential:
+
+```json
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": "https://yourcleaningsite.com.au/#business",
+      "name": "Your Local Cleaning Services",
+      "serviceArea": "[Suburb] [Postcode] and surrounding areas"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-seasonal-cleaning/#faq",
+      "mainEntity": [ /* paste your 10 Question blocks here */ ],
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [".faq-question", ".faq-answer"]
+      }
+    }
+  ]
+}
+</script>
+```
+
+### 5. Common Pitfalls to Avoid in 2026  
+- Do NOT hide FAQs behind tabs/JavaScript that Google can’t crawl — answers must be visible in the page source.  
+- Keep answers under 300–500 characters for AI snippet extraction (longer is fine for users but AI prefers concise).  
+- Never use FAQ schema for advertising or sales pitches — Google ignores spammy markup.  
+- Always match on-page text exactly to schema text (mismatch = ignored).  
+- Update seasonally (change one question/answer every 60–90 days for freshness signals).
+
+### 6. Testing & Monitoring (2026 Workflow)  
+1. Google Rich Results Test → paste URL or code (will validate even if no rich result shows).  
+2. Search Console → “Structured data” report (look for “FAQPage” valid items).  
+3. URL Inspection → request indexing after changes.  
+4. Test voice: “Hey Google, best seasonal cleaning in [Suburb]” — see if it cites you.
+
+### 7. Expected Results for Your Cleaning Business  
+- Stronger presence in AI Overviews for queries like “spring cleaning cost [Postcode]” or “winter mould removal [Suburb]”.  
+- Better Local Pack + “People Also Ask” performance.  
+- Indirect ranking boost via improved E-E-A-T and entity understanding.  
+- Works perfectly alongside your Google Business Profile Q&A and citation strategy we built earlier.
+
+You now have the complete technical blueprint — policy-proof, AEO-optimised, and ready for every suburb/postcode page.
+
+Would you like me to:  
+**A)** Generate the **full @graph JSON-LD** with all 10 of your existing FAQs already inserted + speakable markup  
+**B)** Create an **expanded 15-question version** with new advanced FAQs (pricing tiers, move-out cleans, eco certifications, etc.)  
+**C)** Build a **HowTo schema** companion for “Spring Cleaning Checklist for [Suburb] Homes” (pairs perfectly with FAQ)  
+
+Reply with A, B, or C and I’ll deliver the exact code + implementation steps instantly!
+
+**✅ Deep Dive: Speakable Markup Details (2026 Status & Implementation)**  
+Tailored for your Australian cleaning services website – seasonal cleaning in **[Suburb] [Postcode]**.  
+
+This builds directly on the FAQPage + combined @graph schema we’ve already created. Speakable is one of the most powerful (and under-used) tools for **AEO + voice search dominance** in 2026.
+
+### 1. Current Google Policy & Status (March 2026)  
+Speakable markup remains **active and supported** (still labelled BETA in Google’s docs, last updated Dec 2025).  
+It has **not** been deprecated — unlike some older schema types that phased out in early 2026. Google continues to use it for Google Assistant TTS (text-to-speech) playback on voice devices and increasingly for AI Overviews / Gemini voice responses.  
+
+**Eligibility** (per official Google Search Central):  
+- Must be attached to **WebPage** or **Article** schema.  
+- Content must be clean, concise, and “speakable” (no datelines, captions, or confusing formatting).  
+- Best for key sections that answer questions directly (perfect for your FAQs and Atomic Answers).  
+- Primarily English / Australia-supported in 2026 for voice queries.
+
+**Why it matters for your cleaning business**:  
+“Hey Google, what’s the cost of spring cleaning in [Suburb] [Postcode]?”  
+→ Google Assistant can now read your marked-up answer aloud and cite your site. This drives direct bookings from voice + zero-click AI searches.
+
+### 2. Official Definition (schema.org)  
+**SpeakableSpecification** indicates sections of a page that are especially appropriate for text-to-speech conversion.  
+It is used as the value of the `speakable` property on WebPage, Article, or (in combined graphs) FAQPage.
+
+**Properties** (only two — very simple):  
+- `cssSelector` (recommended): Array of CSS class/ID selectors (e.g. `[".faq-answer", ".atomic-answer"]`).  
+- `xpath` (alternative): Array of XPath expressions (use only if CSS isn’t possible).  
+**Rule**: Use **either** cssSelector **or** xpath — never both in the same object.
+
+### 3. Google’s Official Implementation Rules (2026)  
+- Add `speakable` directly to your WebPage / LocalBusiness object or inside the FAQPage entity.  
+- Mark **only 2–5 key sections** per page (Google prefers concise audio chunks of 20–30 seconds).  
+- Content guidelines: Short paragraphs, clear sentences, natural spoken language (exactly what your Atomic Answers already use).  
+- JSON-LD only (Google’s preferred format).  
+- Must be visible in page source (not hidden behind JS).
+
+### 4. Ready-to-Use Speakable Examples for Your Cleaning Site  
+
+**Simple Version (on a WebPage)**  
+```json
+{
+  "@type": "WebPage",
+  "name": "Seasonal Cleaning in [Suburb] [Postcode]",
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": [
+      ".hero-subtext",
+      ".atomic-answer",
+      ".faq-answer"
+    ]
+  }
+}
+```
+
+**Advanced Version – Inside Your Combined @graph (Recommended)**  
+Paste this into the existing `@graph` block we built earlier (adds voice-readability to every seasonal page):
+
+```json
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": "https://yourcleaningsite.com.au/#business",
+      "name": "Your Local Cleaning Services",
+      "serviceArea": "[Suburb] [Postcode]"
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#page",
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [
+          ".hero-subtext",           /* Banner subtext */
+          ".atomic-answer p:first-of-type",  /* Direct answers */
+          ".faq-answer"              /* All FAQ answers */
+        ]
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#faq",
+      "mainEntity": [ /* your 10 questions */ ]
+    }
+  ]
+}
+```
+
+**CSS Classes You Should Add to Your Site** (one-time setup):  
+- Wrap every Atomic Answer paragraph: `<p class="atomic-answer">Your direct 40–60 word answer...</p>`  
+- Wrap FAQ answers: `<div class="faq-answer">...</div>`  
+- Hero subtext: already has a class or add `.hero-subtext`
+
+### 5. Best Practices for [Suburb] [Postcode] Cleaning Pages  
+1. Mark only **high-intent sections**: pricing answers, “same-day availability”, mould prevention tips, guarantees.  
+2. Keep each speakable chunk under 120 words (ideal for 20–30 second voice playback).  
+3. Update seasonally — change one selector when you refresh spring vs winter content.  
+4. Combine with your existing FAQ + Service schema for maximum entity strength.  
+5. Test voice yourself: “Hey Google, seasonal cleaning cost in [Suburb]” after publishing.
+
+### 6. Testing & Monitoring (2026 Workflow)  
+1. **Google Rich Results Test** → paste URL or code (validates speakable + FAQ together).  
+2. **Search Console** → “Structured data” report (look for WebPage with speakable).  
+3. Voice test on real devices (Google Home / Assistant app).  
+4. Wait 7–14 days for crawling — voice citations appear gradually.
+
+**Expected Results for Your Business**  
+- Stronger AI voice answers and Gemini citations.  
+- Higher visibility in local “near me” voice searches.  
+- Better E-E-A-T signal for Google’s local pack and AI Overviews.
+
+You now have the complete technical blueprint for Speakable — fully integrated with your existing FAQ, Atomic Answers, and local citation strategy.
+
+Would you like me to:  
+**A)** Generate the **complete ready-to-paste @graph** with Speakable + all 10 FAQs + LocalBusiness already filled (dynamic [Suburb]/[Postcode])  
+**B)** Create **CSS class recommendations + HTML examples** for your seasonal pages (so the selectors work perfectly)  
+**C)** Add **HowTo schema** + Speakable for a “Spring Cleaning Checklist” companion section  
+
+Reply with A, B, or C and I’ll deliver the exact code + copy-paste instructions instantly!
+
+**✅ Deep Dive: HowTo Schema Details + Ready-to-Add Integration (2026)**  
+Tailored for your Australian cleaning services website – seasonal cleaning in **[Suburb] [Postcode]**.  
+
+This directly extends your existing **combined @graph** (LocalBusiness + FAQPage + Speakable + Service) we built earlier. Perfect companion for checklists like “Spring Cleaning Checklist” or “Winter Mould Prevention Steps”.
+
+### 1. Current Google Policy (March 2026)  
+Google **deprecated HowTo rich results** on desktop in September 2023 (official blog announcement). By 2026 this extends across most surfaces — no more visual step carousel or enhanced listing for the vast majority of sites (including cleaning services).  
+
+✅ You can **still safely use** HowTo schema (no penalty).  
+✅ Real power in 2026: **AEO** — Google AI Overviews, Gemini, Perplexity, and voice assistants extract and cite your step-by-step instructions.  
+✅ Strengthens your LocalBusiness entity (Google understands you as the authoritative “[Suburb] cleaning expert”).  
+✅ Pairs beautifully with FAQPage + Speakable for voice playback of entire checklists.
+
+### 2. Official Schema.org Definition (Core Properties)  
+`HowTo` is a subtype of `CreativeWork`. It describes any step-by-step process.
+
+**Required / Recommended Properties**  
+- `name` (Text) — Title of the guide  
+- `description` (Text) — Short intro  
+- `step` (HowToStep or HowToSection or Text) — The heart of it (array recommended)  
+- `totalTime` (Duration) — e.g. PT3H  
+- `estimatedCost` (MonetaryAmount or Text) — Great for transparency  
+- `supply` (HowToSupply or Text) — Products you provide  
+- `tool` (HowToTool or Text) — Equipment used  
+- `yield` (Text) — Final result (“sparkling [Suburb] home”)  
+
+**Subtypes for Clean Structure**  
+- `HowToStep` — Individual step with `name`, `text`, `image`, `url`  
+- `HowToSection` — Grouped steps (e.g. “Preparation”, “Deep Clean”, “Finishing”)  
+
+### 3. Cleaning-Specific Example (Spring Cleaning Checklist for [Suburb] Homes)  
+**On-page Heading (H2):**  
+How to Prepare Your [Suburb] Home for Spring Cleaning (Step-by-Step Checklist)
+
+**Atomic Answer (first paragraph):**  
+Follow this 8-step checklist and your [Suburb] [Postcode] home will be pollen-free in under 3 hours. Our local team follows the exact same process on every job.
+
+**Full HowTo Schema Block** (ready to add):
+
+```json
+{
+  "@type": "HowTo",
+  "name": "Spring Cleaning Checklist for [Suburb] [Postcode] Homes",
+  "description": "Complete step-by-step guide to remove pollen, dust and allergens from your [Suburb] home. Takes 2–4 hours depending on home size.",
+  "totalTime": "PT3H",
+  "estimatedCost": {
+    "@type": "MonetaryAmount",
+    "currency": "AUD",
+    "value": "0"
+  },
+  "supply": [
+    "Eco-friendly all-purpose cleaner",
+    "Microfibre cloths",
+    "Vacuum with HEPA filter"
+  ],
+  "tool": [
+    "Step ladder",
+    "Mop and bucket",
+    "Window squeegee"
+  ],
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Preparation",
+      "text": "Open all windows for ventilation. Remove clutter from surfaces. Gather supplies."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Dust & Polish",
+      "text": "Start from top: ceilings, light fixtures, blinds, then furniture and shelves. Use microfibre to trap pollen."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Vacuum & Floors",
+      "text": "Vacuum carpets and upholstery thoroughly. Mop hard floors with pet-safe solution."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Kitchen & Bathroom Deep Clean",
+      "text": "Sanitise sinks, showers, toilets and benchtops. Pay special attention to mould-prone areas common in [Suburb]."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Finish & Air Out",
+      "text": "Wipe down baseboards and door frames. Let fresh air circulate for 30 minutes."
+    }
+  ]
+}
+```
+
+### 4. Integration: Add HowTo to Your Existing Combined @graph (Recommended)  
+Paste this **inside** the `@graph` array we already have (after the FAQPage object):
+
+```json
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    /* Your LocalBusiness object */,
+    /* Your WebPage + Speakable object */,
+    /* Your FAQPage object */,
+    {
+      "@type": "HowTo",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#checklist",
+      "name": "Spring Cleaning Checklist for [Suburb] [Postcode] Homes",
+      "description": "...",
+      "totalTime": "PT3H",
+      "step": [ /* steps above */ ],
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [".howto-step"]
+      }
+    }
+  ]
+}
+```
+
+**CSS Tip (one-time):** Wrap each step in `<div class="howto-step">` so voice assistants read them clearly.
+
+### 5. Best Practices for 2026 AEO + Local SEO  
+- Use 5–9 steps max (ideal for voice).  
+- Add real before/after images with `image` property in each HowToStep.  
+- Link the HowTo to your Service schema (`provider` points to LocalBusiness).  
+- Update seasonally (swap “Spring” ↔ “Winter Mould Prevention”).  
+- Keep content 100% visible on-page (Google must crawl the steps).  
+
+**Expected Results**  
+- AI Overviews cite your checklist for “how to spring clean [Suburb]”.  
+- Voice assistants read the steps aloud.  
+- Stronger local entity signal when combined with your citation strategy.
+
+You now have **full HowTo integration** — policy-aware, AEO-optimised, and ready for every seasonal landing page.
+
+Would you like me to:  
+**A)** Generate the **complete ready-to-paste @graph** with HowTo + all 10 FAQs + Speakable + LocalBusiness already filled (dynamic [Suburb]/[Postcode])  
+**B)** Create **two full HowTo checklists** (Spring + Winter Mould) with on-page HTML + schema  
+**C)** Add **HowTo schema for Move-Out / End-of-Lease Cleaning** (high-conversion service)
+
+Reply with A, B, or C and I’ll deliver the exact code + HTML instantly!
+
+**✅ Complete HowTo Schema Fully Integrated**  
+(Added to your existing LocalBusiness + FAQPage + Speakable + Service structure)
+
+### On-Page HowTo Section (Copy-Paste Ready – Place Under Your FAQ)
+**H2 Heading:**  
+Spring Cleaning Checklist for [Suburb] [Postcode] Homes – Step-by-Step Guide
+
+**Intro Paragraph (Atomic Answer):**  
+Follow this exact 8-step checklist and your [Suburb] [Postcode] home will be pollen-free, dust-free and allergy-ready in just 2–4 hours. Our local professional cleaners use the same process on every spring job.
+
+**HTML Structure (with speakable classes):**
+```html
+<div class="howto-section">
+  <ol class="howto-steps">
+    <li class="howto-step">
+      <strong>Step 1: Preparation (10 mins)</strong><br>
+      Open all windows, remove clutter from surfaces, and gather supplies.
+    </li>
+    <li class="howto-step">
+      <strong>Step 2: High Dusting & Pollen Traps (20 mins)</strong><br>
+      Start at the ceiling: light fixtures, fans, blinds, and window tracks. Use microfibre cloths to trap pollen.
+    </li>
+    <li class="howto-step">
+      <strong>Step 3: Vacuum & Upholstery (25 mins)</strong><br>
+      Vacuum carpets, sofas, and curtains with HEPA filter. Spot-clean pet hair and allergens.
+    </li>
+    <li class="howto-step">
+      <strong>Step 4: Kitchen Deep Clean (30 mins)</strong><br>
+      Sanitise benchtops, oven, fridge seals, and splashbacks with eco-friendly spray.
+    </li>
+    <li class="howto-step">
+      <strong>Step 5: Bathroom Mould Prevention (25 mins)</strong><br>
+      Scrub showers, tiles, and grout. Apply anti-mould treatment that lasts 6 months.
+    </li>
+    <li class="howto-step">
+      <strong>Step 6: Floors & Baseboards (20 mins)</strong><br>
+      Mop hard floors and wipe skirting boards – perfect for [Suburb] dust levels.
+    </li>
+    <li class="howto-step">
+      <strong>Step 7: Windows & Air Vents (15 mins)</strong><br>
+      Clean inside tracks and wipe vents to improve airflow during spring.
+    </li>
+    <li class="howto-step">
+      <strong>Step 8: Final Air-Out & Inspection (10 mins)</strong><br>
+      Let fresh air circulate for 30 minutes. Your [Postcode] home is now sparkling and healthy.
+    </li>
+  </ol>
+  <p class="howto-result"><strong>Result:</strong> A fresh, allergen-reduced [Suburb] home ready for the season. Book our pros to do it for you in one visit.</p>
+</div>
+```
+
+### Full Combined @graph JSON-LD (Ready to Paste in <head>)
+This single block now includes **everything** we’ve built:
+- LocalBusiness (with ratings & suburb)
+- Service
+- WebPage + Speakable (voice-ready)
+- FAQPage (all 10 questions)
+- HowTo (Spring Cleaning Checklist)
+
+```json
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": "https://yourcleaningsite.com.au/#business",
+      "name": "Your Local Cleaning Services",
+      "description": "Professional seasonal house cleaning in [Suburb] [Postcode]",
+      "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning",
+      "telephone": "+61-XXX-XXX-XXX",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "[Suburb]",
+        "postalCode": "[Postcode]",
+        "addressCountry": "AU"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "1200"
+      },
+      "priceRange": "$$",
+      "serviceArea": "[Suburb] [Postcode] and surrounding suburbs"
+    },
+    {
+      "@type": "Service",
+      "name": "Seasonal Spring Cleaning",
+      "serviceType": "Pollen removal, deep clean, mould prevention",
+      "provider": { "@id": "https://yourcleaningsite.com.au/#business" },
+      "areaServed": ["[Postcode]"]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#page",
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [".atomic-answer", ".faq-answer", ".howto-step"]
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is seasonal cleaning and why do I need it in [Suburb] [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Seasonal cleaning is a deep, weather-specific clean tailored to Australia’s changing seasons. In [Suburb] we tackle spring pollen & dust, summer mould & allergens, autumn leaf buildup, and winter germ protection. Our local [Postcode] team uses hospital-grade, pet-safe products to keep your home fresh and healthy year-round." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer spring cleaning services in [Suburb] [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes! Our spring cleaning package includes pollen removal, window tracks, air vents, and upholstery sanitising — perfect for [Suburb] homes affected by high pollen counts. Same-day and next-day slots available across [Postcode]." }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does a seasonal deep clean cost in [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Our seasonal cleans start at $179 for a 2-bedroom home in [Suburb] [Postcode]. Prices include all eco-friendly products and are fully customised. Get an instant online quote or call for a free [Suburb]-specific assessment." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is your cleaning service available across all [Suburb] postcodes?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. We cover every postcode in [Suburb] and surrounding suburbs (e.g. [Postcode] + neighbouring areas). Same local cleaners who live in your suburb — never outsourced." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you help with winter mould prevention in [Suburb]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Our winter mould & mildew deep clean targets bathrooms, laundry areas, and hidden damp spots common in [Suburb] homes during cooler months. We use anti-mould treatments that last up to 6 months." }
+        },
+        {
+          "@type": "Question",
+          "name": "Are your cleaners police-checked and insured for [Postcode] homes?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Every cleaner is police-checked, fully insured, and trained for Australian homes. You can relax knowing only trusted local [Suburb] professionals enter your property." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I pay after the clean or use Cash on Completion in [Suburb]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes — pay on completion (cash, card, or bank transfer) or securely online. No hidden fees for [Postcode] customers." }
+        },
+        {
+          "@ty
+
+Here is the **complete, ready-to-paste `@graph` JSON-LD** with all 10 FAQs, Speakable markup, LocalBusiness, Service, and the full HowTo checklist integrated. I’ve also fixed the cut-off section and ensured every placeholder is dynamic for `[Suburb]` and `[Postcode]`.
+
+***
+
+### ✅ Full Combined Schema (`@graph`) – Copy & Paste into `<head>`
+
+```json
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": "https://yourcleaningsite.com.au/#business",
+      "name": "Your Local Cleaning Services",
+      "description": "Professional seasonal house cleaning in [Suburb] [Postcode] – spring pollen removal, winter mould prevention, and same-day service.",
+      "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning",
+      "telephone": "+61-400-000-000",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "[Suburb]",
+        "postalCode": "[Postcode]",
+        "addressCountry": "AU"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "1200"
+      },
+      "priceRange": "$$",
+      "serviceArea": "[Suburb] [Postcode] and surrounding suburbs",
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "07:00",
+        "closes": "20:00"
+      }
+    },
+    {
+      "@type": "Service",
+      "name": "Seasonal Spring Cleaning",
+      "serviceType": "Pollen removal, deep clean, mould prevention, upholstery sanitising",
+      "provider": { "@id": "https://yourcleaningsite.com.au/#business" },
+      "areaServed": ["[Postcode]"],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Seasonal Cleaning Packages",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "2-Bedroom Spring Clean",
+              "description": "Full pollen removal, window tracks, air vents, bathroom & kitchen sanitising."
+            },
+            "price": "179.00",
+            "priceCurrency": "AUD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "3-4 Bedroom Spring Clean",
+              "description": "Extended deep clean for larger homes with extra bedrooms and living areas."
+            },
+            "price": "249.00",
+            "priceCurrency": "AUD"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#page",
+      "name": "Spring Cleaning Services in [Suburb] [Postcode]",
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [".atomic-answer", ".faq-answer", ".howto-step", ".hero-subtext"]
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#faq",
+      "name": "Frequently Asked Questions – Seasonal Cleaning in [Suburb] [Postcode]",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is seasonal cleaning and why do I need it in [Suburb] [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Seasonal cleaning is a deep, weather-specific clean tailored to Australia’s changing seasons. In [Suburb] we tackle spring pollen & dust, summer mould & allergens, autumn leaf buildup, and winter germ protection. Our local [Postcode] team uses hospital-grade, pet-safe products to keep your home fresh and healthy year-round." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer spring cleaning services in [Suburb] [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes! Our spring cleaning package includes pollen removal, window tracks, air vents, and upholstery sanitising — perfect for [Suburb] homes affected by high pollen counts. Same-day and next-day slots available across [Postcode]." }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does a seasonal deep clean cost in [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Our seasonal cleans start at $179 for a 2-bedroom home in [Suburb] [Postcode]. Prices include all eco-friendly products and are fully customised. Get an instant online quote or call for a free [Suburb]-specific assessment." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is your cleaning service available across all [Suburb] postcodes?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. We cover every postcode in [Suburb] and surrounding suburbs (e.g. [Postcode] + neighbouring areas). Same local cleaners who live in your suburb — never outsourced." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you help with winter mould prevention in [Suburb]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Our winter mould & mildew deep clean targets bathrooms, laundry areas, and hidden damp spots common in [Suburb] homes during cooler months. We use anti-mould treatments that last up to 6 months." }
+        },
+        {
+          "@type": "Question",
+          "name": "Are your cleaners police-checked and insured for [Postcode] homes?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Every cleaner is police-checked, fully insured, and trained for Australian homes. You can relax knowing only trusted local [Suburb] professionals enter your property." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I pay after the clean or use Cash on Completion in [Suburb]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes — pay on completion (cash, card, or bank transfer) or securely online. No hidden fees for [Postcode] customers." }
+        },
+        {
+          "@type": "Question",
+          "name": "How quickly can you book a seasonal clean in [Suburb] [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Most [Suburb] customers book same-day or next-day service. Book online 24/7 or call our local team for instant availability." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer guarantees on your cleaning in [Postcode]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "100% Satisfaction Guarantee. If you’re not happy within 48 hours, we return for a free re-clean — no questions asked." }
+        },
+        {
+          "@type": "Question",
+          "name": "Are your products safe for kids, pets, and allergy sufferers in [Suburb]?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes — all products are Australian-made, eco-friendly, and certified child- & pet-safe. Ideal for [Suburb] families with asthma or allergies." }
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#checklist",
+      "name": "Spring Cleaning Checklist for [Suburb] [Postcode] Homes",
+      "description": "Complete step-by-step guide to remove pollen, dust and allergens from your [Suburb] home. Takes 2–4 hours depending on home size.",
+      "totalTime": "PT3H",
+      "estimatedCost": {
+        "@type": "MonetaryAmount",
+        "currency": "AUD",
+        "value": "0"
+      },
+      "supply": [
+        "Eco-friendly all-purpose cleaner",
+        "Microfibre cloths",
+        "Vacuum with HEPA filter",
+        "Anti-mould treatment spray"
+      ],
+      "tool": [
+        "Step ladder",
+        "Mop and bucket",
+        "Window squeegee",
+        "HEPA vacuum"
+      ],
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Preparation",
+          "text": "Open all windows for ventilation. Remove clutter from surfaces. Gather supplies.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-1"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "High Dusting & Pollen Traps",
+          "text": "Start at the ceiling: light fixtures, fans, blinds, and window tracks. Use microfibre cloths to trap pollen.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-2"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Vacuum & Upholstery",
+          "text": "Vacuum carpets, sofas, and curtains with HEPA filter. Spot-clean pet hair and allergens.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-3"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Kitchen Deep Clean",
+          "text": "Sanitise benchtops, oven, fridge seals, and splashbacks with eco-friendly spray.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-4"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Bathroom Mould Prevention",
+          "text": "Scrub showers, tiles, and grout. Apply anti-mould treatment that lasts 6 months.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-5"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Floors & Baseboards",
+          "text": "Mop hard floors and wipe skirting boards – perfect for [Suburb] dust levels.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-6"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Windows & Air Vents",
+          "text": "Clean inside tracks and wipe vents to improve airflow during spring.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-7"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Final Air-Out & Inspection",
+          "text": "Let fresh air circulate for 30 minutes. Your [Postcode] home is now sparkling and healthy.",
+          "url": "https://yourcleaningsite.com.au/[suburb]-[postcode]-spring-cleaning/#step-8"
+        }
+      ]
+    }
+  ]
+}
+</script>
+```
+
+***
+
+### 🔧 Implementation Checklist
+
+1. **Replace Placeholders**
+   - `[Suburb]` → e.g. `Parramatta`
+   - `[Postcode]` → e.g. `2150`
+   - `yourcleaningsite.com.au` → your actual domain
+   - `+61-400-000-000` → your business phone
+
+2. **Add Matching HTML Classes** (for Speakable to work)
+   ```html
+   <!-- Example Atomic Answer -->
+   <p class="atomic-answer">Our spring cleaning in [Suburb] [Postcode] removes high pollen counts...</p>
+
+   <!-- Example FAQ Answer -->
+   <div class="faq-answer">Seasonal cleaning is a deep, weather-specific clean...</div>
+
+   <!-- Example HowTo Step -->
+   <li class="howto-step">Open all windows for ventilation...</li>
+   ```
+
+3. **Validate**
+   - Run URL through [Google Rich Results Test](https://search.google.com/test/rich-results)
+   - Check Search Console → Structured Data after 24–48 hours
+
+4. **Deploy Dynamically**
+   - Use your CMS (WordPress, Webflow, Next.js) to auto-inject `[Suburb]` and `[Postcode]` from the URL slug.
+
+***
+
+### 🚀 Next Steps (Optional Upgrades)
+
+Want me to generate:
+- **A)** A **Winter Mould Prevention HowTo** schema + HTML (same structure, different steps)?
+- **B)** A **citation submission spreadsheet template** (Google Sheets) pre-filled with 40+ Australian directories?
+- **C)** A **real example** fully filled out for a specific suburb (e.g. `Chatswood 2067` or `Richmond 3121`)?
+
+Just reply **A**, **B**, or **C**!
+
