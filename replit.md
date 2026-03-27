@@ -38,6 +38,14 @@ The project is structured as a pnpm monorepo, separating deployable applications
 - React + Vite frontend for customer bookings.
 - 8-step booking flow (Service, Property, Add-ons, Schedule, Address, Details, Review/Quote, Payment).
 - Zustand for state management (`BookingState`).
+- **Dynamic Suburb System**: 14 suburbs in `src/data/suburbs.ts` registry; route `/suburb/:slug` renders localised suburb pages with pollen/mould risk profiles.
+- **Multi-Season Pages**: Route `/suburb/:slug/:season` generates unique spring/summer/autumn/winter pages per suburb. Season templates in `src/data/seasonal-content.ts` use `[Suburb]`/`[Postcode]` placeholder replacement.
+- **Schema Builder**: `src/lib/schema-builder.ts` provides `buildSeasonalSuburbSchema()` — generates a 5-node @graph (WebPage + LocalBusiness + Service + FAQPage + HowTo) with speakable selectors.
+- **HowToSection**: Flexible component accepting optional override props (steps, name, description, supplies, tools, totalTime) for season-specific content.
+- **Sitemap Page**: `/sitemap` route lists all 14 suburbs × 4 seasons (56+ pages) with links.
+- **JSON-LD @graph (home page)**: 9 nodes — WebPage + LocalBusiness + 5×Service + FAQPage + HowTo with SpeakableSpecification.
+- **Citation CSV**: `public/AussieClean-Citation-Directories.csv` — 45 Australian directories with NAP template and 30-day plan.
+- Suburb scaling: add one object to `SUBURB_DATA` array — all 4 season pages, schema, FAQ, HowTo auto-generate.
 - API server integration via generated React Query hooks (`@workspace/api-client-react`).
 - Floating AI Chat Widget powered by OpenAI (Replit AI Integration) with SSE streaming.
 - Live GPS tracking (Leaflet + CartoDB tiles) via WebSocket for booking detail page.

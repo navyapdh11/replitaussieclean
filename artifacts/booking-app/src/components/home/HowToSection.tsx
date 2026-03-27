@@ -69,17 +69,48 @@ export const HOWTO_TOOLS = [
 interface HowToSectionProps {
   suburb?: string;
   postcode?: string;
+  season?: string;
+  /* optional overrides supplied by season-specific suburb pages */
+  overrideSteps?: { name: string; text: string }[];
+  overrideName?: string;
+  overrideDescription?: string;
+  overrideSupplies?: string[];
+  overrideTools?: string[];
+  overrideTotalTime?: string; /* ISO 8601 e.g. "PT4H" */
 }
 
-export function HowToSection({ suburb = "Australian", postcode }: HowToSectionProps) {
+export function HowToSection({
+  suburb = "Australian",
+  postcode,
+  season,
+  overrideSteps,
+  overrideName,
+  overrideDescription,
+  overrideSupplies,
+  overrideTools,
+  overrideTotalTime,
+}: HowToSectionProps) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const toggle = (i: number) => setExpanded((p) => (p === i ? null : i));
 
-  const totalMinutes = 95;
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  const durationLabel = `${h}h ${m}m total`;
+  /* Resolve active steps / metadata — prefer overrides */
+  const activeSteps    = overrideSteps    ?? HOWTO_STEPS;
+  const activeSupplies = overrideSupplies ?? HOWTO_SUPPLIES;
+  const activeTools    = overrideTools    ?? HOWTO_TOOLS;
+  const activeName     = overrideName     ?? null;
+  const activeDesc     = overrideDescription ?? null;
+
+  /* Duration label */
+  const parsedMinutes = (() => {
+    if (!overrideTotalTime) return 95;
+    const hours   = parseInt(overrideTotalTime.match(/(\d+)H/)?.[1] ?? "0", 10);
+    const minutes = parseInt(overrideTotalTime.match(/(\d+)M/)?.[1] ?? "0", 10);
+    return hours * 60 + minutes;
+  })();
+  const h            = Math.floor(parsedMinutes / 60);
+  const m            = parsedMinutes % 60;
+  const durationLabel = m > 0 ? `${h}h ${m}m total` : `${h}h total`;
 
   return (
     <section
@@ -94,18 +125,26 @@ export function HowToSection({ suburb = "Australian", postcode }: HowToSectionPr
           <p className="text-sm font-semibold text-blue-400 uppercase tracking-widest">
             Step-by-step guide
           </p>
-          <h2 className="text-3xl md:text-5xl font-extrabold">
-            Winter Mould Prevention Checklist{" "}
-            {suburb !== "Australian" && (
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-primary">
-                for {suburb}{postcode ? ` ${postcode}` : ""} Homes
-              </span>
-            )}
-          </h2>
+          {activeName ? (
+            <h2 className="text-3xl md:text-5xl font-extrabold">{activeName}</h2>
+          ) : (
+            <h2 className="text-3xl md:text-5xl font-extrabold">
+              Winter Mould Prevention Checklist{" "}
+              {suburb !== "Australian" && (
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-primary">
+                  for {suburb}{postcode ? ` ${postcode}` : ""} Homes
+                </span>
+              )}
+            </h2>
+          )}
           <p className="text-muted-foreground max-w-xl mx-auto atomic-answer">
-            Follow this 7-step winter checklist to stop mould before it starts in{" "}
-            {suburb} homes. Our local team uses these exact anti-mould treatments on
-            every winter deep clean — protection lasts up to 6 months.
+            {activeDesc ?? (
+              <>
+                Follow this 7-step winter checklist to stop mould before it starts in{" "}
+                {suburb} homes. Our local team uses these exact anti-mould treatments on
+                every winter deep clean — protection lasts up to 6 months.
+              </>
+            )}
           </p>
         </div>
 
@@ -113,7 +152,7 @@ export function HowToSection({ suburb = "Australian", postcode }: HowToSectionPr
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { icon: Clock,     label: "Total time",  value: durationLabel    },
-            { icon: CheckCircle2, label: "Steps",    value: "7 proven steps" },
+            { icon: CheckCircle2, label: "Steps",    value: `${activeSteps.length} proven steps` },
             { icon: Package,   label: "Protection",  value: "Up to 6 months" },
             { icon: Wrench,    label: "Cost",        value: "Free checklist" },
           ].map(({ icon: Icon, label, value }) => (
@@ -129,16 +168,17 @@ export function HowToSection({ suburb = "Australian", postcode }: HowToSectionPr
         </div>
 
         {/* Steps */}
-        <ol className="space-y-3" aria-label="Mould prevention steps">
-          {HOWTO_STEPS.map((step, i) => {
+        <ol className="space-y-3" aria-label="Checklist steps">
+          {activeSteps.map((step, i) => {
             const isOpen   = expanded === i;
             const panelId  = `howto-panel-${i}`;
             const btnId    = `howto-btn-${i}`;
+            const stepId   = (step as { id?: string }).id ?? `step-${i + 1}`;
 
             return (
               <li
-                key={step.id}
-                id={step.id}
+                key={stepId}
+                id={stepId}
                 className={cn(
                   "rounded-2xl border transition-all duration-200",
                   isOpen
@@ -170,7 +210,9 @@ export function HowToSection({ suburb = "Australian", postcode }: HowToSectionPr
                     <p className="text-base font-semibold text-foreground">
                       {step.name}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{step.duration}</p>
+                    {"duration" in step && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{(step as { duration: string }).duration}</p>
+                    )}
                   </div>
 
                   <ChevronDown
@@ -209,7 +251,7 @@ export function HowToSection({ suburb = "Australian", postcode }: HowToSectionPr
               <h3 className="font-bold text-foreground">Supplies needed</h3>
             </div>
             <ul className="space-y-1.5" role="list">
-              {HOWTO_SUPPLIES.map((s) => (
+              {activeSupplies.map((s) => (
                 <li key={s} className="flex items-center gap-2 text-sm text-muted-foreground" role="listitem">
                   <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" aria-hidden="true" />
                   {s}
@@ -223,7 +265,7 @@ export function HowToSection({ suburb = "Australian", postcode }: HowToSectionPr
               <h3 className="font-bold text-foreground">Tools needed</h3>
             </div>
             <ul className="space-y-1.5" role="list">
-              {HOWTO_TOOLS.map((t) => (
+              {activeTools.map((t) => (
                 <li key={t} className="flex items-center gap-2 text-sm text-muted-foreground" role="listitem">
                   <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" aria-hidden="true" />
                   {t}
