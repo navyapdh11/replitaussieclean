@@ -136,6 +136,11 @@ router.patch("/tenants/:id", async (req, res): Promise<void> => {
   const updates: Record<string, unknown> = {};
   for (const k of allowed) { if (k in b) updates[k] = b[k]; }
 
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
   if (b.plan && !["starter","pro","enterprise"].includes(b.plan)) {
     res.status(400).json({ error: "Invalid plan" });
     return;

@@ -16,7 +16,7 @@ export function Step8Payment() {
         bookingId: store.bookingId,
         quoteAmountCents: store.quoteAmountCents + (store.gstAmountCents || 0),
         customerEmail: store.email,
-        serviceDescription: `AussieClean: ${store.serviceType?.replace('_', ' ')}`
+        serviceDescription: `AussieClean: ${store.serviceType?.replace(/_/g, ' ')}`
       }
     }, {
       onSuccess: (res: { url: string }) => {
