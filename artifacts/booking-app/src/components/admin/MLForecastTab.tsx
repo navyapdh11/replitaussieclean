@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Brain, TrendingUp, RefreshCw, Zap, Info } from "lucide-react";
+import { Brain, TrendingUp, RefreshCw, Zap, Info, CheckCircle2, AlertCircle } from "lucide-react";
 import { BASE_URL } from "./shared";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface ForecastPoint {
   date: string;
@@ -35,7 +36,7 @@ const TENANT_ID = "aussieclean-default";
 
 function getDates(startStr: string, days: number): string[] {
   const result: string[] = [];
-  const start = new Date(startStr);
+  const start = new Date(startStr + "T00:00:00");
   for (let i = 0; i < days; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
@@ -44,9 +45,8 @@ function getDates(startStr: string, days: number): string[] {
   return result;
 }
 
-const MAX_BAR = 8;
-
 export function MLForecastTab() {
+  const { toast } = useToast();
   const [serviceType, setServiceType] = useState("standard_clean");
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [days, setDays] = useState(14);
@@ -56,8 +56,12 @@ export function MLForecastTab() {
   const [training, setTraining] = useState(false);
 
   const loadModels = async () => {
-    const res = await fetch(`${BASE_URL}/api/ml/models?tenantId=${TENANT_ID}`);
-    if (res.ok) setModels(await res.json());
+    try {
+      const res = await fetch(`${BASE_URL}/api/ml/models?tenantId=${TENANT_ID}`);
+      if (res.ok) setModels(await res.json());
+    } catch {
+      // non-critical
+    }
   };
 
   useEffect(() => { loadModels(); }, []);
@@ -74,8 +78,19 @@ export function MLForecastTab() {
       if (res.ok) {
         const data = await res.json();
         setForecasts(data.forecasts ?? []);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast({
+          title: "Forecast failed",
+          description: (err as { error?: string }).error ?? "An error occurred generating the forecast.",
+          variant: "destructive",
+        });
       }
-    } finally { setLoading(false); }
+    } catch {
+      toast({ title: "Network error", description: "Could not reach the API server.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const trainModel = async () => {
@@ -86,12 +101,33 @@ export function MLForecastTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tenantId: TENANT_ID, serviceType }),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
-        loadModels();
-        alert(`Model trained! Version: ${data.version} · R²: ${data.metrics.r2.toFixed(3)} · MAE: ${data.metrics.mae.toFixed(2)}`);
+        await loadModels();
+        const label = SERVICE_TYPES.find((s) => s.value === serviceType)?.label ?? serviceType;
+        if (data.count < 5) {
+          toast({
+            title: "Insufficient training data",
+            description: `Only ${data.count} data point(s) found. Need at least 5 bookings to train a model. Using heuristic forecasts for now.`,
+          });
+        } else {
+          toast({
+            title: "Model trained successfully",
+            description: `${label} · Version ${data.version} · R²: ${(data.metrics.r2 * 100).toFixed(1)}% · MAE: ${data.metrics.mae.toFixed(2)} · ${data.count} samples`,
+          });
+        }
+      } else {
+        toast({
+          title: "Training failed",
+          description: (data as { error?: string }).error ?? "An error occurred during training.",
+          variant: "destructive",
+        });
       }
-    } finally { setTraining(false); }
+    } catch {
+      toast({ title: "Network error", description: "Could not reach the API server.", variant: "destructive" });
+    } finally {
+      setTraining(false);
+    }
   };
 
   const maxDemand = Math.max(...forecasts.map((f) => f.confidenceHigh), 1);
@@ -152,39 +188,49 @@ export function MLForecastTab() {
       {/* Chart */}
       {forecasts.length > 0 && (
         <div className="border border-border bg-card rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h3 className="font-bold text-sm">
               {SERVICE_TYPES.find((s) => s.value === serviceType)?.label} Demand Forecast
             </h3>
-            {forecasts[0]?.isHeuristic && (
-              <span className="flex items-center gap-1 text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
-                <Info className="w-3.5 h-3.5" /> Heuristic mode (insufficient training data)
+            {forecasts[0]?.isHeuristic ? (
+              <span className="flex items-center gap-1 text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
+                <Info className="w-3.5 h-3.5" /> Heuristic mode — train the model for ML predictions
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
+                <CheckCircle2 className="w-3.5 h-3.5" /> ML model · {forecasts[0]?.modelVersion}
               </span>
             )}
           </div>
 
           {/* Bar chart */}
-          <div className="overflow-x-auto pb-2">
+          <div
+            role="img"
+            aria-label={`Demand forecast bar chart for ${SERVICE_TYPES.find((s) => s.value === serviceType)?.label}`}
+            className="overflow-x-auto pb-2"
+          >
             <div className="flex items-end gap-1.5 min-w-0" style={{ minHeight: "160px" }}>
               {forecasts.map((f) => {
-                const barH = Math.max(8, (f.predictedDemand / maxDemand) * 140);
-                const ciLoH = Math.max(4, (f.confidenceLow / maxDemand) * 140);
-                const ciHiH = Math.max(4, (f.confidenceHigh / maxDemand) * 140);
-                const dow = new Date(f.date).getDay();
-                const isWE = dow === 0 || dow === 6;
+                const barH  = Math.max(8, (f.predictedDemand / maxDemand) * 140);
+                const ciHiH = Math.max(4, (f.confidenceHigh  / maxDemand) * 140);
+                const dow   = new Date(f.date + "T00:00:00").getDay();
+                const isWE  = dow === 0 || dow === 6;
                 return (
-                  <div key={f.date} className="flex flex-col items-center gap-1 flex-1 min-w-[30px]" title={`${f.date}: ${f.predictedDemand} bookings (CI: ${f.confidenceLow}–${f.confidenceHigh})`}>
+                  <div
+                    key={f.date}
+                    className="flex flex-col items-center gap-1 flex-1 min-w-[30px]"
+                    title={`${f.date}: ${f.predictedDemand} bookings (CI: ${f.confidenceLow}–${f.confidenceHigh})`}
+                  >
                     <span className="text-[9px] text-muted-foreground font-semibold">{f.predictedDemand.toFixed(1)}</span>
                     <div className="relative flex flex-col items-center" style={{ height: "140px", justifyContent: "flex-end" }}>
-                      {/* CI range */}
+                      {/* Confidence interval band */}
                       <div className="absolute bottom-0 w-2 rounded-sm bg-primary/20"
                         style={{ height: `${ciHiH}px` }} />
                       {/* Forecast bar */}
                       <div className={cn("w-4 rounded-sm transition-all", isWE ? "bg-cyan-400" : "bg-primary")}
                         style={{ height: `${barH}px`, position: "absolute", bottom: 0 }} />
                     </div>
-                    <span className="text-[9px] text-muted-foreground"
-                      title={f.date}>{f.date.slice(5)}</span>
+                    <span className="text-[9px] text-muted-foreground" title={f.date}>{f.date.slice(5)}</span>
                   </div>
                 );
               })}
@@ -203,7 +249,7 @@ export function MLForecastTab() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold">Model Versions</h3>
-            <button onClick={loadModels} className="text-muted-foreground hover:text-foreground">
+            <button onClick={loadModels} className="text-muted-foreground hover:text-foreground transition-colors" title="Refresh">
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
@@ -242,6 +288,15 @@ export function MLForecastTab() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Empty state when no models and no forecasts */}
+      {models.length === 0 && forecasts.length === 0 && (
+        <div className="text-center py-12 border border-border rounded-2xl text-muted-foreground">
+          <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="font-semibold">No model trained yet</p>
+          <p className="text-sm mt-1">Click "Retrain Model" to train, or "Generate Forecast" to use heuristic predictions.</p>
         </div>
       )}
     </div>

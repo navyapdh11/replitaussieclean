@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useListBookings } from "@workspace/api-client-react";
@@ -13,18 +13,38 @@ import { MLForecastTab } from "@/components/admin/MLForecastTab";
 
 type AdminTab = "bookings" | "dispatch" | "pricing" | "staff" | "scheduling" | "ml";
 
+const VALID_TABS: AdminTab[] = ["bookings", "dispatch", "pricing", "staff", "scheduling", "ml"];
+
+function getHashTab(): AdminTab {
+  const hash = window.location.hash.replace("#", "") as AdminTab;
+  return VALID_TABS.includes(hash) ? hash : "bookings";
+}
+
 export default function AdminDashboard() {
-  const [tab, setTab] = useState<AdminTab>("bookings");
-  const [searchEmail, setSearchEmail] = useState("");
+  const [tab, setTab] = useState<AdminTab>(getHashTab);
+  const [searchEmail, setSearchEmail]   = useState("");
   const [appliedEmail, setAppliedEmail] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const { data: bookings, isLoading, isError, refetch } = useListBookings(
+  // Sync URL hash when tab changes
+  const switchTab = (id: AdminTab) => {
+    setTab(id);
+    window.location.hash = id;
+  };
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const onHashChange = () => setTab(getHashTab());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  const { data: rawBookings, isLoading, isError, refetch } = useListBookings(
     appliedEmail ? { email: appliedEmail } : {},
-    { query: { retry: false } as any },
+    { query: { retry: false } as never },
   );
 
-  const list = (bookings as any[]) ?? [];
+  const list = Array.isArray(rawBookings) ? rawBookings : [];
   const filtered = list.filter((b) => statusFilter === "all" || b.status === statusFilter);
 
   const stats = {
@@ -35,12 +55,12 @@ export default function AdminDashboard() {
   };
 
   const TABS = [
-    { id: "bookings"    as const, label: "Bookings",         icon: ClipboardList },
-    { id: "dispatch"    as const, label: "Dispatch",         icon: Truck         },
-    { id: "pricing"     as const, label: "Pricing",          icon: BarChart3     },
-    { id: "staff"       as const, label: "Staff",            icon: Users         },
-    { id: "scheduling"  as const, label: "Scheduling",       icon: UserCheck     },
-    { id: "ml"          as const, label: "ML Forecast",      icon: Brain         },
+    { id: "bookings"    as const, label: "Bookings",    icon: ClipboardList },
+    { id: "dispatch"    as const, label: "Dispatch",    icon: Truck         },
+    { id: "pricing"     as const, label: "Pricing",     icon: BarChart3     },
+    { id: "staff"       as const, label: "Staff",       icon: Users         },
+    { id: "scheduling"  as const, label: "Scheduling",  icon: UserCheck     },
+    { id: "ml"          as const, label: "ML Forecast", icon: Brain         },
   ];
 
   return (
@@ -94,7 +114,7 @@ export default function AdminDashboard() {
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setTab(id)}
+              onClick={() => switchTab(id)}
               className={cn(
                 "flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px whitespace-nowrap",
                 tab === id
@@ -108,9 +128,9 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab bodies */}
-        {tab === "bookings"   && (
+        {tab === "bookings" && (
           <BookingsTab
-            searchEmail={searchEmail} setSearchEmail={setSearchEmail}
+            searchEmail={searchEmail}   setSearchEmail={setSearchEmail}
             appliedEmail={appliedEmail} setAppliedEmail={setAppliedEmail}
             statusFilter={statusFilter} setStatusFilter={setStatusFilter}
             filtered={filtered} stats={stats}
@@ -122,7 +142,7 @@ export default function AdminDashboard() {
         {tab === "dispatch"   && <DispatchPanel bookings={list} onRefresh={refetch} />}
         {tab === "pricing"    && <PricingAnalyticsTab />}
         {tab === "staff"      && <StaffTab />}
-        {tab === "scheduling" && <SchedulingTab bookings={list} />}
+        {tab === "scheduling" && <SchedulingTab />}
         {tab === "ml"         && <MLForecastTab />}
       </main>
 

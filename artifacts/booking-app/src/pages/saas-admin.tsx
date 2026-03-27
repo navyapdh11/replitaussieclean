@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Building2, Plus, Globe, ToggleRight, ToggleLeft, TrendingUp, Users, BookOpen, X, Check } from "lucide-react";
+import {
+  Building2, Plus, Globe, ToggleRight, ToggleLeft,
+  TrendingUp, Users, BookOpen, X, Check,
+} from "lucide-react";
 import { BASE_URL } from "@/components/admin/shared";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface Tenant {
   id: string;
@@ -32,11 +36,28 @@ const PLAN_COLOR: Record<string, string> = {
   enterprise: "bg-purple-500/20 text-purple-400",
 };
 
+const PRICING_TIERS = [
+  {
+    plan: "Starter", price: "$99/mo",
+    features: ["Up to 100 bookings/mo", "Basic scheduling", "1 staff account", "Standard support"],
+  },
+  {
+    plan: "Pro", price: "$199/mo",
+    features: ["Up to 500 bookings/mo", "ML forecasting", "Unlimited staff", "Priority support"],
+    highlight: true,
+  },
+  {
+    plan: "Enterprise", price: "$499/mo",
+    features: ["Unlimited bookings", "Custom domain", "Full white-label", "API access", "Dedicated support"],
+  },
+] as const;
+
 export default function SaasAdminPage() {
-  const [data, setData] = useState<TenantStats | null>(null);
+  const { toast } = useToast();
+  const [data, setData]       = useState<TenantStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving]     = useState(false);
   const [form, setForm] = useState({
     name: "", slug: "", domain: "", abn: "", phone: "", email: "",
     plan: "starter" as "starter" | "pro" | "enterprise",
@@ -47,11 +68,24 @@ export default function SaasAdminPage() {
     setLoading(true);
     try {
       const res = await fetch(`${BASE_URL}/api/tenants`);
-      if (res.ok) setData(await res.json());
-    } finally { setLoading(false); }
+      if (res.ok) {
+        setData(await res.json());
+      } else {
+        toast({ title: "Failed to load tenants", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Network error loading tenants", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
+
+  const resetForm = () => setForm({
+    name: "", slug: "", domain: "", abn: "", phone: "", email: "",
+    plan: "starter", primaryColor: "#22d3ee",
+  });
 
   const save = async () => {
     setSaving(true);
@@ -61,17 +95,38 @@ export default function SaasAdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, domain: form.domain || undefined }),
       });
-      if (res.ok) { setShowForm(false); setForm({ name: "", slug: "", domain: "", abn: "", phone: "", email: "", plan: "starter", primaryColor: "#22d3ee" }); load(); }
-      else {
-        const err = await res.json();
-        alert(err.error ?? "Failed to create tenant");
+      const body = await res.json();
+      if (res.ok) {
+        setShowForm(false);
+        resetForm();
+        load();
+        toast({ title: "Tenant created", description: `${form.name} has been added to the platform.` });
+      } else {
+        toast({
+          title: "Failed to create tenant",
+          description: (body as { error?: string }).error ?? "An unexpected error occurred.",
+          variant: "destructive",
+        });
       }
-    } finally { setSaving(false); }
+    } catch {
+      toast({ title: "Network error", description: "Could not reach the API server.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const toggleActive = async (id: string) => {
-    await fetch(`${BASE_URL}/api/tenants/${id}/suspend`, { method: "PATCH" });
-    load();
+  const toggleActive = async (id: string, name: string, currentlyActive: boolean) => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/tenants/${id}/suspend`, { method: "PATCH" });
+      if (res.ok) {
+        load();
+        toast({ title: `${name} ${currentlyActive ? "suspended" : "reactivated"}` });
+      } else {
+        toast({ title: "Failed to update tenant status", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    }
   };
 
   const autoSlug = (name: string) =>
@@ -115,7 +170,7 @@ export default function SaasAdminPage() {
               },
               {
                 label: "Total Bookings",
-                value: data.tenants.reduce((s, t) => s + t.bookingCount, 0),
+                value: data.tenants.reduce((s, t) => s + t.bookingCount, 0).toLocaleString(),
                 sub: "across all tenants",
                 icon: BookOpen,
                 gradient: "from-emerald-500/10 to-green-500/10 border-emerald-500/30",
@@ -142,13 +197,9 @@ export default function SaasAdminPage() {
           </div>
         )}
 
-        {/* Pricing tiers callout */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { plan: "Starter", price: "$99/mo", features: ["Up to 100 bookings/mo", "Basic scheduling", "1 staff account", "Standard support"] },
-            { plan: "Pro",     price: "$199/mo", features: ["Up to 500 bookings/mo", "ML forecasting", "Unlimited staff", "Priority support"], highlight: true },
-            { plan: "Enterprise", price: "$499/mo", features: ["Unlimited bookings", "Custom domain", "Full white-label", "API access", "Dedicated support"] },
-          ].map(({ plan, price, features, highlight }) => (
+        {/* Pricing tier cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {PRICING_TIERS.map(({ plan, price, features, highlight }) => (
             <div key={plan} className={cn(
               "border rounded-2xl p-5 space-y-3",
               highlight ? "border-primary bg-primary/5" : "border-border bg-card",
@@ -200,14 +251,16 @@ export default function SaasAdminPage() {
                     <tr key={t.id} className={cn("hover:bg-muted/10 transition-colors", !t.active && "opacity-60")}>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                            style={{ background: t.primaryColor }}>
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+                            style={{ background: t.primaryColor }}
+                          >
                             {t.name.slice(0, 2).toUpperCase()}
                           </div>
-                          <div>
-                            <p className="font-semibold">{t.name}</p>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Globe className="w-3 h-3" />
+                          <div className="min-w-0">
+                            <p className="font-semibold truncate">{t.name}</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                              <Globe className="w-3 h-3 shrink-0" />
                               {t.domain ?? `${t.slug}.aussieclean.com`}
                             </p>
                           </div>
@@ -231,7 +284,7 @@ export default function SaasAdminPage() {
                       </td>
                       <td className="px-5 py-4 text-right">
                         <button
-                          onClick={() => toggleActive(t.id)}
+                          onClick={() => toggleActive(t.id, t.name, t.active)}
                           className="text-muted-foreground hover:text-foreground transition-colors"
                           title={t.active ? "Suspend tenant" : "Reactivate tenant"}
                         >
@@ -264,27 +317,42 @@ export default function SaasAdminPage() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold mb-1">Company Name *</label>
-                <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: f.slug || autoSlug(e.target.value) }))}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="Acme Cleaning Co" />
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: f.slug || autoSlug(e.target.value) }))}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="Acme Cleaning Co"
+                />
               </div>
               <div>
                 <label className="block text-xs font-semibold mb-1">Slug (subdomain) *</label>
                 <div className="flex items-center gap-1">
-                  <input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: autoSlug(e.target.value) }))}
-                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono" placeholder="acme" />
+                  <input
+                    value={form.slug}
+                    onChange={(e) => setForm((f) => ({ ...f, slug: autoSlug(e.target.value) }))}
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono"
+                    placeholder="acme"
+                  />
                   <span className="text-xs text-muted-foreground whitespace-nowrap">.aussieclean.com</span>
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold mb-1">Custom Domain (optional)</label>
-                <input value={form.domain} onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="clean.acme.com.au" />
+                <input
+                  value={form.domain}
+                  onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="clean.acme.com.au"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold mb-1">Plan</label>
-                  <select value={form.plan} onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value as any }))}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                  <select
+                    value={form.plan}
+                    onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value as "starter" | "pro" | "enterprise" }))}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  >
                     <option value="starter">Starter ($99/mo)</option>
                     <option value="pro">Pro ($199/mo)</option>
                     <option value="enterprise">Enterprise ($499/mo)</option>
@@ -293,39 +361,62 @@ export default function SaasAdminPage() {
                 <div>
                   <label className="block text-xs font-semibold mb-1">Brand Colour</label>
                   <div className="flex items-center gap-2">
-                    <input type="color" value={form.primaryColor} onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))}
-                      className="w-10 h-9 rounded border border-border bg-background cursor-pointer" />
-                    <input value={form.primaryColor} onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))}
-                      className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono" />
+                    <input
+                      type="color" value={form.primaryColor}
+                      onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))}
+                      className="w-10 h-9 rounded border border-border bg-background cursor-pointer"
+                    />
+                    <input
+                      value={form.primaryColor}
+                      onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))}
+                      className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono"
+                    />
                   </div>
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold mb-1">ABN</label>
-                <input value={form.abn} onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value }))}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="98 765 432 109" />
+                <input
+                  value={form.abn}
+                  onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value }))}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="98 765 432 109"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold mb-1">Phone</label>
-                  <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="1300 XXX XXX" />
+                  <input
+                    value={form.phone}
+                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    placeholder="1300 XXX XXX"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1">Email</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="hello@acme.com.au" />
+                  <input
+                    type="email" value={form.email}
+                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    placeholder="hello@acme.com.au"
+                  />
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3 pt-1">
-              <button onClick={() => setShowForm(false)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors">
+              <button
+                onClick={() => { setShowForm(false); resetForm(); }}
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors"
+              >
                 Cancel
               </button>
-              <button onClick={save} disabled={saving || !form.name || !form.slug}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
+              <button
+                onClick={save}
+                disabled={saving || !form.name || !form.slug}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
+              >
                 {saving ? "Creating…" : "Create Tenant"}
               </button>
             </div>

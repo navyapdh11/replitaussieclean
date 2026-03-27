@@ -22,8 +22,9 @@ router.post("/ml/forecast", async (req, res): Promise<void> => {
       }),
     );
     res.json({ forecasts });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message ?? "Forecast failed" });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Forecast failed";
+    res.status(500).json({ error: msg });
   }
 });
 
@@ -37,8 +38,9 @@ router.post("/ml/train", async (req, res): Promise<void> => {
   try {
     const result = await trainDemandModel(tenantId, serviceType);
     res.json(result);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message ?? "Training failed" });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Training failed";
+    res.status(500).json({ error: msg });
   }
 });
 
@@ -46,21 +48,31 @@ router.post("/ml/train", async (req, res): Promise<void> => {
 router.get("/ml/models", async (req, res): Promise<void> => {
   const tenantId = req.query.tenantId as string;
   if (!tenantId) { res.status(400).json({ error: "tenantId required" }); return; }
-  const versions = await listModelVersions(tenantId);
-  res.json(versions);
+  try {
+    const versions = await listModelVersions(tenantId);
+    res.json(versions);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Query failed";
+    res.status(500).json({ error: msg });
+  }
 });
 
 // GET /api/ml/forecast-history — past forecast records
 router.get("/ml/forecast-history", async (req, res): Promise<void> => {
   const tenantId = req.query.tenantId as string;
   if (!tenantId) { res.status(400).json({ error: "tenantId required" }); return; }
-  const rows = await db
-    .select()
-    .from(demandForecastsTable)
-    .where(eq(demandForecastsTable.tenantId, tenantId))
-    .orderBy(desc(demandForecastsTable.createdAt))
-    .limit(100);
-  res.json(rows);
+  try {
+    const rows = await db
+      .select()
+      .from(demandForecastsTable)
+      .where(eq(demandForecastsTable.tenantId, tenantId))
+      .orderBy(desc(demandForecastsTable.createdAt))
+      .limit(100);
+    res.json(rows);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Query failed";
+    res.status(500).json({ error: msg });
+  }
 });
 
 export default router;

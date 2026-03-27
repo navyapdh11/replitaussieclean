@@ -1,282 +1,110 @@
-# Workspace
+# AussieClean Monorepo
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+AussieClean is a pnpm workspace monorepo using TypeScript, designed for a comprehensive cleaning service platform. It encompasses a booking application, an API server, and shared libraries. The platform provides a seamless booking experience for customers, efficient management tools for administrators, and robust backend services including dynamic pricing, AI-powered chat, and real-time tracking.
 
-## Stack
+The project's vision is a multi-tenant SaaS platform for cleaning services, offering advanced features like ML-driven demand forecasting and optimised staff scheduling.
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+## User Preferences
 
-## Structure
+I prefer iterative development with clear communication on major changes. Please ask before implementing significant architectural shifts or major feature additions. I value detailed explanations for complex solutions but prefer concise updates for routine tasks. I like functional programming paradigms where they enhance readability and maintainability.
 
-```text
-artifacts-monorepo/
-├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
-├── lib/                    # Shared libraries
-│   ├── api-spec/           # OpenAPI spec + Orval codegen config
-│   ├── api-client-react/   # Generated React Query hooks
-│   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
-├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
-├── tsconfig.json           # Root TS project references
-└── package.json            # Root package with hoisted devDeps
-```
+## System Architecture
 
-## TypeScript & Composite Projects
+The project is structured as a pnpm monorepo, separating deployable applications (`artifacts/`) from shared libraries (`lib/`). TypeScript with composite projects ensures robust type-checking across packages.
 
-Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
+**Core Technologies:**
+- **Node.js**: 24
+- **TypeScript**: 5.9
+- **API Framework**: Express 5
+- **Database**: PostgreSQL with Drizzle ORM
+- **Validation**: Manual (no Zod in api-server routes — esbuild external issue)
+- **API Codegen**: Orval (from OpenAPI spec)
+- **Frontend**: React + Vite
+- **UI/UX**: Premium dark theme (slate-950 bg, cyan-400 accent), Australian locale
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
+## Key Features & Implementations
 
-## Root Scripts
+### 1. API Server (`artifacts/api-server`)
+- Handles all backend logic, routing, and data persistence.
+- Routes are validated manually (Zod cannot be imported in api-server due to esbuild external issue).
+- Includes health check, booking management (CRUD + status transitions), dynamic pricing quotes, Stripe checkout, service area listing, AI chat endpoints.
+- Dynamic pricing engine with five multipliers (demand, weather, traffic, staff availability, time slot) plus admin-controlled factors, capped between 0.8× and 2.0×.
+- In-memory `TtlCache` with auto-pruning (`setInterval`, `prune()`, `destroy()`, `unref()`) for pricing factors.
+- All route handlers wrapped in try/catch with typed error responses.
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+### 2. Booking Application (`artifacts/booking-app`)
+- React + Vite frontend for customer bookings.
+- 8-step booking flow (Service, Property, Add-ons, Schedule, Address, Details, Review/Quote, Payment).
+- Zustand for state management (`BookingState`).
+- API server integration via generated React Query hooks (`@workspace/api-client-react`).
+- Floating AI Chat Widget powered by OpenAI (Replit AI Integration) with SSE streaming.
+- Live GPS tracking (Leaflet + CartoDB tiles) via WebSocket for booking detail page.
+- SEO optimised with JSON-LD schema, global error boundary.
+- All feedback uses `useToast` hook — zero `alert()` calls in the entire frontend.
 
-## Packages
+### 3. Admin Dashboard (`/admin`)
+- 6-tab portal: Bookings, Dispatch, Pricing Analytics, Staff, Scheduling, ML Forecast.
+- URL hash navigation (`#bookings`, `#staff`, `#ml`, etc.) — browser back/forward works.
+- Booking status management with server-enforced transitions.
+- Staff management with email uniqueness enforcement, AU phone validation, skills assignment, soft-delete safety.
+- Scheduling optimizer with date-scoped assignment counts (avoids counting historical assignments as today's load).
+- ML Forecast chart has `role="img"` + `aria-label` for accessibility.
 
-### `artifacts/api-server` (`@workspace/api-server`)
+### 4. Multi-tenant SaaS Admin (`/saas-admin`)
+- Super-admin portal for managing multiple tenants.
+- Metrics: MRR, active tenants, total bookings.
+- Tenant CRUD with slug uniqueness enforcement, plan validation, brand colour picker.
+- Suspend/reactivate tenants.
+- Pricing tier display (Starter $99, Pro $199, Enterprise $499/mo).
 
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
+### 5. ML Forecasting Engine (`lib/mlForecaster.ts`)
+- Custom multivariate linear regression (ridge regularisation, normal equations).
+- Features: dayOfWeek, isWeekend, isPublicHoliday, month, dayOfMonth, serviceIndex.
+- Training data: only `confirmed`, `in_progress`, `completed` bookings (cancelled/draft excluded from demand signal).
+- Models with < 5 samples skip DB insert and return without creating noise in model versions table.
+- Day-of-week heuristic fallback when no trained model exists.
+- Model cache (`Map<string, CachedModel>`) keyed by `${tenantId}:${serviceType}`.
 
-- Entry: `src/index.ts` — reads `PORT`, starts Express
-- App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
+### 6. Scheduling Optimizer (`lib/scheduler.ts`)
+- Greedy composite score (proximity 50%, rating 30%, workload 20%).
+- Assignment count filtered by target date + active statuses (`["assigned", "in_progress"]`) only — historical assignments don't inflate today's load.
+- `manualAssign` validates staff belongs to the requesting tenant.
+- Soft-delete safety: staff with active assignments are deactivated rather than hard-deleted.
 
-### `lib/db` (`@workspace/db`)
+### 7. Real-time Tracking (WebSocket)
+- Socket.IO (`/tracking` namespace) for real-time cleaner location + job status.
+- Events: `join_job`, `update_location`, `job_status`.
+- Demo mode: `simulateCleaner()`.
 
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
+### 8. Database (`lib/db`)
+- Drizzle ORM with PostgreSQL.
+- Schemas: `bookings`, `service_areas`, `price_rules`, `price_history`, `conversations`, `messages`, `dynamic_pricing_factors`, `tenants`, `staff`, `staff_availability`, `job_assignments`, `demand_forecasts`, `ml_model_versions`.
+- Default tenant: `id = slug = "aussieclean-default"` (FK used by staff, ML, scheduling).
+- Push command: `pnpm --filter @workspace/db run push-force`
 
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
+## Route Notes
 
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
+- API routes mounted at `/api`: `app.use("/api", router)` — sub-routes use paths **without** `/api/` prefix.
+- Frontend API calls: `${BASE_URL}/api/...` where `BASE_URL = (import.meta.env.BASE_URL ?? "/booking-app").replace(/\/$/, "")`.
+- Stripe webhook raw body handler placed **after** gzip compression middleware.
+- `tenants/:slug/branding` route registered **before** `tenants/:slug` to prevent prefix collision.
 
-### `lib/api-spec` (`@workspace/api-spec`)
+## External Dependencies
 
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
+- **PostgreSQL**: Primary database.
+- **Stripe**: Payment gateway. Requires `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`.
+- **Resend**: Email API for booking confirmations. Requires `RESEND_API_KEY`.
+- **OpenAI**: AI Chat Widget via Replit AI Integration (no separate API key needed).
+- **PostHog**: Client-side analytics. Requires `VITE_POSTHOG_KEY`.
+- **Leaflet.js & CartoDB**: Mapping for live GPS tracking.
+- **Socket.IO**: WebSocket for real-time communication.
+- **express-rate-limit**: API rate limiting middleware.
 
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
+## Seeded Demo Data
 
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
-
-### `lib/api-zod` (`@workspace/api-zod`)
-
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
-
-### `lib/api-client-react` (`@workspace/api-client-react`)
-
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
-
-### `scripts` (`@workspace/scripts`)
-
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
-
-- `pnpm --filter @workspace/scripts run seed` — Seeds price rules and service areas into the DB
-
-### `artifacts/booking-app` (`@workspace/booking-app`)
-
-React + Vite frontend for the AussieClean booking platform. Premium dark theme (slate-950 bg, cyan-400 accent).
-
-- **8-step booking flow**: Service → Property → Add-ons → Schedule → Address → Details → Review/Quote → Payment
-- **State management**: Zustand store (`src/lib/store.ts`) — `BookingState` with all booking fields
-- **Pages**: `src/pages/home.tsx`, `src/pages/booking/` (Step1–Step8), `src/pages/dashboard.tsx`, `src/pages/success.tsx`, `src/pages/cancelled.tsx`
-- **API integration**: Uses `@workspace/api-client-react` hooks — Step 7 calls `useGetQuote`, Step 8 calls `useCreateCheckoutSession`
-- **Australian locale**: AUD currency, 4-digit postcodes, 04XX phone format
-- Routes: previewPath `/`, port from `$PORT`
-
-## AussieClean Platform Features
-
-### API Routes (`/api/*`)
-- `GET /api/healthz` — Health check
-- `GET /api/bookings?email=&status=&limit=&offset=` — List bookings (newest-first, paginated, max 200/page)
-- `POST /api/bookings` — Create booking (rate limited: 5/min)
-- `GET /api/bookings/:id` — Get booking
-- `PATCH /api/bookings/:id` — Update booking status (enforces SERVER_STATUS_TRANSITIONS; 409 on invalid move)
-- `POST /api/pricing/quote` — Dynamic pricing quote (rate limited: 20/min)
-- `POST /api/checkout/session` — Create Stripe checkout session (or mock URL if no STRIPE_SECRET_KEY)
-- `GET /api/service-areas` — List active service areas
-- `POST /api/webhooks/stripe` — Stripe webhook handler (verifies signature, confirms/cancels bookings, sends email)
-- `POST /api/ai/chat` — AI chat SSE endpoint powered by OpenAI (rate limited: 30/min)
-- `GET /api/tracking/:bookingId` — Get current cleaner location for a booking
-- `GET /api/pricing-factors` — List all admin surge pricing factors
-- `POST /api/pricing-factors` — Create a new surge pricing factor
-- `PATCH /api/pricing-factors/:id/toggle` — Toggle a pricing factor active/inactive
-- `DELETE /api/pricing-factors/:id` — Delete a pricing factor
-- `GET /api/pricing-factors/analytics` — Get pricing analytics (avg multiplier, price history)
-
-### WebSocket (Socket.IO)
-- Namespace: `/tracking`
-- Events: `join_job` (subscribe), `update_location` (cleaner pushes GPS), `job_status` (status updates)
-- Emits: `cleaner_location` (lat/lng/heading/speed), `job_status_update` (status)
-- Client lib: `artifacts/booking-app/src/lib/tracking.ts`
-- Cleaner hook: `artifacts/booking-app/src/lib/useCleanerTracker.ts` — for cleaner-side GPS broadcasting
-
-### Database Tables
-- `bookings` — Full booking records with status, pricing, customer details
-- `service_areas` — 18 seeded suburbs across NSW, VIC, QLD, WA, SA, ACT, TAS, NT
-- `price_rules` — Per-service/property-type base pricing + per-room rates
-- `price_history` — Audit log of all dynamic pricing calculations
-- `conversations` — AI chat conversation sessions
-- `messages` — AI chat messages (role/content/timestamps)
-- `dynamic_pricing_factors` — Admin-controlled surge pricing factors with date range validity
-
-### Dynamic Pricing Engine (`artifacts/api-server/src/lib/pricing.ts`)
-- Looks up price rules from DB by serviceType + propertyType
-- **5 dynamic multipliers** applied in sequence:
-  - **Demand**: based on recent booking volume in past 2 hours (1.0–1.35×)
-  - **Weather**: season/state-based Australian climate surcharge (1.0–1.12×)
-  - **Traffic**: weekend + peak hour surcharge (1.0–1.15×)
-  - **Staff availability**: bookings confirmed for same day (1.0–1.30×)
-  - **Time slot**: evening/early-morning premium (1.0–1.15×)
-  - **Admin factors**: multiplied from active `dynamic_pricing_factors` DB records
-- Total multiplier capped at 0.8×–2.0×
-- Returns full breakdown with GST (10%)
-
-### Stripe Integration
-- Set `STRIPE_SECRET_KEY` environment variable to enable real Stripe checkout
-- Set `STRIPE_WEBHOOK_SECRET` for webhook signature verification
-- Without the key, the checkout route returns a mock success URL for development
-- Webhook: confirms booking status, sends email confirmation via Resend
-
-### Email Notifications (`artifacts/api-server/src/lib/email.ts`)
-- Powered by Resend SDK — set `RESEND_API_KEY` to enable
-- Sends HTML booking confirmation email after successful Stripe payment
-- Gracefully skips if `RESEND_API_KEY` not set
-
-### AI Chat Widget (`artifacts/booking-app/src/components/AIChatWidget.tsx`)
-- Floating cyan button (bottom-right) on every page
-- Powered by OpenAI via Replit AI Integration (no API key needed)
-- System prompt includes live service areas + pricing from DB
-- SSE streaming with word-by-word display
-- Starter questions for new conversations
-
-### Analytics (`artifacts/booking-app/src/lib/analytics.ts`)
-- PostHog client-side analytics — set `VITE_POSTHOG_KEY` to enable
-- Tracks page views, CTA clicks
-- Gracefully skips if key not set
-
-### Admin Dashboard (`/admin`)
-- Split into focused sub-components under `src/components/admin/`: `BookingsTab`, `DispatchPanel`, `PricingAnalyticsTab`, `StaffTab`, `SchedulingTab`, `MLForecastTab`, `StatusBadge`, `QuickStatusSelect`, shared `STATUS_TRANSITIONS` + `patchBookingStatus`
-- Full bookings table with stats cards (total, confirmed, pending, revenue); skeleton loaders while fetching
-- Filter by status and customer email; bookings sorted newest-first
-- **QuickStatusSelect** per row — inline "Move to…" dropdown honouring STATUS_TRANSITIONS
-- **Dispatch tab**: card view of all pending/confirmed/in_progress bookings with one-click action buttons
-- **Pricing Analytics tab**: avg multiplier stat, surge factor CRUD (create/toggle/delete), price history table
-- `bustAdminFactorCache()` called after every pricing factor mutation
-- **Staff tab**: grid of staff cards with skills, rating, suburb/state, role badge; Add/Edit staff modal with skills chip toggles; toggle active/inactive
-- **Scheduling tab**: AI Scheduling Optimizer with date picker; run optimizer to get greedy-matched assignment stats; historical assignments table with status controls
-- **ML Forecast tab**: bar chart demand forecast by date; retrain model button; model versions table; service type selector; heuristic fallback banner when insufficient data
-- **SaaS Admin button** (top-right) links to /saas-admin
-
-### SaaS Platform Admin (`/saas-admin`)
-- Super-admin portal for managing all tenants
-- Metrics cards: Active Tenants, Total Bookings, Monthly Recurring Revenue (AUD)
-- Pricing tier showcase: Starter $99/mo, Pro $199/mo, Enterprise $499/mo with feature lists
-- Tenants table: Company, Plan, Bookings, Staff count, MRR, Status (active/suspended), Actions (view/suspend)
-- **New Tenant** modal: Company Name, Slug, Domain, Plan, Brand Colour, ABN, Phone, Email
-
-### Phase 5: ML Forecasting + Staff Scheduling + Multi-tenant SaaS
-
-#### Database Tables (Phase 5)
-- `tenants` — Multi-tenant companies (id, slug, name, domain, plan, branding, suspended flag)
-- `staff` — Cleaners/supervisors with skills[], suburb/state, lat/lng, rating, maxJobsPerDay
-- `staff_availability` — Per-staff availability windows (day-of-week + time ranges)
-- `job_assignments` — Bookings assigned to staff with status + notes
-- `demand_forecasts` — ML-generated demand forecasts stored by tenant+service+date
-- `ml_model_versions` — MLR model version registry with metrics (MAE, RMSE, R²)
-- Default tenant: `id = slug = "aussieclean-default"`, plan = "enterprise"
-
-#### ML Forecasting Engine (`artifacts/api-server/src/lib/mlForecaster.ts`)
-- Custom multivariate linear regression via normal equations: β = (XᵀX)⁻¹Xᵀy with ridge regularisation (λ=0.01)
-- 6 features: dayOfWeek (one-hot), isWeekend, isPublicHoliday, month, dayOfMonth, serviceIndex
-- Day-of-week heuristic fallback when < 5 historical data points
-- In-memory model cache per tenant+service; persists forecasts and model versions to DB
-- API: `POST /api/ml/forecast` (generate), `POST /api/ml/train` (retrain), `GET /api/ml/history`
-
-#### Scheduling Optimizer (`artifacts/api-server/src/lib/scheduler.ts`)
-- Greedy matching: iterates bookings, picks best available staff per job
-- Composite score: 50% proximity (haversine) + 30% rating + 20% workload balance
-- Enforces skills check and maxJobsPerDay limit
-- State capitals used as coordinate proxies for bookings without lat/lng
-- Manual override: `POST /api/scheduling/assign` with `{bookingId, staffId}`
-- API: `POST /api/scheduling/optimize`, `GET /api/scheduling/status`
-
-#### Tenants API (`/api/tenants`)
-- `GET /api/tenants` — list all tenants with MRR rollup
-- `POST /api/tenants` — create new tenant
-- `GET /api/tenants/:id` — get tenant
-- `PATCH /api/tenants/:id` — update tenant (branding, plan, domain)
-- `POST /api/tenants/:id/suspend` — suspend tenant
-
-#### Staff API (`/api/staff`)
-- `GET /api/staff?tenantId=` — list staff
-- `POST /api/staff` — create staff member
-- `PATCH /api/staff/:id` — update staff
-- `DELETE /api/staff/:id` — deactivate staff
-- `GET /api/staff/:id/availability` — get availability windows
-- `POST /api/staff/:id/availability` — set availability
-
-#### Important Notes
-- `tenants.id` for default tenant = `"aussieclean-default"` (matches slug, NOT a UUID) — frontend hardcodes `TENANT_ID = "aussieclean-default"`
-- Staff lat/lng are nullable `real` columns — omit from request body when unknown (scheduler uses state capital proxies)
-- `zod` cannot be imported directly in api-server routes (not in esbuild externals) — use manual validation
-
-### Cleaner Demo Simulation (`artifacts/booking-app/src/lib/tracking.ts`)
-- `simulateCleaner(bookingId, lat, lng)` — starts a fake cleaner 3–5 km away and drives it toward the job over ~60 s
-- Emits `en_route` status, then real-time `update_location` events with ease-in motion curve, then `arrived` + `in_progress`
-- "Demo Mode" button visible on confirmed/in_progress booking detail page — auto-opens map if not already visible
-
-### Booking Detail Page (`/bookings/:id`)
-- Shows full booking details: service, schedule, address, contact, payment
-- **Live GPS Tracker button** appears for confirmed/in_progress bookings
-- Map uses Leaflet + CartoDB dark tiles (lazy-loaded via dynamic import)
-- Real-time cleaner position via Socket.IO `/tracking` namespace
-- **Haversine ETA calculation**: live "ETA X min" cyan badge shown when status=en_route
-- **BoundsController**: auto-fits map to show both cleaner + job markers when location arrives
-- Progress bar shows job status (Assigned → En Route → Arrived → Cleaning → Done)
-- Status icon panel uses explicit color map (no fragile Tailwind class string manipulation)
-
-### In-Memory Pricing Cache (`artifacts/api-server/src/lib/cache.ts`)
-- `TtlCache<T>` — lightweight generic cache with per-key TTL expiry
-- `pricingCache`: demand multiplier (15 min TTL), staff availability (10 min TTL)
-- `adminFactorCache`: active surge factors composite multiplier (5 min TTL)
-- Cache is busted on every pricing factor CRUD mutation via `bustAdminFactorCache()`
-
-### SEO (home.tsx)
-- JSON-LD `LocalBusiness` schema with `AggregateRating`, `hasOfferCatalog`, `areaServed`
-- Schema includes all 5 states and 5 service types
-
-### Error Boundary
-- React `ErrorBoundary` class component wraps entire App
-- Shows user-friendly error page with reload button and phone number
-
-### Rate Limiting (`artifacts/api-server/src/lib/ratelimit.ts`)
-- Uses `express-rate-limit` v8
-- `bookingLimiter`: 5 req/min on POST /bookings
-- `quoteLimiter`: 20 req/min on POST /pricing/quote  
-- `chatLimiter`: 30 req/min on POST /ai/chat
-- `webhookLimiter`: 200 req/min on webhooks
+- **Sam Mitchell** — NSW, Sydney, cleaner (standard/deep clean skills)
+- **Jane Cooper** — VIC, Melbourne, supervisor (all skills)
+- **Marcus Wong** — QLD, Brisbane, cleaner (carpet/office clean skills)
+All seeded under tenant `aussieclean-default`.

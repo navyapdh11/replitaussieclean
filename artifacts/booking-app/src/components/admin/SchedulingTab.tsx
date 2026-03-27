@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
-import { Play, UserCheck, XCircle, RefreshCw, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Play, UserCheck, XCircle, RefreshCw, CheckCircle2 } from "lucide-react";
 import { BASE_URL } from "./shared";
 import { cn } from "@/lib/utils";
-import type { Booking } from "@workspace/db";
+import { useToast } from "@/hooks/use-toast";
 
 interface AssignmentRow {
-  bookingId: string;
-  staffId: string;
-  staffName: string;
-  matchScore: number;
+  bookingId:        string;
+  staffId:          string;
+  staffName:        string;
+  matchScore:       number;
   travelDistanceKm: number;
-  travelTimeMin: number;
+  travelTimeMin:    number;
 }
 
 interface OptimizeResult {
   assignments: AssignmentRow[];
-  skipped: string[];
+  skipped:     string[];
   stats: { total: number; assigned: number; unassigned: number };
 }
 
@@ -30,20 +30,29 @@ interface AssignmentRecord {
 
 const TENANT_ID = "aussieclean-default";
 
-export function SchedulingTab({ bookings }: { bookings: Booking[] }) {
+export function SchedulingTab() {
+  const { toast } = useToast();
   const [targetDate, setTargetDate] = useState(new Date().toISOString().slice(0, 10));
-  const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<OptimizeResult | null>(null);
+  const [running, setRunning]       = useState(false);
+  const [result, setResult]         = useState<OptimizeResult | null>(null);
   const [allAssignments, setAllAssignments] = useState<AssignmentRecord[]>([]);
-  const [loadingAll, setLoadingAll] = useState(true);
+  const [loadingAll, setLoadingAll]         = useState(true);
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
 
   const loadAssignments = async () => {
     setLoadingAll(true);
     try {
       const res = await fetch(`${BASE_URL}/api/scheduling/assignments?tenantId=${TENANT_ID}`);
-      if (res.ok) setAllAssignments(await res.json());
-    } finally { setLoadingAll(false); }
+      if (res.ok) {
+        setAllAssignments(await res.json());
+      } else {
+        toast({ title: "Failed to load assignments", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    } finally {
+      setLoadingAll(false);
+    }
   };
 
   useEffect(() => { loadAssignments(); }, []);
@@ -57,29 +66,69 @@ export function SchedulingTab({ bookings }: { bookings: Booking[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tenantId: TENANT_ID, date: targetDate }),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
-        setResult(data);
+        setResult(data as OptimizeResult);
         loadAssignments();
+        const { stats } = data as OptimizeResult;
+        if (stats.total === 0) {
+          toast({ title: "No eligible bookings", description: `No confirmed/pending bookings found for ${targetDate}.` });
+        } else if (stats.assigned === stats.total) {
+          toast({ title: "All jobs assigned!", description: `${stats.assigned} of ${stats.total} bookings assigned.` });
+        } else {
+          toast({
+            title: `${stats.assigned} of ${stats.total} assigned`,
+            description: `${stats.unassigned} booking(s) could not be matched — no available staff with required skills.`,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Optimization failed",
+          description: (data as { error?: string }).error ?? "An unexpected error occurred.",
+          variant: "destructive",
+        });
       }
-    } finally { setRunning(false); }
+    } catch {
+      toast({ title: "Network error", description: "Could not reach the API server.", variant: "destructive" });
+    } finally {
+      setRunning(false);
+    }
   };
 
   const removeAssignment = async (bookingId: string) => {
-    await fetch(`${BASE_URL}/api/scheduling/assign/${bookingId}`, { method: "DELETE" });
-    loadAssignments();
+    try {
+      const res = await fetch(`${BASE_URL}/api/scheduling/assign/${bookingId}`, { method: "DELETE" });
+      if (res.ok || res.status === 204) {
+        loadAssignments();
+        toast({ title: "Assignment removed" });
+      } else {
+        toast({ title: "Failed to remove assignment", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    }
   };
 
   const updateStatus = async (assignmentId: string, status: string) => {
     setStatusUpdating(assignmentId);
     try {
-      await fetch(`${BASE_URL}/api/scheduling/assignments/${assignmentId}/status`, {
+      const res = await fetch(`${BASE_URL}/api/scheduling/assignments/${assignmentId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      loadAssignments();
-    } finally { setStatusUpdating(null); }
+      if (res.ok) {
+        loadAssignments();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast({ title: "Status update failed", description: (err as { error?: string }).error, variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    } finally {
+      setStatusUpdating(null);
+    }
   };
 
   const scoreColor = (score: number) =>
@@ -122,7 +171,10 @@ export function SchedulingTab({ bookings }: { bookings: Booking[] }) {
             <Play className="w-4 h-4" />
             {running ? "Optimizing…" : "Run Optimization"}
           </button>
-          <button onClick={loadAssignments} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <button
+            onClick={loadAssignments}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
         </div>
@@ -132,8 +184,8 @@ export function SchedulingTab({ bookings }: { bookings: Booking[] }) {
           <div className="grid grid-cols-3 gap-4 pt-2">
             {[
               { label: "Total Jobs",  value: result.stats.total,      color: "text-foreground" },
-              { label: "Assigned",    value: result.stats.assigned,   color: "text-emerald-400" },
-              { label: "Unassigned",  value: result.stats.unassigned, color: "text-orange-400" },
+              { label: "Assigned",   value: result.stats.assigned,   color: "text-emerald-400" },
+              { label: "Unassigned", value: result.stats.unassigned, color: "text-orange-400" },
             ].map(({ label, value, color }) => (
               <div key={label} className="bg-muted/30 rounded-xl p-4">
                 <p className="text-xs text-muted-foreground">{label}</p>
@@ -189,7 +241,8 @@ export function SchedulingTab({ bookings }: { bookings: Booking[] }) {
         ) : allAssignments.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground border border-border rounded-2xl">
             <CheckCircle2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p>No assignments yet. Run the optimizer to assign jobs.</p>
+            <p className="font-semibold">No assignments yet</p>
+            <p className="text-sm mt-1">Run the optimizer above to assign jobs to staff members.</p>
           </div>
         ) : (
           <div className="border border-border rounded-2xl overflow-hidden">
@@ -217,7 +270,10 @@ export function SchedulingTab({ bookings }: { bookings: Booking[] }) {
                         value={a.status}
                         disabled={statusUpdating === a.id || a.status === "completed" || a.status === "cancelled"}
                         onChange={(e) => updateStatus(a.id, e.target.value)}
-                        className={cn("text-xs px-2 py-1 rounded-lg border border-border bg-background font-semibold", statusBadge(a.status))}
+                        className={cn(
+                          "text-xs px-2 py-1 rounded-lg border border-border bg-background font-semibold cursor-pointer",
+                          statusBadge(a.status),
+                        )}
                       >
                         <option value="assigned">Assigned</option>
                         <option value="in_progress">In Progress</option>

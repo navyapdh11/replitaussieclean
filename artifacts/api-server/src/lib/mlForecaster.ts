@@ -7,12 +7,15 @@
  * Feature vector (per training row / prediction):
  *   [dayOfWeek, isWeekend, isPublicHoliday, month, dayOfMonth, serviceIndex]
  *
- * When insufficient data (< 10 day-buckets), falls back to day-of-week
+ * Training data: only confirmed, in_progress, and completed bookings
+ * (cancelled/draft bookings don't represent realized demand).
+ *
+ * When insufficient data (< 5 day-buckets), falls back to day-of-week
  * heuristics so the endpoint always returns a useful prediction.
  */
 
 import { db, bookingsTable, mlModelVersionsTable, demandForecastsTable } from "@workspace/db";
-import { eq, and, gte, desc } from "drizzle-orm";
+import { eq, and, gte, desc, inArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { logger } from "./logger";
 
@@ -56,6 +59,9 @@ const SERVICE_INDEX: Record<string, number> = {
 
 const FEATURE_NAMES = ["dayOfWeek", "isWeekend", "isPublicHoliday", "month", "dayOfMonth", "serviceIndex"];
 
+/** Realized-demand statuses — cancelled/draft bookings do NOT represent demand */
+const DEMAND_STATUSES = ["confirmed", "in_progress", "completed"] as const;
+
 function extractFeatures(date: Date, serviceType: string): number[] {
   const dow = date.getDay();
   return [
@@ -77,7 +83,7 @@ function transpose(A: Matrix): Matrix {
 }
 
 function matMul(A: Matrix, B: Matrix): Matrix {
-  const m = A.length, n = B[0].length, k = B.length;
+  const m = A.length, n = B[0].length;
   return Array.from({ length: m }, (_, i) =>
     Array.from({ length: n }, (_, j) =>
       A[i].reduce((s, _, l) => s + A[i][l] * B[l][j], 0),
@@ -102,8 +108,7 @@ function invertMatrix(A: Matrix): Matrix {
 
     const pivot = aug[col][col];
     if (Math.abs(pivot) < 1e-12) {
-      // Singular — add tiny ridge to diagonal for stability
-      aug[col][col] = 1e-6;
+      aug[col][col] = 1e-6; // ridge for singular matrix stability
     }
 
     const piv = aug[col][col];
@@ -168,13 +173,15 @@ export async function trainDemandModel(
 ): Promise<{ version: string; metrics: { mae: number; rmse: number; r2: number }; count: number }> {
   logger.info({ tenantId, serviceType }, "Training demand forecast model");
 
-  const cutoff = new Date(Date.now() - 120 * 24 * 60 * 60 * 1000);
+  const cutoff = new Date(Date.now() - 120 * 24 * 60 * 60 * 1000); // 120 days
   const rows = await db
     .select({ date: bookingsTable.date })
     .from(bookingsTable)
     .where(and(
       ...(tenantId !== "__all__" ? [eq(bookingsTable.tenantId, tenantId)] : []),
       eq(bookingsTable.serviceType, serviceType),
+      // Only count realized demand — exclude cancelled/draft/pending
+      inArray(bookingsTable.status, [...DEMAND_STATUSES]),
       gte(bookingsTable.createdAt, cutoff),
     ));
 
@@ -193,16 +200,8 @@ export async function trainDemandModel(
   const version = `v${Date.now()}`;
 
   if (samples.length < 5) {
-    await db.insert(mlModelVersionsTable).values({
-      id:                randomUUID(),
-      tenantId,
-      name:              `demand_${serviceType}`,
-      version,
-      metrics:           { mae: 0, rmse: 1, r2: 0 },
-      trainingDataCount: samples.length,
-      featureNames:      FEATURE_NAMES,
-      isActive:          false,
-    });
+    // Not enough data — skip inserting an unusable model record
+    logger.info({ count: samples.length }, "Insufficient data for ML model, using heuristics");
     return { version, metrics: { mae: 0, rmse: 1, r2: 0 }, count: samples.length };
   }
 
@@ -221,7 +220,7 @@ export async function trainDemandModel(
   const r2      = ssTot === 0 ? 0 : Math.max(0, 1 - sqErr.reduce((a, b) => a + b, 0) / ssTot);
   const metrics = { mae: +mae.toFixed(3), rmse: +rmse.toFixed(3), r2: +r2.toFixed(3) };
 
-  // Deactivate previous
+  // Deactivate previous active models for this service
   await db.update(mlModelVersionsTable)
     .set({ isActive: false })
     .where(and(
@@ -239,9 +238,9 @@ export async function trainDemandModel(
     isActive:          true,
   });
 
-  // Cache
+  // Update in-memory cache
   modelCache.set(`${tenantId}:${serviceType}`, { model, version, stdDev: rmse });
-  logger.info({ version, metrics, count: samples.length }, "Model trained");
+  logger.info({ version, metrics, count: samples.length }, "Model trained successfully");
   return { version, metrics, count: samples.length };
 }
 
@@ -256,10 +255,10 @@ export async function forecastDemand(
   const featureMap: Record<string, number> = {};
   FEATURE_NAMES.forEach((n, i) => { featureMap[n] = features[i]; });
 
-  // Try training on demand if not cached
+  // Lazy-load model if not in cache
   const key = `${tenantId}:${serviceType}`;
   if (!modelCache.has(key)) {
-    try { await trainDemandModel(tenantId, serviceType); } catch { /* ignore */ }
+    try { await trainDemandModel(tenantId, serviceType); } catch { /* fall through to heuristic */ }
   }
 
   const cached = modelCache.get(key);
@@ -312,7 +311,7 @@ async function persistForecast(
       features:        r.features,
       modelVersion:    r.modelVersion,
     }).onConflictDoNothing();
-  } catch { /* best-effort */ }
+  } catch { /* best-effort — forecast persist failures are non-fatal */ }
 }
 
 export async function listModelVersions(tenantId: string) {

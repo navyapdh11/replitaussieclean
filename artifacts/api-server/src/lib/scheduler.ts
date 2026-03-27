@@ -105,20 +105,31 @@ export async function optimizeSchedule(tenantId: string, date: string): Promise<
     ));
 
   // 3. Fetch availability for this date
-  const avail = await db
-    .select()
-    .from(staffAvailabilityTable)
-    .where(and(
-      eq(staffAvailabilityTable.date, date),
-      inArray(staffAvailabilityTable.staffId, staffList.map((s) => s.id)),
-    ));
+  const avail = staffList.length > 0
+    ? await db
+        .select()
+        .from(staffAvailabilityTable)
+        .where(and(
+          eq(staffAvailabilityTable.date, date),
+          inArray(staffAvailabilityTable.staffId, staffList.map((s) => s.id)),
+        ))
+    : [];
   const availMap = new Map(avail.map((a) => [a.staffId, a.timeSlots as string[]]));
 
-  // 4. Count existing assignments per staff member for this date
-  const existingAssignments = await db
-    .select({ staffId: jobAssignmentsTable.staffId })
-    .from(jobAssignmentsTable)
-    .where(inArray(jobAssignmentsTable.staffId, staffList.map((s) => s.id)));
+  // 4. Count ACTIVE assignments per staff member specifically for the target date
+  //    (join with bookings to filter by date, exclude completed/cancelled)
+  const existingAssignments = staffList.length > 0
+    ? await db
+        .select({ staffId: jobAssignmentsTable.staffId })
+        .from(jobAssignmentsTable)
+        .innerJoin(bookingsTable, eq(jobAssignmentsTable.bookingId, bookingsTable.id))
+        .where(and(
+          inArray(jobAssignmentsTable.staffId, staffList.map((s) => s.id)),
+          eq(bookingsTable.date, date),
+          inArray(jobAssignmentsTable.status, ["assigned", "in_progress"]),
+        ))
+    : [];
+
   const assignmentCount = new Map<string, number>();
   existingAssignments.forEach((a) => {
     assignmentCount.set(a.staffId, (assignmentCount.get(a.staffId) ?? 0) + 1);
@@ -221,9 +232,13 @@ export async function manualAssign(
   staffId: string,
 ): Promise<AssignmentResult> {
   const [booking] = await db.select().from(bookingsTable).where(eq(bookingsTable.id, bookingId));
-  const [staff] = await db.select().from(staffTable).where(eq(staffTable.id, staffId));
+  const [staff]   = await db.select().from(staffTable).where(and(
+    eq(staffTable.id, staffId),
+    eq(staffTable.tenantId, tenantId),
+  ));
 
-  if (!booking || !staff) throw new Error("Booking or staff not found");
+  if (!booking) throw new Error("Booking not found");
+  if (!staff)   throw new Error("Staff member not found or does not belong to this tenant");
 
   const jLl: [number, number] = STATE_LL[booking.state] ?? [-33.8688, 151.2093];
   const sLl: [number, number] = [staff.lat ?? jLl[0], staff.lng ?? jLl[1]];
@@ -254,3 +269,6 @@ export async function manualAssign(
     travelTimeMin:     Math.round((dist / 40) * 60),
   };
 }
+
+// Export for use in tests / scripts
+export { estimateDuration, haversineKm };
