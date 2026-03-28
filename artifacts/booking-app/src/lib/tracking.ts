@@ -25,6 +25,8 @@ export interface CleanerLocationData {
   lng: number;
   heading: number;
   speed: number;
+  status: string;
+  timestamp: number;
 }
 
 export interface JobStatusData {

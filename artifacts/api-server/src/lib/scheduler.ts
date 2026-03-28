@@ -244,29 +244,33 @@ export async function manualAssign(
   const sLl: [number, number] = [staff.lat ?? jLl[0], staff.lng ?? jLl[1]];
   const dist = haversineKm(sLl[0], sLl[1], jLl[0], jLl[1]);
 
-  // Remove old assignment if any
-  await db.delete(jobAssignmentsTable).where(eq(jobAssignmentsTable.bookingId, bookingId));
+  const assignmentId = randomUUID();
+  const distKm       = +dist.toFixed(1);
+  const travelMin    = Math.round((dist / 40) * 60);
 
-  await db.insert(jobAssignmentsTable).values({
-    id:               randomUUID(),
-    bookingId,
-    staffId,
-    tenantId,
-    status:           "assigned",
-    matchScore:       100,
-    travelDistanceKm: +dist.toFixed(1),
-    travelTimeMin:    Math.round((dist / 40) * 60),
+  // Wrap all three writes in a transaction so partial state is impossible
+  await db.transaction(async (tx) => {
+    await tx.delete(jobAssignmentsTable).where(eq(jobAssignmentsTable.bookingId, bookingId));
+    await tx.insert(jobAssignmentsTable).values({
+      id:               assignmentId,
+      bookingId,
+      staffId,
+      tenantId,
+      status:           "assigned",
+      matchScore:       100,
+      travelDistanceKm: distKm,
+      travelTimeMin:    travelMin,
+    });
+    await tx.update(bookingsTable).set({ assignedStaffId: staffId }).where(eq(bookingsTable.id, bookingId));
   });
-
-  await db.update(bookingsTable).set({ assignedStaffId: staffId }).where(eq(bookingsTable.id, bookingId));
 
   return {
     bookingId,
     staffId,
     staffName:         staff.name,
     matchScore:        100,
-    travelDistanceKm:  +dist.toFixed(1),
-    travelTimeMin:     Math.round((dist / 40) * 60),
+    travelDistanceKm:  distKm,
+    travelTimeMin:     travelMin,
   };
 }
 

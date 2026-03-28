@@ -59,8 +59,8 @@ app.use(compression({
 app.use(
   "/api/webhooks/stripe",
   express.raw({ type: "application/json", limit: "512kb" }),
-  (req: Request, _res: Response, next: NextFunction) => {
-    (req as any).rawBody = req.body;
+  (req: Request & { rawBody?: Buffer }, _res: Response, next: NextFunction) => {
+    req.rawBody = req.body as Buffer;
     next();
   },
 );

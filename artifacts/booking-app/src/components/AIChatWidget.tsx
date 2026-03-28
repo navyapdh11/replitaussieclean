@@ -65,6 +65,7 @@ export function AIChatWidget() {
         }),
       });
 
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
       if (!response.body) throw new Error("No response body");
 
       const reader = response.body.getReader();

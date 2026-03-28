@@ -67,9 +67,9 @@ Be warm, helpful, and conversational. Use plain Australian English. Keep respons
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const chatMessages = messages.map((m: any) => ({
-      role: m.role as "user" | "assistant" | "system",
-      content: m.content as string,
+    const chatMessages = (messages as Array<{ role: "user" | "assistant" | "system"; content: string }>).map((m) => ({
+      role: m.role,
+      content: m.content,
     }));
 
     const stream = await openai.chat.completions.create({

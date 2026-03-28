@@ -20,7 +20,7 @@ export function securityHeaders(_req: Request, res: Response, next: NextFunction
   // Disable browser features that aren't needed
   res.setHeader(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), payment=(self)",
+    "camera=(), microphone=(), geolocation=(self), payment=(self)",
   );
 
   // Enforce HTTPS with a one-year max-age (only meaningful in production behind TLS)

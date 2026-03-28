@@ -138,3 +138,32 @@ All assertions passed:
 - `scheduling DELETE assign` (non-existent) → 204 ✓
 - Full 8-step booking flow with service title case "Standard Clean" ✓
 - API server TypeScript compiles with zero errors ✓
+
+## Deep Code Review — Applied Fixes (Session 5)
+
+Seven targeted correctness, type-safety, and security fixes applied across backend and frontend:
+
+### Type Safety
+- **`app.ts` Stripe webhook middleware**: Replaced `(req as any).rawBody = req.body` with a properly typed cast `(req: Request & { rawBody?: Buffer })`, eliminating the `any` escape hatch.
+- **`routes/ai.ts` messages map**: Replaced `messages.map((m: any) => ...)` with an explicit `Array<{ role: "user"|"assistant"|"system"; content: string }>` cast. Messages are already validated above so this is a safe narrowing.
+- **`lib/tracking.ts` CleanerLocationData**: Added `status: string` and `timestamp: number` to the exported interface — the server actually emits these fields in the `cleaner_location` event but they were missing from the client type, causing TypeScript errors in `LiveTracker.tsx`.
+
+### Error Handling
+- **`AIChatWidget.tsx` streaming fetch**: Added `if (!response.ok) throw new Error(\`Server error: \${response.status}\`)` before the stream reader loop. Previously a 4xx/5xx response would silently fail mid-stream with confusing output.
+
+### Logic Bug Fix
+- **`routes/bookings.ts` GET `?limit=0`**: `parseInt("0") || 100` evaluates to 100 (falsy zero). Replaced with explicit `isNaN()` check: `isNaN(raw) ? 100 : Math.min(200, Math.max(0, raw))`. Now `limit=0` correctly returns an empty array.
+
+### Data Integrity
+- **`lib/scheduler.ts` `manualAssign`**: The three sequential DB operations (DELETE old assignment, INSERT new assignment, UPDATE booking.assignedStaffId) were not transactional. A crash between any two steps would leave the DB in partial state. Now wrapped in `db.transaction()`.
+
+### Security / Permissions
+- **`middlewares/securityHeaders.ts` Permissions-Policy**: `geolocation=()` blocked the browser Geolocation API entirely, breaking the live GPS tracking feature. Changed to `geolocation=(self)` so the origin can request location while third-party iframes still cannot.
+
+### E2E Validation (Session 5)
+- TypeScript: zero errors across both `api-server` and `booking-app` ✓
+- `GET /api/bookings?limit=0` returns `[]` (not 100 results) ✓
+- `Permissions-Policy` header includes `geolocation=(self)` ✓
+- Full booking flow (Steps 1–7) renders with correct title-cased service name ✓
+- AI chat widget loads, displays starter questions, and streams a response ✓
+- All three services (API, booking app, mockup sandbox) running cleanly ✓
