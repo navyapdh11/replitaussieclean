@@ -3,29 +3,25 @@
  * Do not edit manually.
  * Api
  * AussieClean Booking Platform API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export * from "./booking";
-export * from "./bookingPropertyType";
-export * from "./bookingServiceType";
 export * from "./bookingStatus";
 export * from "./checkoutSessionResponse";
 export * from "./createBookingRequest";
-export * from "./createBookingRequestPropertyType";
-export * from "./createBookingRequestServiceType";
 export * from "./createCheckoutSessionRequest";
 export * from "./errorResponse";
 export * from "./errorResponseDetailsItem";
 export * from "./healthStatus";
 export * from "./listBookingsParams";
 export * from "./listBookingsStatus";
+export * from "./propertyType";
 export * from "./quoteRequest";
-export * from "./quoteRequestPropertyType";
-export * from "./quoteRequestServiceType";
 export * from "./quoteResponse";
 export * from "./quoteResponseBreakdown";
 export * from "./quoteResponseFactorsApplied";
 export * from "./serviceArea";
+export * from "./serviceType";
 export * from "./updateBookingRequest";
 export * from "./updateBookingRequestStatus";

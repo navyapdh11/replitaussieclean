@@ -3,14 +3,14 @@
  * Do not edit manually.
  * Api
  * AussieClean Booking Platform API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
-import type { CreateBookingRequestPropertyType } from "./createBookingRequestPropertyType";
-import type { CreateBookingRequestServiceType } from "./createBookingRequestServiceType";
+import type { PropertyType } from "./propertyType";
+import type { ServiceType } from "./serviceType";
 
 export interface CreateBookingRequest {
-  serviceType: CreateBookingRequestServiceType;
-  propertyType: CreateBookingRequestPropertyType;
+  serviceType: ServiceType;
+  propertyType: PropertyType;
   /**
    * @minimum 1
    * @maximum 10

@@ -3,17 +3,17 @@
  * Do not edit manually.
  * Api
  * AussieClean Booking Platform API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
-import type { BookingPropertyType } from "./bookingPropertyType";
-import type { BookingServiceType } from "./bookingServiceType";
 import type { BookingStatus } from "./bookingStatus";
+import type { PropertyType } from "./propertyType";
+import type { ServiceType } from "./serviceType";
 
 export interface Booking {
   id: string;
   status: BookingStatus;
-  serviceType: BookingServiceType;
-  propertyType: BookingPropertyType;
+  serviceType: ServiceType;
+  propertyType: PropertyType;
   bedrooms: number;
   bathrooms: number;
   extras: string[];

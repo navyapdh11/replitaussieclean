@@ -52,9 +52,40 @@ function isPublicHoliday(d: Date): boolean {
   return PUBLIC_HOLIDAYS.some((h) => h.month === mo && h.day === da);
 }
 
+/**
+ * Numeric index for each service type used as a feature in the ML model.
+ * Index values group related services so the model can learn cross-service
+ * patterns (e.g. medical and aged-care demand tends to correlate).
+ *
+ * Tier bands:
+ *   0–4   Residential
+ *   5–8   Commercial
+ *   9–10  Medical / Aged Care
+ *   11    Institutional
+ *   12–13 Industrial
+ *   14–17 Specialized
+ *   18    Legacy alias
+ */
 const SERVICE_INDEX: Record<string, number> = {
-  standard_clean: 0, deep_clean: 1, end_of_lease: 2,
-  office_clean: 3,   carpet_clean: 4,
+  standard_clean:          0,
+  deep_clean:              1,
+  end_of_lease:            2,
+  carpet_clean:            3,
+  window_clean:            4,
+  eco_clean:               4,  // same demand profile as window_clean
+  office_clean:            5,
+  strata_clean:            6,
+  retail_clean:            7,
+  hospitality_clean:       8,
+  medical_clean:           9,
+  aged_care_clean:        10,
+  school_clean:           11,
+  industrial_clean:       12,
+  post_construction_clean: 13,
+  pressure_wash:          14,
+  biohazard_clean:        15,
+  solar_duct_clean:       16,
+  ndis_support:           10,  // legacy alias → same index as aged_care_clean
 };
 
 const FEATURE_NAMES = ["dayOfWeek", "isWeekend", "isPublicHoliday", "month", "dayOfMonth", "serviceIndex"];

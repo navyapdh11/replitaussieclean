@@ -17,9 +17,20 @@ The project is structured as a pnpm monorepo with separate applications (`artifa
 - **TypeScript**: 5.9
 - **API Framework**: Express 5
 - **Database**: PostgreSQL with Drizzle ORM
-- **API Codegen**: Orval (from OpenAPI spec)
+- **API Codegen**: Orval (from OpenAPI spec) — run `cd lib/api-spec && pnpm exec orval` after any openapi.yaml change
 - **Frontend**: React + Vite
 - **UI/UX**: Premium dark theme (slate-950 bg, cyan-400 accent), Australian locale
+
+**Service Catalogue (18 types + 1 backward-compat alias):**
+- Residential (6): standard_clean, deep_clean, end_of_lease, carpet_clean, window_clean, eco_clean
+- Commercial (4): office_clean, strata_clean, retail_clean, hospitality_clean
+- Medical/Aged Care (2): medical_clean, aged_care_clean
+- Institutional (1): school_clean
+- Industrial (2): industrial_clean, post_construction_clean
+- Specialized (3): pressure_wash, biohazard_clean, solar_duct_clean
+- Legacy alias: ndis_support (maps to aged_care_clean pricing/skills)
+
+**Property Types (12):** house, apartment, townhouse, unit, office, commercial, warehouse, medical_facility, strata, hospitality, retail, school
 
 **Key Architectural Features:**
 

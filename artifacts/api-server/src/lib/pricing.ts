@@ -42,12 +42,44 @@ export interface PricingResult {
   validUntil: string;
 }
 
+/**
+ * Fallback pricing (cents AUD) when no price rule exists in the DB.
+ * Values reflect 2026 Australian market rates (incl. compliance overhead).
+ *
+ * Category tiers:
+ *   Residential:    $120–$350 base
+ *   Commercial:     $350–$900 base
+ *   Medical/Aged:   $800–$1,300 base  (hospital-grade compliance overhead)
+ *   Institutional:  $600–$1,000 base
+ *   Industrial:     $1,200–$2,500 base
+ *   Specialized:    $500–$2,000 base  (biohazard requires specialist PPE)
+ */
 const FALLBACK_PRICES: Record<string, { base: number; perBed: number; perBath: number }> = {
-  standard_clean: { base: 12000, perBed: 2000, perBath: 2500 },
-  deep_clean: { base: 18000, perBed: 2500, perBath: 3000 },
-  end_of_lease: { base: 26000, perBed: 3000, perBath: 4000 },
-  office_clean: { base: 18000, perBed: 1500, perBath: 2000 },
-  ndis_support: { base: 15000, perBed: 1800, perBath: 2200 },
+  // ── Residential ────────────────────────────────────────────────────────
+  standard_clean:        { base: 12000, perBed: 2000,  perBath: 2500  },
+  deep_clean:            { base: 18000, perBed: 2500,  perBath: 3000  },
+  end_of_lease:          { base: 26000, perBed: 3000,  perBath: 4000  },
+  carpet_clean:          { base: 14000, perBed: 3500,  perBath: 0     }, // per-room model → use bedrooms
+  window_clean:          { base: 12000, perBed: 1500,  perBath: 500   },
+  eco_clean:             { base: 14000, perBed: 2200,  perBath: 2800  },
+  // ── Commercial ────────────────────────────────────────────────────────
+  office_clean:          { base: 35000, perBed: 1500,  perBath: 2000  }, // perBed ≈ per office
+  strata_clean:          { base: 45000, perBed: 2000,  perBath: 1500  },
+  retail_clean:          { base: 30000, perBed: 1200,  perBath: 1500  },
+  hospitality_clean:     { base: 55000, perBed: 2500,  perBath: 3000  }, // hotel rooms
+  // ── Medical / Aged Care ───────────────────────────────────────────────
+  medical_clean:         { base: 80000, perBed: 4000,  perBath: 5000  }, // AS/NZS 4187 compliance
+  aged_care_clean:       { base: 60000, perBed: 3000,  perBath: 3500  },
+  ndis_support:          { base: 55000, perBed: 2800,  perBath: 3200  }, // backward compat alias
+  // ── Institutional ─────────────────────────────────────────────────────
+  school_clean:          { base: 50000, perBed: 1800,  perBath: 2000  }, // perBed ≈ per classroom
+  // ── Industrial ────────────────────────────────────────────────────────
+  industrial_clean:      { base: 120000, perBed: 5000, perBath: 3000  },
+  post_construction_clean: { base: 80000, perBed: 4000, perBath: 4500 },
+  // ── Specialized ───────────────────────────────────────────────────────
+  pressure_wash:         { base: 35000, perBed: 1500,  perBath: 1000  },
+  biohazard_clean:       { base: 150000, perBed: 8000, perBath: 6000  }, // specialist PPE + disposal
+  solar_duct_clean:      { base: 45000, perBed: 2500,  perBath: 0     }, // per panel/duct run
 };
 
 export async function calculateDynamicPrice(ctx: PricingContext): Promise<PricingResult> {

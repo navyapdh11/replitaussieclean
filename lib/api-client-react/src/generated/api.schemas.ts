@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * AussieClean Booking Platform API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
@@ -16,42 +16,63 @@ export interface ErrorResponse {
   details?: ErrorResponseDetailsItem[];
 }
 
+export type ServiceType = (typeof ServiceType)[keyof typeof ServiceType];
+
+export const ServiceType = {
+  standard_clean: "standard_clean",
+  deep_clean: "deep_clean",
+  end_of_lease: "end_of_lease",
+  carpet_clean: "carpet_clean",
+  window_clean: "window_clean",
+  office_clean: "office_clean",
+  strata_clean: "strata_clean",
+  retail_clean: "retail_clean",
+  hospitality_clean: "hospitality_clean",
+  medical_clean: "medical_clean",
+  aged_care_clean: "aged_care_clean",
+  school_clean: "school_clean",
+  industrial_clean: "industrial_clean",
+  post_construction_clean: "post_construction_clean",
+  pressure_wash: "pressure_wash",
+  eco_clean: "eco_clean",
+  biohazard_clean: "biohazard_clean",
+  solar_duct_clean: "solar_duct_clean",
+  ndis_support: "ndis_support",
+} as const;
+
+export type PropertyType = (typeof PropertyType)[keyof typeof PropertyType];
+
+export const PropertyType = {
+  house: "house",
+  apartment: "apartment",
+  townhouse: "townhouse",
+  unit: "unit",
+  office: "office",
+  commercial: "commercial",
+  warehouse: "warehouse",
+  medical_facility: "medical_facility",
+  strata: "strata",
+  hospitality: "hospitality",
+  retail: "retail",
+  school: "school",
+} as const;
+
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
 
 export const BookingStatus = {
   draft: "draft",
   pending: "pending",
   confirmed: "confirmed",
+  in_progress: "in_progress",
   completed: "completed",
   cancelled: "cancelled",
-} as const;
-
-export type BookingServiceType =
-  (typeof BookingServiceType)[keyof typeof BookingServiceType];
-
-export const BookingServiceType = {
-  standard_clean: "standard_clean",
-  deep_clean: "deep_clean",
-  end_of_lease: "end_of_lease",
-  office_clean: "office_clean",
-  ndis_support: "ndis_support",
-} as const;
-
-export type BookingPropertyType =
-  (typeof BookingPropertyType)[keyof typeof BookingPropertyType];
-
-export const BookingPropertyType = {
-  house: "house",
-  apartment: "apartment",
-  townhouse: "townhouse",
-  office: "office",
 } as const;
 
 export interface Booking {
   id: string;
   status: BookingStatus;
-  serviceType: BookingServiceType;
-  propertyType: BookingPropertyType;
+  serviceType: ServiceType;
+  propertyType: PropertyType;
   bedrooms: number;
   bathrooms: number;
   extras: string[];
@@ -76,30 +97,9 @@ export interface Booking {
   updatedAt: string;
 }
 
-export type CreateBookingRequestServiceType =
-  (typeof CreateBookingRequestServiceType)[keyof typeof CreateBookingRequestServiceType];
-
-export const CreateBookingRequestServiceType = {
-  standard_clean: "standard_clean",
-  deep_clean: "deep_clean",
-  end_of_lease: "end_of_lease",
-  office_clean: "office_clean",
-  ndis_support: "ndis_support",
-} as const;
-
-export type CreateBookingRequestPropertyType =
-  (typeof CreateBookingRequestPropertyType)[keyof typeof CreateBookingRequestPropertyType];
-
-export const CreateBookingRequestPropertyType = {
-  house: "house",
-  apartment: "apartment",
-  townhouse: "townhouse",
-  office: "office",
-} as const;
-
 export interface CreateBookingRequest {
-  serviceType: CreateBookingRequestServiceType;
-  propertyType: CreateBookingRequestPropertyType;
+  serviceType: ServiceType;
+  propertyType: PropertyType;
   /**
    * @minimum 1
    * @maximum 10
@@ -134,6 +134,7 @@ export const UpdateBookingRequestStatus = {
   draft: "draft",
   pending: "pending",
   confirmed: "confirmed",
+  in_progress: "in_progress",
   completed: "completed",
   cancelled: "cancelled",
 } as const;
@@ -145,30 +146,9 @@ export interface UpdateBookingRequest {
   notes?: string;
 }
 
-export type QuoteRequestServiceType =
-  (typeof QuoteRequestServiceType)[keyof typeof QuoteRequestServiceType];
-
-export const QuoteRequestServiceType = {
-  standard_clean: "standard_clean",
-  deep_clean: "deep_clean",
-  end_of_lease: "end_of_lease",
-  office_clean: "office_clean",
-  ndis_support: "ndis_support",
-} as const;
-
-export type QuoteRequestPropertyType =
-  (typeof QuoteRequestPropertyType)[keyof typeof QuoteRequestPropertyType];
-
-export const QuoteRequestPropertyType = {
-  house: "house",
-  apartment: "apartment",
-  townhouse: "townhouse",
-  office: "office",
-} as const;
-
 export interface QuoteRequest {
-  serviceType: QuoteRequestServiceType;
-  propertyType?: QuoteRequestPropertyType;
+  serviceType: ServiceType;
+  propertyType?: PropertyType;
   /**
    * @minimum 1
    * @maximum 10
@@ -253,6 +233,7 @@ export const ListBookingsStatus = {
   draft: "draft",
   pending: "pending",
   confirmed: "confirmed",
+  in_progress: "in_progress",
   completed: "completed",
   cancelled: "cancelled",
 } as const;

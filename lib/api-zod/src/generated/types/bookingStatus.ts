@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * AussieClean Booking Platform API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
@@ -12,6 +12,7 @@ export const BookingStatus = {
   draft: "draft",
   pending: "pending",
   confirmed: "confirmed",
+  in_progress: "in_progress",
   completed: "completed",
   cancelled: "cancelled",
 } as const;

@@ -32,15 +32,57 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+/**
+ * Estimated job duration in hours.
+ * Based on 2026 AUS market standards and compliance requirements.
+ */
 const SERVICE_DURATION: Record<string, number> = {
-  standard_clean: 2.5, deep_clean: 4, end_of_lease: 5,
-  office_clean: 3, carpet_clean: 3.5,
+  // ── Residential ──────────────────────────────────────────────────────
+  standard_clean:         2.5,
+  deep_clean:             4.0,
+  end_of_lease:           5.0,
+  carpet_clean:           3.5,
+  window_clean:           2.0,
+  eco_clean:              3.0,
+  // ── Commercial ───────────────────────────────────────────────────────
+  office_clean:           3.0,
+  strata_clean:           4.0,
+  retail_clean:           2.5,
+  hospitality_clean:      4.5,
+  // ── Medical / Aged Care ──────────────────────────────────────────────
+  medical_clean:          5.0,   // extended due to protocol compliance
+  aged_care_clean:        4.0,
+  ndis_support:           3.5,   // backward compat alias
+  // ── Institutional ────────────────────────────────────────────────────
+  school_clean:           4.0,
+  // ── Industrial ───────────────────────────────────────────────────────
+  industrial_clean:       6.0,
+  post_construction_clean: 6.0,
+  // ── Specialized ──────────────────────────────────────────────────────
+  pressure_wash:          3.0,
+  biohazard_clean:        5.0,   // specialist PPE don/doff + decontamination
+  solar_duct_clean:       2.5,
 };
 
+/**
+ * Required staff skills per service type.
+ * Staff must possess ALL listed skills to be eligible for assignment.
+ */
 const REQUIRED_SKILLS: Record<string, string[]> = {
-  end_of_lease: ["end_of_lease"],
-  carpet_clean: ["carpet_clean"],
-  office_clean:  ["office"],
+  end_of_lease:           ["end_of_lease"],
+  carpet_clean:           ["carpet_clean"],
+  office_clean:           ["office"],
+  strata_clean:           ["office"],
+  retail_clean:           ["office"],
+  hospitality_clean:      ["office"],
+  medical_clean:          ["medical", "infection_control"],
+  aged_care_clean:        ["aged_care"],
+  ndis_support:           ["aged_care"],
+  school_clean:           ["police_check"],          // mandatory for childcare/school
+  industrial_clean:       ["industrial", "whs"],
+  post_construction_clean: ["construction"],
+  biohazard_clean:        ["biohazard", "ppe_level2"],
+  solar_duct_clean:       ["heights"],               // roof access required
 };
 
 function estimateDuration(serviceType: string, bedrooms: number, bathrooms: number): number {

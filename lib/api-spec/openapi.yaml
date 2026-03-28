@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: AussieClean Booking Platform API
 servers:
   - url: /api
@@ -76,7 +76,7 @@ paths:
           name: status
           schema:
             type: string
-            enum: [draft, pending, confirmed, completed, cancelled]
+            enum: [draft, pending, confirmed, in_progress, completed, cancelled]
           description: Filter by status
       responses:
         "200":
@@ -101,7 +101,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Booking details
+          description: Booking found
           content:
             application/json:
               schema:
@@ -130,7 +130,7 @@ paths:
               $ref: "#/components/schemas/UpdateBookingRequest"
       responses:
         "200":
-          description: Updated booking
+          description: Booking updated
           content:
             application/json:
               schema:
@@ -155,7 +155,7 @@ paths:
               $ref: "#/components/schemas/QuoteRequest"
       responses:
         "200":
-          description: Price quote
+          description: Quote calculated
           content:
             application/json:
               schema:
@@ -180,7 +180,7 @@ paths:
               $ref: "#/components/schemas/CreateCheckoutSessionRequest"
       responses:
         "200":
-          description: Stripe checkout session URL
+          description: Checkout session created
           content:
             application/json:
               schema:
@@ -230,6 +230,46 @@ components:
       required:
         - error
 
+    # ── Shared enums referenced by multiple schemas ─────────────────────────
+    ServiceType:
+      type: string
+      enum:
+        - standard_clean
+        - deep_clean
+        - end_of_lease
+        - carpet_clean
+        - window_clean
+        - office_clean
+        - strata_clean
+        - retail_clean
+        - hospitality_clean
+        - medical_clean
+        - aged_care_clean
+        - school_clean
+        - industrial_clean
+        - post_construction_clean
+        - pressure_wash
+        - eco_clean
+        - biohazard_clean
+        - solar_duct_clean
+        - ndis_support
+
+    PropertyType:
+      type: string
+      enum:
+        - house
+        - apartment
+        - townhouse
+        - unit
+        - office
+        - commercial
+        - warehouse
+        - medical_facility
+        - strata
+        - hospitality
+        - retail
+        - school
+
     Booking:
       type: object
       properties:
@@ -237,13 +277,11 @@ components:
           type: string
         status:
           type: string
-          enum: [draft, pending, confirmed, completed, cancelled]
+          enum: [draft, pending, confirmed, in_progress, completed, cancelled]
         serviceType:
-          type: string
-          enum: [standard_clean, deep_clean, end_of_lease, office_clean, ndis_support]
+          $ref: "#/components/schemas/ServiceType"
         propertyType:
-          type: string
-          enum: [house, apartment, townhouse, office]
+          $ref: "#/components/schemas/PropertyType"
         bedrooms:
           type: integer
         bathrooms:
@@ -322,11 +360,9 @@ components:
       type: object
       properties:
         serviceType:
-          type: string
-          enum: [standard_clean, deep_clean, end_of_lease, office_clean, ndis_support]
+          $ref: "#/components/schemas/ServiceType"
         propertyType:
-          type: string
-          enum: [house, apartment, townhouse, office]
+          $ref: "#/components/schemas/PropertyType"
         bedrooms:
           type: integer
           minimum: 1
@@ -390,7 +426,7 @@ components:
       properties:
         status:
           type: string
-          enum: [draft, pending, confirmed, completed, cancelled]
+          enum: [draft, pending, confirmed, in_progress, completed, cancelled]
         stripeSessionId:
           type: string
         stripePaymentId:
@@ -402,11 +438,9 @@ components:
       type: object
       properties:
         serviceType:
-          type: string
-          enum: [standard_clean, deep_clean, end_of_lease, office_clean, ndis_support]
+          $ref: "#/components/schemas/ServiceType"
         propertyType:
-          type: string
-          enum: [house, apartment, townhouse, office]
+          $ref: "#/components/schemas/PropertyType"
         bedrooms:
           type: integer
           minimum: 1

@@ -3,14 +3,14 @@
  * Do not edit manually.
  * Api
  * AussieClean Booking Platform API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
-import type { QuoteRequestPropertyType } from "./quoteRequestPropertyType";
-import type { QuoteRequestServiceType } from "./quoteRequestServiceType";
+import type { PropertyType } from "./propertyType";
+import type { ServiceType } from "./serviceType";
 
 export interface QuoteRequest {
-  serviceType: QuoteRequestServiceType;
-  propertyType?: QuoteRequestPropertyType;
+  serviceType: ServiceType;
+  propertyType?: PropertyType;
   /**
    * @minimum 1
    * @maximum 10
