@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, bookingsTable } from "@workspace/db";
-import { sql, desc, gte, and, ne } from "drizzle-orm";
+import { sql, desc, gte, and, ne, eq } from "drizzle-orm";
 import https from "node:https";
 
 const router: IRouter = Router();
@@ -12,6 +12,12 @@ function httpsGet(url: string, headers: Record<string, string> = {}): Promise<un
       let body = "";
       res.on("data", (c: Buffer) => (body += c.toString()));
       res.on("end", () => {
+        /* Reject non-2xx responses before attempting JSON.parse so that
+           error HTML from a 401/403/500 does not silently corrupt callers. */
+        if (res.statusCode === undefined || res.statusCode < 200 || res.statusCode >= 300) {
+          reject(new Error(`HTTP ${res.statusCode ?? "?"}: ${body.slice(0, 200)}`));
+          return;
+        }
         try { resolve(JSON.parse(body)); }
         catch { reject(new Error(`JSON parse error — status ${res.statusCode}`)); }
       });
@@ -103,7 +109,7 @@ router.get("/analytics/suburb-revenue-trend", async (req, res): Promise<void> =>
       .from(bookingsTable)
       .where(
         and(
-          sql`${bookingsTable.postcode} = ${postcode}`,
+          eq(bookingsTable.postcode, postcode),
           gte(bookingsTable.createdAt, new Date(Date.now() - 84 * 86_400_000)),
         )
       )

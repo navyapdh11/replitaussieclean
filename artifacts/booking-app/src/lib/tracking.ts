@@ -3,11 +3,14 @@ import { io, type Socket } from "socket.io-client";
 let socket: Socket | null = null;
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
-const TRACKING_URL = BASE_URL || window.location.origin;
+
+function getTrackingUrl(): string {
+  return BASE_URL || (typeof window !== "undefined" ? window.location.origin : "");
+}
 
 export function getTrackingSocket(): Socket {
   if (!socket) {
-    socket = io(`${TRACKING_URL}/tracking`, {
+    socket = io(`${getTrackingUrl()}/tracking`, {
       transports: ["websocket", "polling"],
       autoConnect: false,
     });
@@ -15,10 +18,25 @@ export function getTrackingSocket(): Socket {
   return socket;
 }
 
+export interface CleanerLocationData {
+  bookingId: string;
+  cleanerId?: string;
+  lat: number;
+  lng: number;
+  heading: number;
+  speed: number;
+}
+
+export interface JobStatusData {
+  bookingId: string;
+  status: string;
+  timestamp?: number;
+}
+
 export function joinJobTracking(
   bookingId: string,
-  onLocation: (data: any) => void,
-  onStatus: (data: any) => void,
+  onLocation: (data: CleanerLocationData) => void,
+  onStatus: (data: JobStatusData) => void,
 ) {
   const sock = getTrackingSocket();
   if (!sock.connected) sock.connect();

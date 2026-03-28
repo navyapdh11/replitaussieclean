@@ -30,13 +30,15 @@ const URL_RE   = /^https?:\/\/.+/i;
 /**
  * Australian phone number — covers all common formats (spaces/hyphens/parens
  * stripped before matching):
- *   Mobile:    04XX XXX XXX   → 0[4]\d{8}
+ *   Mobile:    04XX XXX XXX   → 0[4]\d{8}  (subset of 0[2-9]\d{8})
  *   Landline:  0[2-9]XXXXXXXX → 0[2-9]\d{8}
- *   Freecall:  1300 XXX XXX   → 1300\d{6}
- *   Freecall:  1800 XXX XXX   → 1800\d{6}
+ *   Freecall:  1300 XXX XXX   → covered by 1[38]00\d{6}  ([38] matches 3 or 8)
+ *   Freecall:  1800 XXX XXX   → covered by 1[38]00\d{6}
  *   Intl:      +61[2-9]\d{8}
+ * Note: the former standalone `1300\d{6}` alternative was a strict subset of
+ * `1[38]00\d{6}` and has been removed to avoid the redundant branch.
  */
-const PHONE_AU_RE = /^(\+?61[2-9]\d{8}|0[2-9]\d{8}|1[38]00\d{6}|1300\d{6})$/;
+const PHONE_AU_RE = /^(\+?61[2-9]\d{8}|0[2-9]\d{8}|1[38]00\d{6})$/;
 
 /* ─── Core validator ──────────────────────────────────────────────────── */
 

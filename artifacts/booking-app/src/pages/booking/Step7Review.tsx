@@ -137,7 +137,9 @@ export function Step7Review() {
         <div className="grid sm:grid-cols-2 gap-6">
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Service</p>
-            <p className="font-semibold text-foreground capitalize">{store.serviceType?.replace(/_/g, " ")}</p>
+            <p className="font-semibold text-foreground">
+              {store.serviceType?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+            </p>
             <p className="text-sm text-muted-foreground mt-1">
               {store.propertyType} · {store.bedrooms} Bed · {store.bathrooms} Bath
             </p>

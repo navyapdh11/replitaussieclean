@@ -140,7 +140,9 @@ async function calculateDemandMultiplier(ctx: PricingContext): Promise<number> {
 /** Weather multiplier — pure function, derived from date + state (no DB, no cache needed) */
 function calculateWeatherMultiplier(ctx: PricingContext): number {
   if (!ctx.date || !ctx.state) return 1.0;
-  const month = new Date(ctx.date).getMonth();
+  /* Append T00:00:00 so the date string is parsed as local midnight rather
+     than UTC midnight — prevents a month/day shift in UTC±n timezones. */
+  const month = new Date(ctx.date + "T00:00:00").getMonth();
   const state = ctx.state.toUpperCase();
   if (["VIC", "TAS"].includes(state) && month >= 5 && month <= 8) return 1.12;
   if (["VIC", "TAS"].includes(state) && (month === 4 || month === 9)) return 1.06;
@@ -167,7 +169,8 @@ function parseSlotHour(timeSlot: string): number {
 /** Traffic multiplier — pure function (no DB) */
 function calculateTrafficMultiplier(ctx: PricingContext): number {
   if (!ctx.date) return 1.0;
-  const dayOfWeek = new Date(ctx.date).getDay();
+  /* Same local-midnight fix as calculateWeatherMultiplier. */
+  const dayOfWeek = new Date(ctx.date + "T00:00:00").getDay();
   if (dayOfWeek === 0 || dayOfWeek === 6) return 1.10;
   if (!ctx.timeSlot) return 1.0;
   const h = parseSlotHour(ctx.timeSlot);

@@ -95,7 +95,7 @@ The project is structured as a pnpm monorepo with separate applications (`artifa
 ### P3 — Code Quality / DRY
 - **`pricing.ts`**: Extracted shared `parseSlotHour(timeSlot: string): number` helper — AM/PM time-slot parsing was duplicated identically in `calculateTrafficMultiplier` and `calculateTimeSlotMultiplier`. Both now call the shared helper. Also handles `NaN` input by returning `1.0` multiplier.
 
-### E2E Validation
+### E2E Validation (Session 3)
 All 38 assertions passed:
 - `/api/service-areas` returns JSON (not HTML) under DB error conditions
 - `/api/pricing-factors` all 5 endpoints return JSON errors not crashes
@@ -103,3 +103,38 @@ All 38 assertions passed:
 - `/api/staff/:id` PATCH rejects bad email → 400, bad phone → 400, empty body → 400
 - `/api/admin/system/tenant` PATCH with empty body → 400, bad email → 400
 - Full booking flow (Steps 1–8) completed: Standard Clean → House → 2 beds → address → details → review showing AUD price
+
+## Deep Code Review — Applied Fixes (Session 4)
+
+Comprehensive codebase analysis using Tree-of-Thoughts (correctness/integrity/security/performance/types) with 12 fixes applied:
+
+### Performance
+- **`lib/stripe.ts` (NEW)**: Lazy Stripe singleton module. Both `checkout.ts` and `webhooks.ts` previously called `new Stripe()` inside every request handler — wasting memory and not reusing the HTTPS keep-alive pool. Both now call `getStripe()` from the shared singleton.
+
+### Data Integrity
+- **`scheduling.ts` DELETE `/scheduling/assign/:bookingId`**: Two sequential DB mutations (delete assignment + clear `assignedStaffId` on booking) were not transactional. Now wrapped in `db.transaction()` so a partial failure can't leave a booking pointing to a deleted assignment.
+- **`pricingFactors.ts` DELETE `/:id`**: Used to return `{ success: true }` with 200 even when the ID didn't exist. Now uses `.returning({ id })` to detect "no rows affected" and returns 404. On success returns 204 No Content (REST convention).
+
+### Correctness
+- **`pricing.ts` `calculateWeatherMultiplier` + `calculateTrafficMultiplier`**: `new Date("2024-01-15")` parses as UTC midnight, so `.getMonth()` / `.getDay()` can shift by one day in UTC±n environments. Both now use `new Date(ctx.date + "T00:00:00")` to force local-midnight parsing.
+- **`Step4Schedule.tsx` `today` date**: Was using `new Date().toISOString().split("T")[0]` (UTC date), which gives "yesterday" for Australian users before 10am UTC. Now uses `getFullYear()/getMonth()/getDate()` (browser local time).
+- **`Step7Review.tsx` service type display**: Was using CSS `capitalize` class on "standard clean" — screen readers and the DOM read raw un-transformed text. Now converts to title case in JavaScript via `.replace(/\b\w/g, c => c.toUpperCase())`.
+
+### Security / Validation
+- **`analytics.ts` `httpsGet`**: Didn't check HTTP status codes — a 401/403 from Ahrefs/Semrush would try to parse an HTML error page as JSON, silently corrupting caller data. Now rejects with an error on any non-2xx status before JSON.parse.
+- **`analytics.ts` suburb-revenue-trend**: Replaced `sql\`${bookingsTable.postcode} = ${postcode}\`` raw template with `eq(bookingsTable.postcode, postcode)` for clarity and to use Drizzle's typed query builder consistently.
+- **`tenants.ts` PATCH `/:id`**: No email format validation when `email` was in the update body (only `plan` was validated). Added `EMAIL_RE` check before the DB update, consistent with `staff.ts` PATCH.
+
+### Code Quality / DRY
+- **`staff.ts` DELETE `/:id`**: Two separate DB round-trips (one for `status = "assigned"`, one for `status = "in_progress"`) replaced with a single `inArray(status, ["assigned", "in_progress"])` query with `.limit(1)`. Closes the race window between the two reads.
+- **`validate.ts` `PHONE_AU_RE`**: Removed redundant `|1300\d{6}` alternative — already covered by `1[38]00\d{6}` (`[38]` matches 3 → 1300, 8 → 1800). Same fix applied to `staff.ts` local `PHONE_AU_RE`.
+- **`tracking.ts`**: Typed `onLocation` and `onStatus` callbacks with proper `CleanerLocationData` / `JobStatusData` interfaces (were `any`). Module-level `window.location.origin` access moved into a lazy `getTrackingUrl()` function to guard against potential SSR scenarios.
+
+### E2E Validation (Session 4)
+All assertions passed:
+- `pricingFactors DELETE` non-existent ID → 404 ✓
+- `tenants PATCH` with invalid email → 400 ✓
+- `analytics suburb-revenue-trend` → 200 ✓
+- `scheduling DELETE assign` (non-existent) → 204 ✓
+- Full 8-step booking flow with service title case "Standard Clean" ✓
+- API server TypeScript compiles with zero errors ✓

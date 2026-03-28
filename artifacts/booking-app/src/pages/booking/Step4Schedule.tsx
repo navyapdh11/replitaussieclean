@@ -14,7 +14,10 @@ export function Step4Schedule() {
   const store = useBookingStore();
   const [error, setError] = useState("");
   
-  const today = new Date().toISOString().split("T")[0];
+  /* Use the browser's local date so Australian customers see today's date
+     correctly rather than UTC midnight (which can be yesterday in AEST/AEDT). */
+  const _now = new Date();
+  const today = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-${String(_now.getDate()).padStart(2, "0")}`;
 
   const handleNext = () => {
     if (!store.date || !store.timeSlot) {

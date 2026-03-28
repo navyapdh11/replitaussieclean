@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc, count, inArray } from "drizzle-orm";
 import { db, staffTable, staffAvailabilityTable, jobAssignmentsTable } from "@workspace/db";
 import { randomUUID } from "crypto";
 
@@ -15,7 +15,7 @@ const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
  *  - Intl:      +61 followed by any of the above (minus leading 0)
  * Spaces/hyphens/parens stripped before matching.
  */
-const PHONE_AU_RE = /^(\+?61(2|3|4|7|8)\d{8}|0(2|3|4|7|8)\d{8}|1[38]00\d{6}|1300\d{6})$/;
+const PHONE_AU_RE = /^(\+?61(2|3|4|7|8)\d{8}|0(2|3|4|7|8)\d{8}|1[38]00\d{6})$/;
 
 /* ── GET /staff ─────────────────────────────────────────────────────────── */
 router.get("/staff", async (req, res): Promise<void> => {
@@ -214,25 +214,19 @@ router.patch("/staff/:id/toggle", async (req, res): Promise<void> => {
 /* ── DELETE /staff/:id ──────────────────────────────────────────────────── */
 router.delete("/staff/:id", async (req, res): Promise<void> => {
   try {
-    /* Block hard-delete if any assignment is still active or in-progress */
+    /* Block hard-delete if any assignment is still active or in-progress.
+       Single query with inArray avoids two round-trips and closes the race
+       window between the two reads. */
     const [activeAssignment] = await db
       .select({ id: jobAssignmentsTable.id })
       .from(jobAssignmentsTable)
       .where(and(
         eq(jobAssignmentsTable.staffId, req.params.id),
-        /* "assigned" = queued, "in_progress" = actively on-site */
-        eq(jobAssignmentsTable.status, "assigned"),
-      ));
+        inArray(jobAssignmentsTable.status, ["assigned", "in_progress"]),
+      ))
+      .limit(1);
 
-    const [inProgressAssignment] = await db
-      .select({ id: jobAssignmentsTable.id })
-      .from(jobAssignmentsTable)
-      .where(and(
-        eq(jobAssignmentsTable.staffId, req.params.id),
-        eq(jobAssignmentsTable.status, "in_progress"),
-      ));
-
-    if (activeAssignment || inProgressAssignment) {
+    if (activeAssignment) {
       /* Soft-delete: deactivate to preserve assignment history */
       await db
         .update(staffTable)

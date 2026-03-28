@@ -50,8 +50,13 @@ router.post(
 // DELETE /api/scheduling/assign/:bookingId — remove assignment
 router.delete("/scheduling/assign/:bookingId", async (req, res): Promise<void> => {
   try {
-    await db.delete(jobAssignmentsTable).where(eq(jobAssignmentsTable.bookingId, req.params.bookingId));
-    await db.update(bookingsTable).set({ assignedStaffId: null }).where(eq(bookingsTable.id, req.params.bookingId));
+    /* Wrap both mutations in a transaction so the assignment delete and the
+       booking status clear are atomic — a partial failure won't leave the
+       booking pointing to a deleted assignment. */
+    await db.transaction(async (tx) => {
+      await tx.delete(jobAssignmentsTable).where(eq(jobAssignmentsTable.bookingId, req.params.bookingId));
+      await tx.update(bookingsTable).set({ assignedStaffId: null }).where(eq(bookingsTable.id, req.params.bookingId));
+    });
     res.status(204).send();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Delete failed";

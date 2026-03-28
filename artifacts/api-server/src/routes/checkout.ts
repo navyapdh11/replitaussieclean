@@ -4,6 +4,7 @@ import {
   CreateCheckoutSessionResponse,
 } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
+import { getStripe } from "../lib/stripe";
 
 const router: IRouter = Router();
 
@@ -16,9 +17,9 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
 
   const { quoteAmountCents, bookingId, customerEmail, serviceDescription } = parsed.data;
 
-  const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+  const stripe = await getStripe();
 
-  if (!STRIPE_SECRET_KEY) {
+  if (!stripe) {
     logger.warn("STRIPE_SECRET_KEY not configured — returning mock checkout URL");
     const appUrl = process.env.APP_URL || "http://localhost:3000";
     res.json(
@@ -31,9 +32,6 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
   }
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
-
-  const Stripe = (await import("stripe")).default;
-  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" as any });
 
   try {
     const session = await stripe.checkout.sessions.create({

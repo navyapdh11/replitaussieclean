@@ -126,11 +126,18 @@ router.patch("/:id/toggle", async (req, res): Promise<void> => {
 /* ── DELETE /:id ────────────────────────────────────────────────────────── */
 router.delete("/:id", async (req, res): Promise<void> => {
   try {
-    await db
+    const [deleted] = await db
       .delete(dynamicPricingFactorsTable)
-      .where(eq(dynamicPricingFactorsTable.id, req.params.id));
+      .where(eq(dynamicPricingFactorsTable.id, req.params.id))
+      .returning({ id: dynamicPricingFactorsTable.id });
+
+    if (!deleted) {
+      res.status(404).json({ error: "Pricing factor not found" });
+      return;
+    }
+
     bustAdminFactorCache();
-    res.json({ success: true });
+    res.status(204).send();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Delete failed";
     res.status(500).json({ error: `Failed to delete pricing factor: ${msg}` });

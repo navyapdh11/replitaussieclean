@@ -146,6 +146,15 @@ router.patch("/tenants/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  /* Validate email format when email is being updated */
+  if (typeof b.email === "string" && b.email.trim()) {
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!EMAIL_RE.test(b.email.trim())) {
+      res.status(400).json({ error: "Invalid email address" });
+      return;
+    }
+  }
+
   try {
     const [row] = await db
       .update(tenantsTable)
