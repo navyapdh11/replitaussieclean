@@ -8,6 +8,7 @@ const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 export function Step5Address() {
   const store = useBookingStore();
   const [error, setError] = useState("");
+  const errorId = "step5-error";
 
   const handleNext = () => {
     if (!store.addressLine1 || !store.suburb || !store.state || !store.postcode) {
@@ -37,11 +38,15 @@ export function Step5Address() {
             Street Address <span className="text-destructive" aria-hidden="true">*</span>
             <span className="sr-only">(required)</span>
           </label>
-          <input 
+          <input
             id="address-line1"
-            type="text" 
+            type="text"
             placeholder="123 Example St"
             autoComplete="street-address"
+            required
+            aria-required="true"
+            aria-invalid={error && !store.addressLine1 ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
             value={store.addressLine1 || ""}
             onChange={(e) => store.updateData({ addressLine1: e.target.value })}
             className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
@@ -124,7 +129,11 @@ export function Step5Address() {
         </div>
       </div>
 
-      {error && <p role="alert" className="text-destructive text-sm font-medium">{error}</p>}
+      {error && (
+        <p id={errorId} role="alert" aria-live="assertive" className="text-destructive text-sm font-medium flex items-center gap-1.5">
+          <span aria-hidden="true">⚠</span> {error}
+        </p>
+      )}
 
       <div className="flex gap-4 pt-6 border-t border-border/50">
         <button type="button" onClick={store.prevStep} className="px-6 py-3 rounded-xl font-semibold border border-border hover:bg-secondary transition-colors">

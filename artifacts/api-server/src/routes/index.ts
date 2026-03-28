@@ -15,6 +15,8 @@ import { pricingFactorsRouter } from "./pricingFactors";
 import adminSystemRouter from "./adminSystem";
 import docsRouter from "./docs";
 import analyticsRouter from "./analytics";
+import contactRouter from "./contact";
+import reviewsRouter from "./reviews";
 import { adminLimiter } from "../lib/ratelimit";
 
 const router: IRouter = Router();
@@ -28,6 +30,8 @@ router.use(serviceAreasRouter);
 router.use(webhooksRouter);
 router.use(aiRouter);
 router.use(trackingRouter);
+router.use(contactRouter);
+router.use(reviewsRouter);
 
 /* ── Admin-scoped routes: stricter rate limit ─────────────────────────── */
 router.use(adminLimiter, analyticsRouter);

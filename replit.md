@@ -50,6 +50,20 @@ The project is structured as a pnpm monorepo with separate applications (`artifa
 ### 8. SEO / AEO
 - Employs extensive JSON-LD schema (WebPage, LocalBusiness, Service, FAQPage, HowTo) for rich search results, with strict Schema.org compliance.
 
+### 10. Enterprise Spec Compliance (Session 7 — Enterprise Pack)
+- **4 Australian compliance pages**: Privacy Policy (Privacy Act 1988 / APPs), Terms & Conditions (ACL-compliant), Accessibility Statement (DDA / WCAG 2.1 AA), Refund & Cancellation Policy
+- **Routes**: `/privacy`, `/terms`, `/accessibility`, `/refund-policy` — all wired in `App.tsx`
+- **Footer overhauled**: 4-column grid — brand/contact, Services, Company, Legal — with real phone, email, service area coverage, and full legal links
+- **POST /api/contact**: enquiry form with AU phone validation, honeypot anti-spam, email notification via Resend
+- **POST /api/reviews/request**: triggers after-job review email (validates `completed` status before sending)
+- **POST /api/reviews/submit**: accepts star rating + comment, notifies internal team
+- **WCAG 2.1 AA — booking funnel overhaul**:
+  - Skip-to-main-content link (WCAG 2.4.1) — visible on keyboard focus
+  - Progress bar: `role="progressbar"`, `aria-valuenow/min/max`, `aria-label` (WCAG 1.3.1, 4.1.2)
+  - Step transitions: programmatic focus management via `headingRef.current.focus()` on step change
+  - Error messages: `role="alert"`, `aria-live="assertive"`, `aria-invalid` + `aria-describedby` on errant inputs
+  - All required fields: `required`, `aria-required="true"`
+
 ### 9. Security & Code Quality (Session 7)
 - HSTS headers, HTML escaping, input validation for AI chat, secure Stripe webhook handling.
 - **CORS**: Origin allow-list via `ALLOWED_ORIGINS` env var (falls back to permissive in development).

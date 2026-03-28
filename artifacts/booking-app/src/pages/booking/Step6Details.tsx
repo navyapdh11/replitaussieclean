@@ -14,6 +14,8 @@ function isValidAustralianPhone(raw: string): boolean {
 export function Step6Details() {
   const store = useBookingStore();
   const [error, setError] = useState("");
+  const errorId = "step6-error";
+  const hasError = error.length > 0;
 
   const handleNext = () => {
     if (!store.firstName || !store.lastName || !store.email || !store.phone) {
@@ -48,11 +50,15 @@ export function Step6Details() {
               First Name <span className="text-destructive" aria-hidden="true">*</span>
               <span className="sr-only">(required)</span>
             </label>
-            <input 
+            <input
               id="contact-first-name"
-              type="text" 
+              type="text"
               placeholder="Jane"
               autoComplete="given-name"
+              required
+              aria-required="true"
+              aria-invalid={hasError && !store.firstName ? true : undefined}
+              aria-describedby={hasError ? errorId : undefined}
               value={store.firstName || ""}
               onChange={(e) => store.updateData({ firstName: e.target.value })}
               className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
@@ -122,7 +128,11 @@ export function Step6Details() {
         </div>
       </div>
 
-      {error && <p role="alert" className="text-destructive text-sm font-medium">{error}</p>}
+      {error && (
+        <p id={errorId} role="alert" aria-live="assertive" className="text-destructive text-sm font-medium flex items-center gap-1.5">
+          <span aria-hidden="true">⚠</span> {error}
+        </p>
+      )}
 
       <div className="flex gap-4 pt-6 border-t border-border/50">
         <button type="button" onClick={store.prevStep} className="px-6 py-3 rounded-xl font-semibold border border-border hover:bg-secondary transition-colors">

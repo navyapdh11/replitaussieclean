@@ -22,6 +22,32 @@ function escHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Generic email send for internal transactional messages (contact enquiries,
+ * review requests, notifications). Falls back silently when RESEND_API_KEY
+ * is not configured (development mode).
+ */
+export async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<void> {
+  if (!resend) {
+    logger.warn({ to, subject }, "RESEND_API_KEY not set — skipping email");
+    return;
+  }
+  await resend.emails.send({
+    from: "AussieClean <hello@aussieclean.com.au>",
+    to,
+    subject,
+    html,
+  });
+}
+
 export async function sendBookingConfirmation({
   email,
   firstName,
