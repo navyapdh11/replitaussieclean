@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles, Home, Building2, Briefcase, HeartHandshake,
@@ -222,10 +222,30 @@ const COLOR_MAP: Record<string, { badge: string; selected: string; icon: string;
 export function Step1Service() {
   const { serviceType, updateData, nextStep } = useBookingStore();
   const [openCategory, setOpenCategory] = useState<string>("residential");
+  // Track whether we've already triggered navigation to avoid double-firing
+  // (card click schedules a 280ms delayed advance; Continue button is instant).
+  const navigatingRef = useRef(false);
+
+  // Cleanup any pending timeout when the component unmounts mid-animation.
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 
   const handleSelect = (id: string) => {
     updateData({ serviceType: id });
-    setTimeout(nextStep, 280);
+    if (navigatingRef.current) return;
+    navigatingRef.current = true;
+    timeoutRef.current = setTimeout(() => {
+      navigatingRef.current = false;
+      nextStep();
+    }, 280);
+  };
+
+  const handleContinue = () => {
+    if (navigatingRef.current) return; // already navigating via card click
+    // Cancel the pending card-click timeout so it doesn't fire again
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+    navigatingRef.current = false;
+    nextStep();
   };
 
   const selectedService = ALL_SERVICES.find((s) => s.id === serviceType);
@@ -371,7 +391,7 @@ export function Step1Service() {
         >
           <button
             type="button"
-            onClick={nextStep}
+            onClick={handleContinue}
             className="w-full px-6 py-3.5 rounded-xl font-bold bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all"
           >
             Continue with {selectedService?.label}

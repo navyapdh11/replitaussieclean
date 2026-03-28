@@ -40,11 +40,13 @@ const initialState: BookingState = {
   propertyType: undefined,
 };
 
+export const TOTAL_STEPS = 8;
+
 export const useBookingStore = create<BookingStore>((set) => ({
   ...initialState,
   step: 1,
   setStep: (step) => set({ step }),
-  nextStep: () => set((state) => ({ step: Math.min(8, state.step + 1) })),
+  nextStep: () => set((state) => ({ step: Math.min(TOTAL_STEPS, state.step + 1) })),
   prevStep: () => set((state) => ({ step: Math.max(1, state.step - 1) })),
   updateData: (data) => set((state) => ({ ...state, ...data })),
   reset: () => set({ ...initialState, step: 1 }),

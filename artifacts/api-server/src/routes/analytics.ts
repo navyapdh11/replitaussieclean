@@ -289,39 +289,13 @@ async function semrushRankings(suburb: string, postcode: string, apiKey: string)
      GOOGLE_CLIENT_EMAIL       service account email
      GOOGLE_PRIVATE_KEY        service account private key (PEM)
    ─────────────────────────────────────────────────────── */
-async function gscRankings(suburb: string, postcode: string): Promise<KeywordRow[]> {
-  const siteUrl    = process.env.GOOGLE_GSC_SITE_URL!;
-  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL!;
-  const privateKey = (process.env.GOOGLE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
-
-  /* Build a short-lived JWT for Google OAuth */
-  const { createSign } = await import("node:crypto");
-  const now   = Math.floor(Date.now() / 1000);
-  const claim = {
-    iss: clientEmail,
-    scope: "https://www.googleapis.com/auth/webmasters.readonly",
-    aud: "https://oauth2.googleapis.com/token",
-    exp: now + 3600,
-    iat: now,
-  };
-  const header  = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
-  const payload = Buffer.from(JSON.stringify(claim)).toString("base64url");
-  const sign    = createSign("RSA-SHA256");
-  sign.update(`${header}.${payload}`);
-  const sig = sign.sign(privateKey, "base64url");
-  const jwt = `${header}.${payload}.${sig}`;
-
-  /* Exchange JWT for access token */
-  const tokenRes = await httpsGet(
-    `https://oauth2.googleapis.com/token`,
-    { "Content-Type": "application/x-www-form-urlencoded" },
-  ) as never; // POST needed — fallback to mock for now
-  void tokenRes;
-
-  /* NOTE: google token endpoint requires POST, not GET.
-     Full implementation would use node:https POST.
-     For now, fall back to demo. */
-  throw new Error("GSC requires POST — using demo fallback");
+// NOTE: GSC full integration requires a POST to the Google OAuth token endpoint
+// using a service-account JWT, then a POST to the Search Console API.
+// This cannot be implemented with the current httpsGet helper.
+// The route falls back to demo data when GOOGLE_GSC_SITE_URL is set but Ahrefs/SEMrush
+// keys are absent — see the catch block in the main route handler.
+async function gscRankings(_suburb: string, _postcode: string): Promise<KeywordRow[]> {
+  throw new Error("GSC integration not implemented — using demo fallback");
 }
 
 /* ── Slug → suburb/postcode parser ──────────────────────── */

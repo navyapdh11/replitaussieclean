@@ -10,6 +10,28 @@ const ALLOWED_ROLES = new Set(["user", "assistant", "system"]);
 const MAX_CONTENT_LENGTH = 2000;
 const MAX_MESSAGES = 20;
 
+/** Simple in-module cache so DB isn't queried on every chat turn */
+interface PromptCache { areaList: string; priceList: string; expiresAt: number }
+let promptCache: PromptCache | null = null;
+const PROMPT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+async function getCachedPromptData(): Promise<{ areaList: string; priceList: string }> {
+  const now = Date.now();
+  if (promptCache && now < promptCache.expiresAt) {
+    return { areaList: promptCache.areaList, priceList: promptCache.priceList };
+  }
+  const [serviceAreas, priceRules] = await Promise.all([
+    db.select().from(serviceAreasTable).where(eq(serviceAreasTable.active, true)),
+    db.select().from(priceRulesTable).where(eq(priceRulesTable.active, true)),
+  ]);
+  const areaList = serviceAreas.map((a) => `${a.suburb}, ${a.state}`).join(" • ");
+  const priceList = priceRules
+    .map((r) => `${r.serviceType.replace(/_/g, " ")} (${r.propertyType}): from $${r.basePriceCents / 100}`)
+    .join("\n");
+  promptCache = { areaList, priceList, expiresAt: now + PROMPT_CACHE_TTL_MS };
+  return { areaList, priceList };
+}
+
 router.post("/ai/chat", chatLimiter, async (req, res): Promise<void> => {
   const { messages } = req.body;
 
@@ -35,18 +57,7 @@ router.post("/ai/chat", chatLimiter, async (req, res): Promise<void> => {
   }
 
   try {
-    const [serviceAreas, priceRules] = await Promise.all([
-      db.select().from(serviceAreasTable).where(eq(serviceAreasTable.active, true)),
-      db.select().from(priceRulesTable).where(eq(priceRulesTable.active, true)),
-    ]);
-
-    const areaList = serviceAreas.map((a) => `${a.suburb}, ${a.state}`).join(" • ");
-    const priceList = priceRules
-      .map(
-        (r) =>
-          `${r.serviceType.replace(/_/g, " ")} (${r.propertyType}): from $${r.basePriceCents / 100}`
-      )
-      .join("\n");
+    const { areaList, priceList } = await getCachedPromptData();
 
     const systemPrompt = `You are AussieClean's friendly AI booking assistant. Help customers choose the right cleaning service and guide them through booking.
 

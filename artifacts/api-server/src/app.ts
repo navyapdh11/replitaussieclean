@@ -44,7 +44,24 @@ app.use(
 );
 
 /* ── CORS ────────────────────────────────────────────────────────────────── */
-app.use(cors({ origin: true, credentials: true }));
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow requests with no origin (curl, server-to-server) and any origin
+    // that matches the allow-list. In development the allow-list may be empty,
+    // in which case we fall back to permissive mode so the dev workflow still works.
+    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`CORS: origin '${origin}' not allowed`));
+    }
+  },
+  credentials: true,
+}));
 
 /* ── Gzip (skip Stripe webhook — raw body required) ─────────────────────── */
 app.use(compression({

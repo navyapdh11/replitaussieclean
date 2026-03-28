@@ -83,11 +83,23 @@ router.post(
           const session = event.data.object;
           const bookingId = session.metadata?.bookingId;
           if (bookingId) {
-            await db
-              .update(bookingsTable)
-              .set({ status: "cancelled" })
-              .where(eq(bookingsTable.id, bookingId));
-            logger.info({ bookingId }, "Booking cancelled — session expired");
+            // Only cancel if still pending — don't clobber confirmed/completed bookings.
+            // A confirmed booking (e.g. paid via a different session) must not be cancelled
+            // by a stale expiry event from an earlier checkout attempt.
+            const [current] = await db
+              .select({ status: bookingsTable.status })
+              .from(bookingsTable)
+              .where(eq(bookingsTable.id, bookingId))
+              .limit(1);
+            if (current?.status === "pending" || current?.status === "draft") {
+              await db
+                .update(bookingsTable)
+                .set({ status: "cancelled" })
+                .where(eq(bookingsTable.id, bookingId));
+              logger.info({ bookingId }, "Booking cancelled — session expired");
+            } else {
+              logger.info({ bookingId, status: current?.status }, "Skipping session.expired cancel — booking already past pending");
+            }
           }
           break;
         }

@@ -45,12 +45,30 @@ const TRACKING_TO_DB_STATUS: Record<string, string> = {
   completed:   "completed",
 };
 
+/** Secret token cleaners must present on connection to push updates. */
+const CLEANER_SECRET = process.env.CLEANER_SOCKET_SECRET ?? "";
+
 export function setupTracking(io: SocketIOServer): Namespace {
   const trackingNS = io.of("/tracking");
 
   trackingNS.on("connection", (socket: Socket) => {
     logger.info({ socketId: socket.id }, "Tracking client connected");
 
+    // Cleaners authenticate by emitting `auth` with { secret }.
+    // Until authenticated, privileged write events are dropped.
+    let isCleaner = false;
+    socket.on("auth", ({ secret }: { secret?: string }) => {
+      if (CLEANER_SECRET && secret === CLEANER_SECRET) {
+        isCleaner = true;
+        socket.emit("auth_ok");
+        logger.info({ socketId: socket.id }, "Cleaner socket authenticated");
+      } else {
+        socket.emit("auth_fail", { reason: "Invalid secret" });
+        logger.warn({ socketId: socket.id }, "Cleaner socket auth failed");
+      }
+    });
+
+    // Customers (unauthenticated) can only subscribe to a job room.
     socket.on("join_job", ({ bookingId }: JoinJobPayload) => {
       socket.join(`job:${bookingId}`);
       const current = trackingStore.get(bookingId);
@@ -61,6 +79,11 @@ export function setupTracking(io: SocketIOServer): Namespace {
     });
 
     socket.on("update_location", async ({ bookingId, cleanerId, lat, lng, heading, speed }: UpdateLocationPayload) => {
+      // Only authenticated cleaner sockets may push location data.
+      if (!isCleaner) {
+        socket.emit("error", { message: "Unauthorised: authenticate first" });
+        return;
+      }
       const prev = trackingStore.get(bookingId);
       const status = prev?.status ?? "en_route";
       const locationData: LocationEntry = { lat, lng, heading, speed, status, timestamp: Date.now() };
@@ -74,6 +97,11 @@ export function setupTracking(io: SocketIOServer): Namespace {
     });
 
     socket.on("job_status", async ({ bookingId, status }: JobStatusPayload) => {
+      // Only authenticated cleaner sockets may change job status.
+      if (!isCleaner) {
+        socket.emit("error", { message: "Unauthorised: authenticate first" });
+        return;
+      }
       const valid = ["en_route", "arrived", "in_progress", "completed"];
       if (!valid.includes(status)) return;
 

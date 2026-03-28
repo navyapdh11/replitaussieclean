@@ -159,7 +159,16 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
   }
 
   try {
+    const updates: Partial<typeof bookingsTable.$inferInsert> = {};
+    if (parsed.data.stripeSessionId !== undefined) updates.stripeSessionId = parsed.data.stripeSessionId;
+    if (parsed.data.stripePaymentId !== undefined) updates.stripePaymentId = parsed.data.stripePaymentId;
+    if (parsed.data.notes           !== undefined) updates.notes           = parsed.data.notes;
+
     if (parsed.data.status !== undefined) {
+      // Atomic compare-and-set: fetch current status, validate transition,
+      // then UPDATE with an extra WHERE clause on the expected status.
+      // This prevents the SELECT→UPDATE race condition where two concurrent
+      // requests both pass the status check and both apply the transition.
       const [current] = await db
         .select({ status: bookingsTable.status })
         .from(bookingsTable)
@@ -179,13 +188,30 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
         });
         return;
       }
-    }
 
-    const updates: Partial<typeof bookingsTable.$inferInsert> = {};
-    if (parsed.data.status          !== undefined) updates.status          = parsed.data.status;
-    if (parsed.data.stripeSessionId !== undefined) updates.stripeSessionId = parsed.data.stripeSessionId;
-    if (parsed.data.stripePaymentId !== undefined) updates.stripePaymentId = parsed.data.stripePaymentId;
-    if (parsed.data.notes           !== undefined) updates.notes           = parsed.data.notes;
+      updates.status = parsed.data.status;
+
+      // CAS update: only apply if status hasn't changed since we read it.
+      if (Object.keys(updates).length === 0) {
+        res.status(400).json({ error: "No updatable fields provided" });
+        return;
+      }
+
+      const [booking] = await db
+        .update(bookingsTable)
+        .set(updates)
+        .where(and(eq(bookingsTable.id, params.data.id), eq(bookingsTable.status, current.status)))
+        .returning();
+
+      if (!booking) {
+        // Affected 0 rows — either not found or status changed underneath us
+        res.status(409).json({ error: "Booking status changed concurrently. Please retry." });
+        return;
+      }
+
+      res.json(UpdateBookingResponse.parse(serializeBooking(booking)));
+      return;
+    }
 
     if (Object.keys(updates).length === 0) {
       res.status(400).json({ error: "No updatable fields provided" });

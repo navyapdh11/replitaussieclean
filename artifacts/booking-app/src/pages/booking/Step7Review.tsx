@@ -51,26 +51,34 @@ export function Step7Review() {
 
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
 
+  // Destructure individual store values so the useCallback dep array
+  // contains stable primitives — the `store` object reference changes on
+  // every render, which would re-create the callback constantly.
+  const {
+    serviceType, propertyType, bedrooms, bathrooms,
+    extras, suburb, state: stateCode, date, timeSlot,
+  } = store;
+
   const fetchQuote = useCallback(() => {
     getQuote.mutate(
       {
         data: {
-          serviceType: store.serviceType as any,
-          propertyType: store.propertyType as any,
-          bedrooms: store.bedrooms || 1,
-          bathrooms: store.bathrooms || 1,
-          extras: store.extras,
-          suburb: store.suburb,
-          state: store.state,
-          date: store.date,
-          timeSlot: store.timeSlot,
+          serviceType: serviceType as any,
+          propertyType: propertyType as any,
+          bedrooms: bedrooms || 1,
+          bathrooms: bathrooms || 1,
+          extras,
+          suburb,
+          state: stateCode,
+          date,
+          timeSlot,
         },
       },
       { onSuccess: (data: any) => setQuoteData(data as QuoteData) },
     );
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [serviceType, propertyType, bedrooms, bathrooms, extras, suburb, stateCode, date, timeSlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { fetchQuote(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchQuote(); }, [fetchQuote]);
 
   const { minutes, seconds, expired } = useCountdown(quoteData?.validUntil ?? null);
 
@@ -80,7 +88,7 @@ export function Step7Review() {
       setQuoteData(null);
       fetchQuote();
     }
-  }, [expired]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [expired, fetchQuote]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConfirm = () => {
     if (!quoteData) return;

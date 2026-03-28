@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useBookingStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -195,6 +195,18 @@ function Counter({
 export function Step2Property() {
   const store = useBookingStore();
   const [error, setError] = useState("");
+
+  // On mount: if the currently-stored propertyType is not valid for the
+  // selected serviceType (e.g. user went back and changed the service),
+  // clear it so the user must make a fresh, valid selection.
+  useEffect(() => {
+    const config = getConfig(store.serviceType);
+    const validIds = config.options.map((o) => o.id);
+    if (store.propertyType && !validIds.includes(store.propertyType)) {
+      store.updateData({ propertyType: undefined });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.serviceType]);
 
   const config = getConfig(store.serviceType);
 

@@ -224,26 +224,28 @@ export async function optimizeSchedule(tenantId: string, date: string): Promise<
     scored.sort((a, b) => b.score - a.score);
     const { staff: best, dist, score } = scored[0];
 
-    // Create assignment record
-    await db
-      .insert(jobAssignmentsTable)
-      .values({
-        id:               randomUUID(),
-        bookingId:        job.id,
-        staffId:          best.id,
-        tenantId,
-        status:           "assigned",
-        matchScore:       +score.toFixed(1),
-        travelDistanceKm: +dist.toFixed(1),
-        travelTimeMin:    Math.round((dist / 40) * 60), // assume 40 km/h avg
-      })
-      .onConflictDoNothing();
+    // Wrap both writes in a transaction so a partial failure cannot leave
+    // an orphan assignment without the booking's assignedStaffId being set.
+    await db.transaction(async (tx) => {
+      await tx
+        .insert(jobAssignmentsTable)
+        .values({
+          id:               randomUUID(),
+          bookingId:        job.id,
+          staffId:          best.id,
+          tenantId,
+          status:           "assigned",
+          matchScore:       +score.toFixed(1),
+          travelDistanceKm: +dist.toFixed(1),
+          travelTimeMin:    Math.round((dist / 40) * 60), // assume 40 km/h avg
+        })
+        .onConflictDoNothing();
 
-    // Update booking with assigned staff
-    await db
-      .update(bookingsTable)
-      .set({ assignedStaffId: best.id })
-      .where(eq(bookingsTable.id, job.id));
+      await tx
+        .update(bookingsTable)
+        .set({ assignedStaffId: best.id })
+        .where(eq(bookingsTable.id, job.id));
+    });
 
     // Update local count
     assignmentCount.set(best.id, (assignmentCount.get(best.id) ?? 0) + 1);

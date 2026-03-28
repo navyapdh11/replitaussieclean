@@ -111,7 +111,10 @@ export async function calculateDynamicPrice(ctx: PricingContext): Promise<Pricin
   const rawMultiplier = demandMult * weatherMult * trafficMult * staffMult * timeSlotMult * adminMult;
   const dynamicMultiplier = Math.min(2.0, Math.max(0.8, rawMultiplier));
   const quoteCents = Math.round(subBase * dynamicMultiplier);
-  const gstCents = Math.round(quoteCents / 11);
+  // GST is 10% added on top of the pre-GST price — use /10, NOT /11.
+  // The /11 formula extracts GST from a GST-inclusive total (ATO method), but
+  // quoteCents here is the pre-GST subtotal, so the correct formula is ×0.1.
+  const gstCents = Math.round(quoteCents / 10);
   const totalCents = quoteCents + gstCents;
 
   const breakdown = {
