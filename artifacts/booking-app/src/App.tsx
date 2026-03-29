@@ -23,6 +23,7 @@ import PrivacyPolicy from "@/pages/privacy";
 import TermsAndConditions from "@/pages/terms";
 import AccessibilityStatement from "@/pages/accessibility";
 import RefundPolicy from "@/pages/refund-policy";
+import ReferralPage from "@/pages/referral";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +52,7 @@ function Router() {
       <Route path="/terms" component={TermsAndConditions} />
       <Route path="/accessibility" component={AccessibilityStatement} />
       <Route path="/refund-policy" component={RefundPolicy} />
+      <Route path="/referral" component={ReferralPage} />
       <Route component={NotFound} />
     </Switch>
   );

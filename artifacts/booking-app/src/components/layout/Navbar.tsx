@@ -5,7 +5,7 @@ import {
   Wind, Key, Building2, Layers, ShieldCheck, Menu, X,
   Brush, Droplets, Leaf, Briefcase, ShoppingBag, Hotel,
   Stethoscope, HeartHandshake, GraduationCap, Factory,
-  HardHat, AlertTriangle, Sun,
+  HardHat, AlertTriangle, Sun, Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -284,6 +284,20 @@ export function Navbar() {
               My Bookings
             </Link>
 
+            {/* Refer a Friend */}
+            <Link
+              href="/referral"
+              onClick={closeAll}
+              aria-current={location === "/referral" ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                location === "/referral" ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              )}
+            >
+              <Gift className="w-4 h-4" aria-hidden="true" />
+              Refer & Earn
+            </Link>
+
             {/* ── Admin Only dropdown ────────────────────────────── */}
             <div ref={admin.containerRef} className="relative">
               <button
@@ -419,6 +433,9 @@ export function Navbar() {
           </Link>
           <Link href="/booking" onClick={closeAll} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors">
             <Star className="w-4 h-4 shrink-0" aria-hidden="true" /> Get a Quote
+          </Link>
+          <Link href="/referral" onClick={closeAll} aria-current={location === "/referral" ? "page" : undefined} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors">
+            <Gift className="w-4 h-4 shrink-0" aria-hidden="true" /> Refer & Earn $20
           </Link>
 
           <div className="border-t border-border/50 pt-2 mt-2" role="separator" />

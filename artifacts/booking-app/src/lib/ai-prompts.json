@@ -7,6 +7,7 @@
   "prompts": [
     {
       "id": "living_room_transform",
+      "category": "social_media",
       "scenario": "Living room before/after clean",
       "prompt": "Generate a 2-sentence Instagram caption for a before/after living room clean in an Australian home. Mention coastal dust, weekend guests, and eco-friendly products. Include 5 hashtags. Tone: warm, proud, not salesy.",
       "output_format": "Caption + Hashtags",
@@ -14,6 +15,7 @@
     },
     {
       "id": "kitchen_upsell",
+      "category": "upsell",
       "scenario": "Oven deep clean add-on",
       "prompt": "Write a 1-sentence upsell message for adding an oven clean to a standard booking. Mention $49 price, 30 extra minutes, and the benefit (no fumes, eco-safe). Tone: helpful, not pushy.",
       "output_format": "Single sentence",
@@ -21,6 +23,7 @@
     },
     {
       "id": "google_ads_headline",
+      "category": "paid_ads",
       "scenario": "Google Search Ad for cleaning services",
       "prompt": "Create 5 Google Ads headlines (max 30 chars each) for professional home cleaning in Australia. Include 'Instant Quote', 'Eco', and 'Book in 60 Sec'.",
       "output_format": "List of 5 headlines",
@@ -28,6 +31,7 @@
     },
     {
       "id": "email_reengagement",
+      "category": "email",
       "scenario": "Win-back email for past customers",
       "prompt": "Write a 3-sentence email to a customer who last booked 8 weeks ago. Remind them of their last clean, offer 10% off their next booking, and mention the dynamic pricing feature. Tone: friendly, not guilt-tripping.",
       "output_format": "Email body",
@@ -35,6 +39,7 @@
     },
     {
       "id": "tiktok_script",
+      "category": "social_media",
       "scenario": "15-second TikTok before/after video",
       "prompt": "Write a 15-second TikTok script for a before/after cleaning transformation. Include on-screen text, voiceover line, and trending audio suggestion. Hook in first 3 seconds.",
       "output_format": "Script with timestamps",
@@ -42,6 +47,7 @@
     },
     {
       "id": "sms_confirmation",
+      "category": "sms",
       "scenario": "Post-booking SMS",
       "prompt": "Write a 1-sentence SMS confirmation for a 2-hour eco clean. Include cleaner name, date/time, eco-product mention, and tracking link placeholder. Max 160 chars.",
       "output_format": "SMS text (160 chars max)",
@@ -49,6 +55,7 @@
     },
     {
       "id": "instagram_story_poll",
+      "category": "social_media",
       "scenario": "Engagement story poll",
       "prompt": "Create an Instagram Story poll question about cleaning pain points. Offer 2 relatable options. Keep it fun.",
       "output_format": "Poll question + 2 options",
@@ -56,6 +63,7 @@
     },
     {
       "id": "linkedin_b2b",
+      "category": "b2b",
       "scenario": "LinkedIn post for property manager partnerships",
       "prompt": "Write a 3-sentence LinkedIn post targeting property managers and Airbnb hosts. Highlight 24hr turnover, eco-certification, and quality guarantees. CTA: 'Partner with us'.",
       "output_format": "LinkedIn post",
@@ -63,6 +71,7 @@
     },
     {
       "id": "facebook_ad_copy",
+      "category": "paid_ads",
       "scenario": "Facebook carousel ad",
       "prompt": "Write primary text (90 chars) and headline (40 chars) for a Facebook carousel ad showing 3 before/after rooms. Mention starting price and instant quote.",
       "output_format": "Primary text + Headline",
@@ -70,6 +79,7 @@
     },
     {
       "id": "review_request_sms",
+      "category": "sms",
       "scenario": "Google review request after clean",
       "prompt": "Write a short, friendly SMS requesting a Google review 2 hours after a clean is completed. Mention the cleaner's name and keep it under 140 chars.",
       "output_format": "SMS text",
@@ -77,6 +87,7 @@
     },
     {
       "id": "review_recovery",
+      "category": "reputation",
       "scenario": "Response to a negative review",
       "prompt": "Write a professional response to a 3-star review about missed spots. Apologise sincerely, offer to rectify, and maintain a warm brand tone.",
       "output_format": "Review response",
@@ -84,10 +95,292 @@
     },
     {
       "id": "landing_page_ab_test",
+      "category": "conversion",
       "scenario": "Homepage headline A/B test",
       "prompt": "Generate 3 variations of a homepage headline for a professional cleaning booking platform. Focus on speed, trust, and eco values.",
       "output_format": "3 headline variations",
       "example_output": ["Immaculate spaces, zero effort.", "Book a clean in under 60 seconds.", "Australia's most trusted eco clean."]
+    },
+    {
+      "id": "referral_invite",
+      "category": "referral",
+      "scenario": "Referral program invite message",
+      "prompt": "Write a short, enthusiastic message a customer sends to a friend to refer them to AussieClean. Mention the $20 credit reward for both parties. Keep it casual and genuine, 2–3 sentences.",
+      "output_format": "Referral message",
+      "example_output": "Hey! I've been using AussieClean for my home and honestly, it's a game changer 🙌 Book your first clean with my code and you get $20 off — and I get $20 credit too. Use my link: [referral_link]"
+    },
+    {
+      "id": "post_clean_tip_prompt",
+      "category": "retention",
+      "scenario": "In-app tip prompt shown after cleaning completion",
+      "prompt": "Write a friendly, non-pressuring 2-sentence prompt shown to the customer to leave an optional tip for their cleaner. Acknowledge the cleaner's effort. Keep it warm.",
+      "output_format": "2 sentences",
+      "example_output": "Your cleaner worked hard to make your home sparkle today! If you'd like to show your appreciation, a small tip means the world to them. 💛"
+    },
+    {
+      "id": "subscription_upgrade_email",
+      "category": "email",
+      "scenario": "Upsell one-off customer to weekly subscription",
+      "prompt": "Write a 4-sentence email upselling a one-off customer to a weekly cleaning subscription. Highlight the 10% discount, no lock-in, and the mental relief of always having a clean home. Subject line included.",
+      "output_format": "Subject + Email body",
+      "example_output": "Subject: Save 10% every week — your home always clean ✨\nHi [Name], loved having you as a customer last week! Did you know you can save 10% by switching to a weekly subscription — with zero lock-in, cancel any time. Imagine always coming home to a clean house without ever thinking about it. Reply to this email to set it up in 2 minutes."
+    },
+    {
+      "id": "end_of_lease_urgency",
+      "category": "conversion",
+      "scenario": "End-of-lease urgency email",
+      "prompt": "Write a 3-sentence email to a customer with an upcoming lease end date. Emphasise bond-back guarantee, compliance report, and limited same-week availability. CTA: 'Lock in your slot'.",
+      "output_format": "Email body with CTA",
+      "example_output": "Your lease is ending soon — don't leave your bond to chance! AussieClean's end-of-lease service includes a compliance photo report your property manager will love, and we guarantee bond-back or we'll reclean for free. Slots this week are going fast — lock yours in now."
+    },
+    {
+      "id": "photo_report_upsell",
+      "category": "upsell",
+      "scenario": "Before/after photo report add-on upsell",
+      "prompt": "Write a 2-sentence in-app prompt encouraging the customer to add the before/after photo report for $49. Mention proof of cleanliness for rental compliance and peace of mind.",
+      "output_format": "2 sentences",
+      "example_output": "Add a professional before/after photo report for just $49 — perfect proof of cleanliness for rental inspections or peace of mind. Our cleaner documents every room before and after, delivered to your inbox within an hour of the clean."
+    },
+    {
+      "id": "seasonal_spring_email",
+      "category": "email",
+      "scenario": "Spring clean seasonal campaign",
+      "prompt": "Write a spring clean campaign email (4 sentences). Mention fresh starts, opening windows after winter, eco products, and a limited 15% spring discount code. Subject line included.",
+      "output_format": "Subject + Email body",
+      "example_output": "Subject: Spring is here — time for a fresh start 🌸\nHi [Name], spring is the perfect excuse to fling open the windows and reset your home! Our eco-safe deep clean removes months of built-up grime without harsh chemicals. This week only, use code SPRING15 for 15% off any service. Book your spring clean before the slots fill up!"
+    },
+    {
+      "id": "commercial_cold_outreach",
+      "category": "b2b",
+      "scenario": "Cold email to a commercial property manager",
+      "prompt": "Write a cold outreach email to a commercial property manager. 3 sentences, professional tone. Mention flexible scheduling, compliance documentation, and a free first-clean trial offer.",
+      "output_format": "Email body",
+      "example_output": "Hi [Name], we help commercial property managers like you maintain spotless, audit-ready facilities across Australia with zero scheduling headaches. AussieClean provides compliance-grade documentation, flexible early-morning or after-hours slots, and certified eco-safe products. We'd love to offer your first commercial clean free — would a quick 10-minute call this week work?"
+    },
+    {
+      "id": "airbnb_host_pitch",
+      "category": "b2b",
+      "scenario": "Pitch to an Airbnb host for recurring turnovers",
+      "prompt": "Write a 3-sentence pitch for an Airbnb host. Highlight 24-hour turnaround, photo report handover, guest-ready guarantee, and bulk booking discount. Tone: reliable, professional.",
+      "output_format": "Pitch paragraph",
+      "example_output": "As an Airbnb host, your rating depends on what guests walk into — AussieClean guarantees a guest-ready home within 24 hours of checkout, every time. We provide a photo handover report so you can check the property remotely before the next check-in. Book 4+ sessions upfront and save 12% — perfect for busy hosting seasons."
+    },
+    {
+      "id": "carpet_upsell_sms",
+      "category": "sms",
+      "scenario": "Carpet steam clean add-on SMS",
+      "prompt": "Write an SMS upsell for carpet steam cleaning sent 1 hour before a standard clean. Mention allergen removal, $89/room, and easy add to existing booking. Max 160 chars.",
+      "output_format": "SMS text",
+      "example_output": "Hi [Name], add carpet steam clean to today's booking for $89/room — removes allergens & bacteria. Reply CARPET to add it! 🏠"
+    },
+    {
+      "id": "instagram_reel_caption",
+      "category": "social_media",
+      "scenario": "Instagram Reel caption for a timelapse clean",
+      "prompt": "Write an Instagram Reel caption for a 30-second timelapse of a full house clean. Include a call to action to book using the link in bio. Add 6 relevant hashtags. Tone: upbeat.",
+      "output_format": "Caption + Hashtags",
+      "example_output": "60 minutes of work, 30 seconds of wow 🏠✨ Watch this home go from lived-in to absolutely spotless. Book your clean via the link in bio — instant quotes, no obligations. 🌿 #AussieClean #BeforeAndAfter #CleanHome #Timelapse #EcoClean #AustralianHome"
+    },
+    {
+      "id": "no_show_recovery",
+      "category": "retention",
+      "scenario": "Customer no-show rescheduling message",
+      "prompt": "Write a gentle SMS to reschedule after a missed appointment. Keep it understanding, not accusatory. Offer 3 suggested new times. Under 160 chars.",
+      "output_format": "SMS text",
+      "example_output": "Hi [Name], we missed you today! No worries — reply with Mon 9AM, Wed 1PM, or Fri 11AM to rebook. 🙂"
+    },
+    {
+      "id": "waitlist_notification",
+      "category": "sms",
+      "scenario": "Waitlist slot opened notification",
+      "prompt": "Write a real-time SMS alerting a waitlisted customer that a preferred time slot has just opened. Include urgency, slot details, and a booking link. Under 160 chars.",
+      "output_format": "SMS text",
+      "example_output": "Great news [Name]! A Sat 9AM slot just opened in [Suburb]. Grab it before it's gone: [link] ⚡"
+    },
+    {
+      "id": "loyalty_milestone_email",
+      "category": "retention",
+      "scenario": "Customer hits 10-clean loyalty milestone",
+      "prompt": "Write a celebratory email for a customer's 10th clean. Thank them, reveal their loyalty credit balance ($50), and invite them to refer a friend for a bonus. Warm, grateful tone.",
+      "output_format": "Email body",
+      "example_output": "Hi [Name], you've just hit 10 cleans with AussieClean — that's absolutely amazing, and we're so grateful! We've added $50 loyalty credit to your account as a thank-you — use it on your next booking. Refer a friend this week and you'll both get an extra $20 on top."
+    },
+    {
+      "id": "google_review_response_positive",
+      "category": "reputation",
+      "scenario": "Response to a 5-star Google review",
+      "prompt": "Write a genuine 2-sentence response to a positive 5-star Google review mentioning a great cleaner experience. Reference the cleaner's name if mentioned, thank the customer, and invite them back.",
+      "output_format": "Review response",
+      "example_output": "Thank you so much [Name] — we're thrilled Jess made such a great impression! We'll pass on your kind words and look forward to keeping your home sparkling. See you next time! 🌿"
+    },
+    {
+      "id": "push_notification_reminder",
+      "category": "push",
+      "scenario": "Day-before clean reminder push notification",
+      "prompt": "Write a push notification reminder sent the day before a scheduled clean. Include the cleaner's name, time, and a 'Get Ready' tip. Max 100 chars for title, 150 for body.",
+      "output_format": "Title + Body",
+      "example_output": "Title: Your AussieClean is tomorrow! ✨\nBody: Jess arrives at 9AM. Quick tip: clear any floors beforehand for the deepest clean possible."
+    },
+    {
+      "id": "carbon_offset_message",
+      "category": "eco",
+      "scenario": "Carbon offset acknowledgement post-clean",
+      "prompt": "Write a 2-sentence post-clean message confirming a customer's eco contribution. Mention eco-certified products, reduced water usage, and a tree planted on their behalf. Warm, proud tone.",
+      "output_format": "2 sentences",
+      "example_output": "Your clean today used zero harsh chemicals and 30% less water than industry average — we're proud to be eco-certified 🌿 Plus, AussieClean has planted a tree on your behalf as part of our Carbon Neutral commitment."
+    },
+    {
+      "id": "same_day_availability_push",
+      "category": "push",
+      "scenario": "Same-day slot availability push notification",
+      "prompt": "Write an urgent push notification alerting nearby customers to a same-day cleaning slot that just opened. Mention suburb, time, and discounted rate. Max 120 chars title+body.",
+      "output_format": "Title + Body",
+      "example_output": "Title: Flash slot: today 2PM in Bondi ⚡\nBody: Grab 15% off a same-day clean — limited to 1 booking. Tap to claim."
+    },
+    {
+      "id": "winter_heating_email",
+      "category": "email",
+      "scenario": "Winter seasonal campaign – indoor air quality",
+      "prompt": "Write a 4-sentence email for a winter cleaning campaign. Focus on indoor air quality, dust mites from closed windows, eco sanitisation, and a winter discount. Include a subject line.",
+      "output_format": "Subject + Email body",
+      "example_output": "Subject: Winter sealed in more dust than you think 🏠❄️\nHi [Name], with windows shut all winter, dust mites and indoor allergens build up fast — you might not see it, but you're breathing it. Our eco sanitisation service deep cleans surfaces, upholstery, and vents with zero harsh chemicals. Use code WINTER12 for 12% off any clean this July. Book now before the end-of-winter rush hits."
+    },
+    {
+      "id": "photo_verification_ai_prompt",
+      "category": "ai_internal",
+      "scenario": "AI photo verification system prompt",
+      "system_prompt": "You are a professional cleaning quality assessor for AussieClean. Analyse before and after cleaning photos and score the quality of work.",
+      "prompt": "Before photo context: {before_description}. After photo context: {after_description}. Score the cleaning quality from 1–10 across: surface cleanliness (30%), tidiness (25%), shine/finish (25%), completeness (20%). Return a JSON object with subscores, total score, summary, and any issues flagged.",
+      "output_format": "JSON object",
+      "temperature": 0.1,
+      "max_tokens": 400
+    },
+    {
+      "id": "cleaner_dispatch_ai_prompt",
+      "category": "ai_internal",
+      "scenario": "AI cleaner dispatch optimiser system prompt",
+      "system_prompt": "You are a real-time cleaning operations dispatcher for AussieClean. Optimise cleaner assignment to minimise travel time, respect skill requirements, and maximise daily utilisation.",
+      "prompt": "Booking: {suburb}, {serviceType}, {date} {timeSlot}. Required skills: {skills}. Available cleaners: {cleaners_json}. Assign the optimal cleaner and explain your reasoning in one sentence.",
+      "output_format": "JSON: { assignedCleanerId, cleanerName, estimatedTravelMins, reason }",
+      "temperature": 0.05,
+      "max_tokens": 300
+    },
+    {
+      "id": "dynamic_pricing_explanation",
+      "category": "ai_internal",
+      "scenario": "AI generates customer-facing dynamic pricing explanation",
+      "system_prompt": "You are a friendly pricing assistant for AussieClean. Explain why a customer's quote is higher or lower than standard, in plain everyday Australian language.",
+      "prompt": "Base price: ${base_price}. Final price: ${final_price}. Factors applied: {factors_json}. Write a 2-sentence plain-English explanation the customer will see in the app.",
+      "output_format": "2 sentences",
+      "temperature": 0.3,
+      "max_tokens": 150
+    },
+    {
+      "id": "suburb_seo_page_intro",
+      "category": "seo",
+      "scenario": "AI-generated suburb SEO landing page intro paragraph",
+      "system_prompt": "You are an SEO copywriter for AussieClean, a professional eco cleaning service in Australia. Write suburb-specific landing page content that is warm, local, and search-optimised.",
+      "prompt": "Suburb: {suburb}, State: {state}, Population: {population}, Notable features: {features}. Write a 3-sentence intro paragraph for the AussieClean {suburb} service page. Mention local landmarks, eco values, and a CTA to get an instant quote.",
+      "output_format": "3-sentence paragraph",
+      "temperature": 0.4,
+      "max_tokens": 200
+    },
+    {
+      "id": "churn_risk_intervention",
+      "category": "retention",
+      "scenario": "Churn risk intervention email for inactive subscriber",
+      "prompt": "Write a 4-sentence email to a weekly subscriber who skipped their last 2 bookings. Acknowledge that life gets busy, offer a 'pause instead of cancel' option, and provide a 20% comeback credit. Subject line included. Tone: understanding, zero pressure.",
+      "output_format": "Subject + Email body",
+      "example_output": "Subject: Still want your weekly clean? No pressure 🙂\nHi [Name], we noticed you've skipped the last couple of weeks — totally understandable, life gets hectic! Did you know you can pause your subscription anytime without losing your spot? If you'd like to come back, we've added 20% credit to your account as a welcome-back gift. No pressure at all — just here whenever you need us."
+    },
+    {
+      "id": "b2b_proposal_summary",
+      "category": "b2b",
+      "scenario": "AI-generated B2B enterprise cleaning proposal summary",
+      "system_prompt": "You are a professional account manager at AussieClean. Generate a concise, compelling executive summary for a B2B cleaning contract proposal.",
+      "prompt": "Company: {company_name}, Sites: {site_count}, Frequency: {frequency}, Service type: {service_type}, Estimated monthly value: ${monthly_value}. Write a 4-sentence executive proposal summary suitable for a C-suite reader.",
+      "output_format": "Executive summary paragraph",
+      "temperature": 0.2,
+      "max_tokens": 250
+    },
+    {
+      "id": "complaint_escalation_response",
+      "category": "support",
+      "scenario": "Escalated complaint resolution email",
+      "prompt": "Write a 4-sentence email responding to a serious complaint (cleaner arrived 2 hours late and missed rooms). Apologise, own the failure, offer a full re-clean + 25% off next booking, and explain the process improvement. Tone: professional, accountable.",
+      "output_format": "Email body",
+      "example_output": "Hi [Name], I want to sincerely apologise for today's experience — arriving 2 hours late and incomplete work is absolutely not the standard we hold ourselves to. This is on us, and we take full responsibility. We'd like to arrange a complimentary full re-clean at a time that suits you, plus 25% off your next booking as a gesture of goodwill. We've also flagged this with our scheduling team to ensure it doesn't happen again."
+    },
+    {
+      "id": "facebook_retargeting_copy",
+      "category": "paid_ads",
+      "scenario": "Facebook retargeting ad for quote-abandoned users",
+      "prompt": "Write a Facebook retargeting ad for a user who got a quote but didn't book. Primary text (90 chars), headline (40 chars), description (30 chars). Mention quote is saved, add a 10% limited-time offer.",
+      "output_format": "Primary text + Headline + Description",
+      "example_output": "Primary: 'Your instant quote is still waiting — grab 10% off today only.'\nHeadline: 'Finish Your Booking'\nDescription: 'Eco clean from $149.'"
+    },
+    {
+      "id": "team_performance_summary",
+      "category": "ai_internal",
+      "scenario": "AI weekly team performance briefing",
+      "system_prompt": "You are an operations analyst for AussieClean. Generate a concise weekly team performance summary for the operations manager.",
+      "prompt": "Week data: {week_json} (includes jobs completed, avg rating, revenue, on-time rate, complaints). Write a 5-bullet weekly briefing with 1 positive highlight, 1 area to improve, and 1 recommended action.",
+      "output_format": "5-bullet briefing",
+      "temperature": 0.2,
+      "max_tokens": 350
+    },
+    {
+      "id": "eco_product_explainer",
+      "category": "content",
+      "scenario": "Eco product ingredient explainer for customers",
+      "prompt": "Write a 3-sentence explainer for a customer asking why AussieClean uses eco products. Mention plant-derived ingredients, no toxic residue for kids/pets, and certification. Tone: educational, reassuring.",
+      "output_format": "3 sentences",
+      "example_output": "AussieClean uses only plant-derived, biodegradable cleaning products — no bleach, no ammonia, no synthetic fragrances. Our formulas are certified safe for children, pets, and people with allergies, leaving zero toxic residue behind. Better for your home, better for the planet 🌿"
+    },
+    {
+      "id": "google_ads_responsive_search",
+      "category": "paid_ads",
+      "scenario": "Google Responsive Search Ad asset set",
+      "prompt": "Generate 10 headlines (max 30 chars each) and 4 descriptions (max 90 chars each) for a Google Responsive Search Ad for house cleaning in Australia. Cover speed, eco, trust, and price.",
+      "output_format": "Headlines list + Descriptions list",
+      "example_output": {
+        "headlines": ["Instant Clean Quote", "Eco-Safe Products Only", "Bond Back Guaranteed", "Same-Day Availability", "Book in 60 Seconds", "Trusted Aussie Cleaners", "From $149 – No Surprises", "5-Star Rated Service", "Real-Time GPS Tracking", "Cancel Anytime"],
+        "descriptions": ["Get an instant, transparent quote before you commit. No hidden fees, ever.", "Eco-certified cleaning products — safe for kids, pets, and the planet.", "Track your cleaner live on the map. Know exactly when they'll arrive.", "Weekly, fortnightly, or once-off. Flexible cleaning that fits your life."]
+      }
+    },
+    {
+      "id": "testimonial_generation",
+      "category": "content",
+      "scenario": "AI-assisted testimonial for social proof",
+      "system_prompt": "You are a content writer for AussieClean. Generate realistic, specific customer testimonials based on service details provided. Do not fabricate names — use [Customer Name] placeholder.",
+      "prompt": "Service: {service_type}, Suburb: {suburb}, Rating: {rating}/5, Extras: {extras}, Cleaner: {cleaner_name}. Generate a 3-sentence testimonial that sounds genuine, specific, and enthusiastic.",
+      "output_format": "Testimonial paragraph",
+      "temperature": 0.5,
+      "max_tokens": 200
+    },
+    {
+      "id": "sms_day_of_reminder",
+      "category": "sms",
+      "scenario": "Morning-of-clean reminder with arrival window",
+      "prompt": "Write an SMS sent at 7AM on the day of a clean. Include the cleaner's name, arrival window, a prep tip, and a tracking link. Friendly and brief. Max 160 chars.",
+      "output_format": "SMS text",
+      "example_output": "Good morning [Name]! Sarah arrives between 9–10AM today 🌿 Tip: pop any fragile items away beforehand. Track her live: [link]"
+    },
+    {
+      "id": "referral_success_notification",
+      "category": "referral",
+      "scenario": "Referral credit awarded notification",
+      "prompt": "Write a push notification and short email subject line for when a referred friend completes their first booking and the referrer earns their $20 credit. Celebratory, warm tone.",
+      "output_format": "Push notification body + Email subject",
+      "example_output": "Push: 'Your friend just completed their first clean! 🎉 $20 credit has been added to your account.'\nEmail subject: 'You earned $20 — your referral just paid off! 🙌'"
+    },
+    {
+      "id": "pricing_surge_notification",
+      "category": "push",
+      "scenario": "Surge pricing alert push notification",
+      "prompt": "Write a real-time push notification alerting a customer that prices in their suburb are currently higher due to peak demand, but they can lock in by booking now. Under 120 chars total.",
+      "output_format": "Title + Body",
+      "example_output": "Title: Prices rising in [Suburb] ⚡\nBody: High demand right now. Book in the next hour to lock in today's rate."
     }
   ],
   "hashtag_bank": [
@@ -95,7 +388,9 @@
     "#EcoHome", "#BeforeAndAfter", "#GreenClean", "#CoastalLiving",
     "#SustainableCleaning", "#InstantClean", "#EcoFriendlyAU",
     "#CleanHomeHappyHome", "#PerthSmallBiz", "#GreenAustralia", "#CleaningHacks",
-    "#BondBackGuaranteed", "#EndOfLease", "#PropertyManagement"
+    "#BondBackGuaranteed", "#EndOfLease", "#PropertyManagement",
+    "#AirbnbHost", "#HolidayRentalAU", "#CleaningService", "#EcoProducts",
+    "#HomeCleaning", "#DeepClean", "#SpringClean", "#WinterReset"
   ],
   "dynamic_pricing_copy": {
     "peak_hour": "Peak-hour demand pricing applies to 4–8pm slots — book a morning or afternoon slot to save.",

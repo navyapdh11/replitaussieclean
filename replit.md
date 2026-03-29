@@ -33,7 +33,7 @@ The project is structured as a pnpm monorepo with separate applications (`artifa
 - Features a floating AI Chat Widget and live GPS tracking using WebSockets.
 
 ### 3. Admin Dashboard (`/admin`)
-- A 6-tab portal for managing bookings, dispatch, staff, scheduling, and viewing ML forecasts.
+- A 9-tab portal for managing bookings, dispatch, pricing analytics, staff, scheduling, ML forecasts, suburb performance, SEO rankings, and system admin.
 
 ### 4. Multi-tenant SaaS Admin (`/saas-admin`)
 - Super-admin interface for managing multiple tenants, including CRUD operations, plan validation, and metrics display.
@@ -63,6 +63,13 @@ The project is structured as a pnpm monorepo with separate applications (`artifa
   - Step transitions: programmatic focus management via `headingRef.current.focus()` on step change
   - Error messages: `role="alert"`, `aria-live="assertive"`, `aria-invalid` + `aria-describedby` on errant inputs
   - All required fields: `required`, `aria-required="true"`
+
+### 11. Referral Flywheel & Photo Verification (Session 8)
+- **`/referral` page**: Full referral program with email-based unique code generation, WhatsApp/Email/copy-link sharing, 3-step explainer, and credit T&Cs.
+- **Enhanced success page**: Post-booking referral prompt with generated code, WhatsApp, Email and copy-link share buttons. Animates in after 400ms.
+- **Navbar**: "Refer & Earn" link added to both desktop and mobile menus.
+- **PhotoUploadPanel component**: Before/after photo upload with drag-and-drop, file validation, camera capture, lightbox preview, and animated submit state. Shown on booking detail when photo add-on is included or booking is in_progress/completed.
+- **AI Prompt Library**: Expanded from 12 to 42 categorised prompts covering social, email, SMS, paid ads, B2B, AI-internal (dispatch, verification, pricing, SEO), retention, support, push, referral, and eco content.
 
 ### 9. Security & Code Quality (Session 7)
 - HSTS headers, HTML escaping, input validation for AI chat, secure Stripe webhook handling.

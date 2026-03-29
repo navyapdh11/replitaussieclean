@@ -5,6 +5,7 @@ import {
   ArrowLeft, Calendar, Clock, MapPin, CheckCircle, AlertCircle,
   CreditCard, Phone, Mail, User, Navigation, Play, Loader2,
 } from "lucide-react";
+import { PhotoUploadPanel } from "@/components/PhotoUploadPanel";
 import { formatCurrency } from "@/lib/utils";
 import { simulateCleaner } from "@/lib/tracking";
 
@@ -291,6 +292,14 @@ export function BookingDetailPage() {
             <h2 className="font-bold text-white mb-3">Special Instructions</h2>
             <p className="text-slate-300 text-sm leading-relaxed">{booking.notes}</p>
           </div>
+        )}
+
+        {/* Photo upload panel – shown when photo add-on included or booking is in progress/completed */}
+        {(booking.extras?.includes("photo") || ["in_progress", "completed"].includes(booking.status)) && (
+          <PhotoUploadPanel
+            bookingId={booking.id}
+            hasPhotoAddon={booking.extras?.includes("photo") ?? false}
+          />
         )}
 
         <div className="text-center pt-4">
