@@ -24,6 +24,6 @@ export async function getStripe(): Promise<StripeType | null> {
   if (_stripe) return _stripe;
 
   const Stripe = (await import("stripe")).default;
-  _stripe = new Stripe(key, { apiVersion: "2023-10-16" as never });
+  _stripe = new Stripe(key, { apiVersion: "2026-03-25.dahlia" });
   return _stripe;
 }

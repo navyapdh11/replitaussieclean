@@ -15,7 +15,7 @@ const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
  *  - Intl:      +61 followed by any of the above (minus leading 0)
  * Spaces/hyphens/parens stripped before matching.
  */
-const PHONE_AU_RE = /^(\+?61(2|3|4|7|8)\d{8}|0(2|3|4|7|8)\d{8}|1[38]00\d{6})$/;
+const PHONE_AU_RE = /^(\+?61[2-9]\d{8}|0[2-9]\d{8}|1[38]00\d{6})$/;
 
 /* ── GET /staff ─────────────────────────────────────────────────────────── */
 router.get("/staff", async (req, res): Promise<void> => {

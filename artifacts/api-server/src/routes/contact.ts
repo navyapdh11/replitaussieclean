@@ -4,6 +4,16 @@ import { logger } from "../lib/logger";
 import { generalLimiter } from "../lib/ratelimit";
 import { sendEmail } from "../lib/email";
 
+/** Escape user-supplied strings before injecting into HTML email content */
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const router: IRouter = Router();
 
 /** Australian phone: mobile 04XX XXX XXX, 1300/1800, or STD 0X XXXX XXXX */
@@ -42,19 +52,26 @@ router.post("/contact", generalLimiter, async (req, res): Promise<void> => {
 
   const { name, email, phone, serviceType, suburb, message } = parsed.data;
 
+  const safeName        = escHtml(name);
+  const safeEmail       = escHtml(email);
+  const safePhone       = phone       ? escHtml(phone)       : "";
+  const safeServiceType = serviceType ? escHtml(serviceType) : "";
+  const safeSuburb      = suburb      ? escHtml(suburb)      : "";
+  const safeMessage     = escHtml(message);
+
   try {
     await sendEmail({
       to:      process.env.CONTACT_EMAIL ?? "hello@aussieclean.com.au",
-      subject: `New Contact Enquiry from ${name}`,
+      subject: `New Contact Enquiry from ${safeName}`,
       html: `
         <h2>New Enquiry — AussieClean</h2>
         <table cellpadding="6" style="font-family:sans-serif;font-size:14px">
-          <tr><th align="left">Name</th><td>${name}</td></tr>
-          <tr><th align="left">Email</th><td>${email}</td></tr>
-          ${phone ? `<tr><th align="left">Phone</th><td>${phone}</td></tr>` : ""}
-          ${serviceType ? `<tr><th align="left">Service</th><td>${serviceType}</td></tr>` : ""}
-          ${suburb ? `<tr><th align="left">Suburb</th><td>${suburb}</td></tr>` : ""}
-          <tr><th align="left" valign="top">Message</th><td style="white-space:pre-wrap">${message}</td></tr>
+          <tr><th align="left">Name</th><td>${safeName}</td></tr>
+          <tr><th align="left">Email</th><td>${safeEmail}</td></tr>
+          ${safePhone       ? `<tr><th align="left">Phone</th><td>${safePhone}</td></tr>`             : ""}
+          ${safeServiceType ? `<tr><th align="left">Service</th><td>${safeServiceType}</td></tr>`     : ""}
+          ${safeSuburb      ? `<tr><th align="left">Suburb</th><td>${safeSuburb}</td></tr>`           : ""}
+          <tr><th align="left" valign="top">Message</th><td style="white-space:pre-wrap">${safeMessage}</td></tr>
         </table>
       `,
     });
