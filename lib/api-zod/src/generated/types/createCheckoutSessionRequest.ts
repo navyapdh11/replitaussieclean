@@ -5,10 +5,17 @@
  * AussieClean Booking Platform API
  * OpenAPI spec version: 0.2.0
  */
+import type { CreateCheckoutSessionRequestFrequency } from "./createCheckoutSessionRequestFrequency";
 
 export interface CreateCheckoutSessionRequest {
   quoteAmountCents: number;
   bookingId: string;
   customerEmail: string;
   serviceDescription?: string;
+  serviceType?: string;
+  extrasStr?: string;
+  suburb?: string;
+  frequency?: CreateCheckoutSessionRequestFrequency;
+  /** @minimum 0 */
+  tipAmountCents?: number;
 }

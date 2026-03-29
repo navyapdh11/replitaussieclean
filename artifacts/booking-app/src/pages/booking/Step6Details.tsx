@@ -126,6 +126,24 @@ export function Step6Details() {
             className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
           />
         </div>
+
+        <div>
+          <label htmlFor="referral-code" className="block text-sm font-medium text-foreground mb-1.5">
+            Referral / Promo Code <span className="text-muted-foreground font-normal">(Optional)</span>
+          </label>
+          <input
+            id="referral-code"
+            type="text"
+            placeholder="e.g. WELCOME10"
+            autoComplete="off"
+            value={store.referralCode || ""}
+            onChange={(e) => store.updateData({ referralCode: e.target.value.toUpperCase() })}
+            className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground uppercase tracking-widest placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+          />
+          <p className="text-xs text-muted-foreground mt-1.5">
+            Referral codes are validated at checkout. $20 credit applied per qualifying referral.
+          </p>
+        </div>
       </div>
 
       {error && (

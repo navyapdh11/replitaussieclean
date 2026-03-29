@@ -15,7 +15,10 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
     return;
   }
 
-  const { quoteAmountCents, bookingId, customerEmail, serviceDescription } = parsed.data;
+  const {
+    quoteAmountCents, bookingId, customerEmail, serviceDescription,
+    serviceType, extrasStr, suburb, frequency, tipAmountCents,
+  } = parsed.data;
 
   const stripe = await getStripe();
 
@@ -50,7 +53,14 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
           quantity: 1,
         },
       ],
-      metadata: { bookingId },
+      metadata: {
+        bookingId,
+        ...(serviceType       && { serviceType }),
+        ...(extrasStr         && { extras: extrasStr }),
+        ...(suburb            && { suburb }),
+        ...(frequency         && { frequency }),
+        ...(tipAmountCents    && { tipAmountCents: String(tipAmountCents) }),
+      },
       success_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
       cancel_url: `${appUrl}/booking/cancelled?booking_id=${bookingId}`,
     });

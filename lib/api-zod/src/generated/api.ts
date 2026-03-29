@@ -415,11 +415,21 @@ export const GetQuoteResponse = zod.object({
 /**
  * @summary Create a Stripe checkout session
  */
+export const createCheckoutSessionBodyTipAmountCentsMin = 0;
+
 export const CreateCheckoutSessionBody = zod.object({
   quoteAmountCents: zod.number(),
   bookingId: zod.string(),
   customerEmail: zod.string().email(),
   serviceDescription: zod.string().optional(),
+  serviceType: zod.string().optional(),
+  extrasStr: zod.string().optional(),
+  suburb: zod.string().optional(),
+  frequency: zod.enum(["once", "fortnightly", "weekly"]).optional(),
+  tipAmountCents: zod
+    .number()
+    .min(createCheckoutSessionBodyTipAmountCentsMin)
+    .optional(),
 });
 
 export const CreateCheckoutSessionResponse = zod.object({

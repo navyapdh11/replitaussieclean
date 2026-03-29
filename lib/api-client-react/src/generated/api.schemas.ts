@@ -195,11 +195,26 @@ export interface QuoteResponse {
   validUntil: string;
 }
 
+export type CreateCheckoutSessionRequestFrequency =
+  (typeof CreateCheckoutSessionRequestFrequency)[keyof typeof CreateCheckoutSessionRequestFrequency];
+
+export const CreateCheckoutSessionRequestFrequency = {
+  once: "once",
+  fortnightly: "fortnightly",
+  weekly: "weekly",
+} as const;
+
 export interface CreateCheckoutSessionRequest {
   quoteAmountCents: number;
   bookingId: string;
   customerEmail: string;
   serviceDescription?: string;
+  serviceType?: string;
+  extrasStr?: string;
+  suburb?: string;
+  frequency?: CreateCheckoutSessionRequestFrequency;
+  /** @minimum 0 */
+  tipAmountCents?: number;
 }
 
 export interface CheckoutSessionResponse {

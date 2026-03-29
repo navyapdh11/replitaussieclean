@@ -6,6 +6,7 @@ export interface BookingState {
   bedrooms?: number;
   bathrooms?: number;
   extras: string[];
+  frequency?: "once" | "fortnightly" | "weekly";
   date?: string;
   timeSlot?: string;
   addressLine1?: string;
@@ -18,10 +19,18 @@ export interface BookingState {
   email?: string;
   phone?: string;
   notes?: string;
+  referralCode?: string;
   quoteAmountCents?: number;
   gstAmountCents?: number;
+  tipAmountCents?: number;
   bookingId?: string;
 }
+
+export const FREQUENCY_DISCOUNT: Record<string, number> = {
+  once: 0,
+  fortnightly: 0.05,
+  weekly: 0.10,
+};
 
 interface BookingStore extends BookingState {
   step: number;
@@ -38,6 +47,8 @@ const initialState: BookingState = {
   bedrooms: 1,
   bathrooms: 1,
   propertyType: undefined,
+  frequency: "once",
+  tipAmountCents: 0,
 };
 
 export const TOTAL_STEPS = 8;

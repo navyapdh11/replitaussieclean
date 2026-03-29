@@ -547,6 +547,18 @@ components:
           format: email
         serviceDescription:
           type: string
+        serviceType:
+          type: string
+        extrasStr:
+          type: string
+        suburb:
+          type: string
+        frequency:
+          type: string
+          enum: [once, fortnightly, weekly]
+        tipAmountCents:
+          type: integer
+          minimum: 0
       required:
         - quoteAmountCents
         - bookingId

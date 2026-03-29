@@ -1,0 +1,106 @@
+{
+  "brand_voice": {
+    "tone": "empathetic, warm, locally-aware, eco-conscious",
+    "persona": "Hi [Name]… – friendly neighbour who knows Australian homes",
+    "avoid": ["pushy sales language", "generic corporate speak", "exaggerated claims"]
+  },
+  "prompts": [
+    {
+      "id": "living_room_transform",
+      "scenario": "Living room before/after clean",
+      "prompt": "Generate a 2-sentence Instagram caption for a before/after living room clean in an Australian home. Mention coastal dust, weekend guests, and eco-friendly products. Include 5 hashtags. Tone: warm, proud, not salesy.",
+      "output_format": "Caption + Hashtags",
+      "example_output": "From coastal dust to weekend-ready ✨ Your living room got the eco-touch in just 2 hours. No harsh chemicals, just pure freshness. 🌿 #AussieClean #EcoHome #BeforeAndAfter #GreenClean #CleanHome"
+    },
+    {
+      "id": "kitchen_upsell",
+      "scenario": "Oven deep clean add-on",
+      "prompt": "Write a 1-sentence upsell message for adding an oven clean to a standard booking. Mention $49 price, 30 extra minutes, and the benefit (no fumes, eco-safe). Tone: helpful, not pushy.",
+      "output_format": "Single sentence",
+      "example_output": "Want to add an oven deep clean for just $49? It's 30 minutes, eco-safe, and means no fumes when you roast tonight's dinner."
+    },
+    {
+      "id": "google_ads_headline",
+      "scenario": "Google Search Ad for cleaning services",
+      "prompt": "Create 5 Google Ads headlines (max 30 chars each) for professional home cleaning in Australia. Include 'Instant Quote', 'Eco', and 'Book in 60 Sec'.",
+      "output_format": "List of 5 headlines",
+      "example_output": ["Instant Eco Clean Quote", "Aussie Home Cleaners", "See Your Results First", "Book in 60 Seconds", "Eco Safe – No Harsh Chems"]
+    },
+    {
+      "id": "email_reengagement",
+      "scenario": "Win-back email for past customers",
+      "prompt": "Write a 3-sentence email to a customer who last booked 8 weeks ago. Remind them of their last clean, offer 10% off their next booking, and mention the dynamic pricing feature. Tone: friendly, not guilt-tripping.",
+      "output_format": "Email body",
+      "example_output": "Hi [Name], it's been a while since your last AussieClean! Your home looked amazing after that session — let's do it again. Use code WELCOME10 for 10% off this week, and get an instant real-time quote before you confirm."
+    },
+    {
+      "id": "tiktok_script",
+      "scenario": "15-second TikTok before/after video",
+      "prompt": "Write a 15-second TikTok script for a before/after cleaning transformation. Include on-screen text, voiceover line, and trending audio suggestion. Hook in first 3 seconds.",
+      "output_format": "Script with timestamps",
+      "example_output": "0:00–0:03 [Text: 'Wait for it…'] [Audio: trending transition sound]\n0:03–0:07 [Voiceover: 'Watch this living room go from dusty to dazzling']\n0:07–0:15 [Before/after + Text: 'Instant quote in 60 sec – link in bio']"
+    },
+    {
+      "id": "sms_confirmation",
+      "scenario": "Post-booking SMS",
+      "prompt": "Write a 1-sentence SMS confirmation for a 2-hour eco clean. Include cleaner name, date/time, eco-product mention, and tracking link placeholder. Max 160 chars.",
+      "output_format": "SMS text (160 chars max)",
+      "example_output": "Hi [Name]! Jess is confirmed for your 2hr eco clean Thu 3PM. Track her arrival: [link]. See you soon! 🌿"
+    },
+    {
+      "id": "instagram_story_poll",
+      "scenario": "Engagement story poll",
+      "prompt": "Create an Instagram Story poll question about cleaning pain points. Offer 2 relatable options. Keep it fun.",
+      "output_format": "Poll question + 2 options",
+      "example_output": "What's the worst part of cleaning? 🤔 [Sand everywhere] vs [Sticky kitchen benches]"
+    },
+    {
+      "id": "linkedin_b2b",
+      "scenario": "LinkedIn post for property manager partnerships",
+      "prompt": "Write a 3-sentence LinkedIn post targeting property managers and Airbnb hosts. Highlight 24hr turnover, eco-certification, and quality guarantees. CTA: 'Partner with us'.",
+      "output_format": "LinkedIn post",
+      "example_output": "Airbnb hosts: what if you could guarantee 5-star cleanliness before every guest? AussieClean offers 24hr turnover cleans with eco-certified products across NSW, VIC, QLD, WA, and SA. Partner with us for priority slots + bulk pricing."
+    },
+    {
+      "id": "facebook_ad_copy",
+      "scenario": "Facebook carousel ad",
+      "prompt": "Write primary text (90 chars) and headline (40 chars) for a Facebook carousel ad showing 3 before/after rooms. Mention starting price and instant quote.",
+      "output_format": "Primary text + Headline",
+      "example_output": "Primary: 'See your clean before you book. From $149.'\nHeadline: 'Eco Clean – Instant Quote'"
+    },
+    {
+      "id": "review_request_sms",
+      "scenario": "Google review request after clean",
+      "prompt": "Write a short, friendly SMS requesting a Google review 2 hours after a clean is completed. Mention the cleaner's name and keep it under 140 chars.",
+      "output_format": "SMS text",
+      "example_output": "Hi [Name], hope the clean looks great! If Jess did a great job, we'd love your Google review: [link] 🌟 Thank you!"
+    },
+    {
+      "id": "review_recovery",
+      "scenario": "Response to a negative review",
+      "prompt": "Write a professional response to a 3-star review about missed spots. Apologise sincerely, offer to rectify, and maintain a warm brand tone.",
+      "output_format": "Review response",
+      "example_output": "Thank you for your honest feedback — we're sorry we missed some spots! We take quality seriously and would love to make it right. Please contact us at hello@aussieclean.com.au and we'll arrange a complimentary touch-up at your convenience."
+    },
+    {
+      "id": "landing_page_ab_test",
+      "scenario": "Homepage headline A/B test",
+      "prompt": "Generate 3 variations of a homepage headline for a professional cleaning booking platform. Focus on speed, trust, and eco values.",
+      "output_format": "3 headline variations",
+      "example_output": ["Immaculate spaces, zero effort.", "Book a clean in under 60 seconds.", "Australia's most trusted eco clean."]
+    }
+  ],
+  "hashtag_bank": [
+    "#AussieClean", "#PerthCleaning", "#SydneyCleaning", "#MelbourneCleaning",
+    "#EcoHome", "#BeforeAndAfter", "#GreenClean", "#CoastalLiving",
+    "#SustainableCleaning", "#InstantClean", "#EcoFriendlyAU",
+    "#CleanHomeHappyHome", "#PerthSmallBiz", "#GreenAustralia", "#CleaningHacks",
+    "#BondBackGuaranteed", "#EndOfLease", "#PropertyManagement"
+  ],
+  "dynamic_pricing_copy": {
+    "peak_hour": "Peak-hour demand pricing applies to 4–8pm slots — book a morning or afternoon slot to save.",
+    "weekend": "Weekend cleans are in high demand — prices reflect live availability.",
+    "high_demand": "Prices are higher right now due to limited availability in your area. Book now to lock in this rate.",
+    "low_demand": "Great news — this time slot has excellent availability. Your dynamic quote reflects a lower rate."
+  }
+}

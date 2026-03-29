@@ -8,15 +8,24 @@ export function Step8Payment() {
   const store = useBookingStore();
   const createSession = useCreateCheckoutSession();
 
+  const tip = store.tipAmountCents ?? 0;
+  const baseTotal = (store.quoteAmountCents || 0) + (store.gstAmountCents || 0);
+  const total = baseTotal + tip;
+
   const handlePay = () => {
     if (!store.bookingId || !store.quoteAmountCents || !store.email) return;
 
     createSession.mutate({
       data: {
         bookingId: store.bookingId,
-        quoteAmountCents: store.quoteAmountCents + (store.gstAmountCents || 0),
+        quoteAmountCents: total,
         customerEmail: store.email,
-        serviceDescription: `AussieClean: ${store.serviceType?.replace(/_/g, ' ')}`
+        serviceDescription: `AussieClean: ${store.serviceType?.replace(/_/g, " ")}`,
+        serviceType: store.serviceType,
+        extrasStr: store.extras.join(","),
+        suburb: store.suburb,
+        frequency: (store.frequency ?? "once") as "once" | "fortnightly" | "weekly",
+        tipAmountCents: tip,
       }
     }, {
       onSuccess: (res: { url: string }) => {
@@ -24,8 +33,6 @@ export function Step8Payment() {
       }
     });
   };
-
-  const total = (store.quoteAmountCents || 0) + (store.gstAmountCents || 0);
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 text-center py-8">
@@ -40,10 +47,22 @@ export function Step8Payment() {
         </p>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-6 max-w-sm mx-auto shadow-xl shadow-black/20">
-        <p className="text-sm text-muted-foreground font-medium mb-1">Amount Due</p>
+      <div className="bg-card border border-border rounded-2xl p-6 max-w-sm mx-auto shadow-xl shadow-black/20 space-y-3">
+        <p className="text-sm text-muted-foreground font-medium">Amount Due</p>
         <p className="font-display font-bold text-4xl text-primary">{formatCurrency(total)}</p>
-        <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground font-medium bg-secondary p-2 rounded-lg">
+        {tip > 0 && (
+          <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t border-border/50">
+            <div className="flex justify-between">
+              <span>Service total (inc. GST)</span>
+              <span>{formatCurrency(baseTotal)}</span>
+            </div>
+            <div className="flex justify-between text-yellow-400 font-medium">
+              <span>💛 Cleaner tip</span>
+              <span>+{formatCurrency(tip)}</span>
+            </div>
+          </div>
+        )}
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground font-medium bg-secondary p-2 rounded-lg">
           <ShieldCheck className="w-4 h-4 text-green-500" />
           Powered securely by Stripe
         </div>

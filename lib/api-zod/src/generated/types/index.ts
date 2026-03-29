@@ -11,6 +11,7 @@ export * from "./bookingStatus";
 export * from "./checkoutSessionResponse";
 export * from "./createBookingRequest";
 export * from "./createCheckoutSessionRequest";
+export * from "./createCheckoutSessionRequestFrequency";
 export * from "./errorResponse";
 export * from "./errorResponseDetailsItem";
 export * from "./healthStatus";
