@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useBookingStore, FREQUENCY_DISCOUNT } from "@/lib/store";
 import { useGetQuote, useCreateBooking } from "@workspace/api-client-react";
+import type { ServiceType, PropertyType, QuoteResponse, Booking } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/utils";
 import { Loader2, AlertCircle, FileText, Clock, RefreshCw, ShieldCheck, Heart } from "lucide-react";
 
@@ -81,8 +82,8 @@ export function Step7Review() {
     getQuote.mutate(
       {
         data: {
-          serviceType: serviceType as any,
-          propertyType: propertyType as any,
+          serviceType: serviceType as ServiceType,
+          propertyType: propertyType as PropertyType,
           bedrooms: bedrooms || 1,
           bathrooms: bathrooms || 1,
           extras,
@@ -92,7 +93,28 @@ export function Step7Review() {
           timeSlot,
         },
       },
-      { onSuccess: (data: any) => setQuoteData(data as QuoteData) },
+      {
+        onSuccess: (data: QuoteResponse) => {
+          setQuoteData({
+            quoteAmountCents: data.quoteAmountCents,
+            gstAmountCents:   data.gstAmountCents,
+            totalAmountCents: data.totalAmountCents,
+            dynamicMultiplier: data.dynamicMultiplier,
+            breakdown: {
+              base:              data.breakdown.base,
+              extras:            data.breakdown.extras,
+              demand:            data.breakdown.demand,
+              weather:           data.breakdown.weather,
+              traffic:           data.breakdown.traffic,
+              staffAvailability: data.breakdown.staffAvailability,
+              timeSlot:          data.breakdown.timeSlot,
+            },
+            factorsApplied: data.factorsApplied as Record<string, number>,
+            validUntil: data.validUntil,
+            currency:   data.currency,
+          });
+        },
+      },
     );
   }, [serviceType, propertyType, bedrooms, bathrooms, extras, suburb, stateCode, date, timeSlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -134,33 +156,33 @@ export function Step7Review() {
     createBooking.mutate(
       {
         data: {
-          serviceType: store.serviceType as any,
-          propertyType: store.propertyType as any,
-          bedrooms: store.bedrooms || 1,
-          bathrooms: store.bathrooms || 1,
-          extras: store.extras,
-          date: store.date!,
-          timeSlot: store.timeSlot!,
-          addressLine1: store.addressLine1!,
-          addressLine2: store.addressLine2,
-          suburb: store.suburb!,
-          state: store.state!,
-          postcode: store.postcode!,
-          firstName: store.firstName!,
-          lastName: store.lastName!,
-          email: store.email!,
-          phone: store.phone!,
-          notes: store.notes,
+          serviceType:     store.serviceType as ServiceType,
+          propertyType:    store.propertyType as PropertyType,
+          bedrooms:        store.bedrooms || 1,
+          bathrooms:       store.bathrooms || 1,
+          extras:          store.extras,
+          date:            store.date!,
+          timeSlot:        store.timeSlot!,
+          addressLine1:    store.addressLine1!,
+          addressLine2:    store.addressLine2,
+          suburb:          store.suburb!,
+          state:           store.state!,
+          postcode:        store.postcode!,
+          firstName:       store.firstName!,
+          lastName:        store.lastName!,
+          email:           store.email!,
+          phone:           store.phone!,
+          notes:           store.notes,
           quoteAmountCents: discountedQuote,
-          gstAmountCents: discountedGst,
+          gstAmountCents:   discountedGst,
         },
       },
       {
-        onSuccess: (res: any) => {
+        onSuccess: (res: Booking) => {
           store.updateData({
-            bookingId: res.id,
+            bookingId:        res.id,
             quoteAmountCents: discountedQuote,
-            gstAmountCents: discountedGst,
+            gstAmountCents:   discountedGst,
           });
           store.nextStep();
         },

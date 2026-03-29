@@ -68,7 +68,7 @@ const FAQS_FOR_SUBURB = (d: SuburbData) => [
 /* ─── FAQ accordion (suburb-specific) ────────────────────── */
 
 function SuburbFaq({ data }: { data: SuburbData }) {
-  const faqs = FAQS_FOR_SUBURB(data);
+  const faqs = useMemo(() => FAQS_FOR_SUBURB(data), [data]);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const toggle = (i: number) => setOpenIdx((p) => (p === i ? null : i));
 
@@ -111,6 +111,7 @@ function SuburbFaq({ data }: { data: SuburbData }) {
                   id={panelId}
                   role="region"
                   aria-labelledby={btnId}
+                  aria-hidden={!isOpen}
                   className={cn("overflow-hidden transition-all duration-300", isOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0")}
                 >
                   <p className="faq-answer px-6 pb-5 text-sm text-muted-foreground leading-relaxed">{item.a}</p>
@@ -133,6 +134,18 @@ interface SuburbPageProps {
 export default function SuburbPage({ params }: SuburbPageProps) {
   const data = getSuburb(params.slug);
 
+  // All hooks MUST come before any early return to satisfy the Rules of Hooks.
+  const jsonLd = useMemo(
+    () => (data ? JSON.stringify(buildSuburbJsonLd(data)) : ""),
+    [data]
+  );
+
+  const currentMonth  = new Date().getMonth(); // 0-indexed
+  const currentSeason =
+    currentMonth >= 8  && currentMonth <= 10 ? "spring" :
+    currentMonth >= 11 || currentMonth <= 1  ? "summer" :
+    currentMonth >= 2  && currentMonth <= 4  ? "autumn" : "winter";
+
   useEffect(() => {
     if (data) analytics.capture("suburb_page_view", { suburb: data.suburb, postcode: data.postcode });
   }, [data]);
@@ -141,13 +154,7 @@ export default function SuburbPage({ params }: SuburbPageProps) {
     return <SuburbNotFound slug={params.slug} />;
   }
 
-  const jsonLd = useMemo(() => JSON.stringify(buildSuburbJsonLd(data)), [data]);
-  const currentMonth   = new Date().getMonth(); // 0-indexed
-  const currentSeason  =
-    currentMonth >= 8  && currentMonth <= 10 ? "spring" :
-    currentMonth >= 11 || currentMonth <= 1  ? "summer" :
-    currentMonth >= 2  && currentMonth <= 4  ? "autumn" : "winter";
-  const seasonTip = SEASON_TIPS[currentSeason];
+  const seasonTip  = SEASON_TIPS[currentSeason];
   const SeasonIcon = seasonTip.icon;
 
   return (

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import type { z } from "zod";
 import {
   CreateCheckoutSessionBody,
   CreateCheckoutSessionResponse,
@@ -8,6 +9,8 @@ import { getStripe } from "../lib/stripe";
 
 const router: IRouter = Router();
 
+type CheckoutBody = z.infer<typeof CreateCheckoutSessionBody>;
+
 router.post("/checkout/session", async (req, res): Promise<void> => {
   const parsed = CreateCheckoutSessionBody.safeParse(req.body);
   if (!parsed.success) {
@@ -15,10 +18,11 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
     return;
   }
 
+  const data: CheckoutBody = parsed.data;
   const {
     quoteAmountCents, bookingId, customerEmail, serviceDescription,
     serviceType, extrasStr, suburb, frequency, tipAmountCents,
-  } = parsed.data;
+  } = data;
 
   const stripe = await getStripe();
 
@@ -39,7 +43,10 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      automatic_payment_methods: { enabled: true },
+      // Stripe v21: use explicit payment_method_types instead of
+      // automatic_payment_methods which only applies to PaymentIntents.
+      // au_becs_debit covers Australian bank transfer (BECS Direct Debit).
+      payment_method_types: ["card", "au_becs_debit"],
       customer_email: customerEmail,
       line_items: [
         {
@@ -62,13 +69,13 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
         ...(tipAmountCents    && { tipAmountCents: String(tipAmountCents) }),
       },
       success_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
-      cancel_url: `${appUrl}/booking/cancelled?booking_id=${bookingId}`,
+      cancel_url:  `${appUrl}/booking/cancelled?booking_id=${bookingId}`,
     });
 
     res.json(
       CreateCheckoutSessionResponse.parse({
         sessionId: session.id,
-        url: session.url!,
+        url:       session.url!,
       })
     );
   } catch (err) {

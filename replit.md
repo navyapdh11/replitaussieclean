@@ -80,6 +80,20 @@ The project is structured as a pnpm monorepo with separate applications (`artifa
 - **Store**: `TOTAL_STEPS = 8` exported constant replaces the magic number.
 - **Analytics**: Dead GSC JWT-building code removed; function throws immediately with a clear message.
 
+### 10. Code Review & Hardening (Session 9)
+- **TypeScript zero-errors**: Rebuilt stale `lib/api-client-react` and `lib/api-zod` dist declarations via `tsc --build`; both packages now expose all new fields (`serviceType`, `extrasStr`, `suburb`, `frequency`, `tipAmountCents`) in the `CreateCheckoutSessionRequest` type.
+- **Stripe v21 fix**: `checkout.ts` migrated from `automatic_payment_methods: { enabled: true }` (PaymentIntents-only in v21) to `payment_method_types: ["card", "au_becs_debit"]` — the explicit, correct Stripe v21 Checkout Sessions API for Australia.
+- **Explicit Zod typing**: Added `type CheckoutBody = z.infer<typeof CreateCheckoutSessionBody>` in `checkout.ts` to ensure TypeScript always sees the full parsed shape regardless of project-reference build state.
+- **Rules of Hooks fix (suburb.tsx)**: `useMemo` was being called _after_ an early `if (!data) return` — a React Rules of Hooks violation that would crash on null data. All hooks now execute unconditionally before any early return.
+- **FAQ memoization**: `SuburbFaq` now wraps `FAQS_FOR_SUBURB(data)` in `useMemo` to prevent array recreation on every render.
+- **Accessibility — aria-hidden on FAQ panels**: Collapsed FAQ panels now carry `aria-hidden={!isOpen}` so screen readers do not traverse hidden answer text.
+- **Webhook CAS hardening**: `checkout.session.completed` now uses `inArray(status, ["pending","draft"])` guard — a late Stripe webhook can no longer overwrite a booking that was already cancelled, completed, or refunded by an admin.
+- **Webhook security — signature always required**: `stripe-signature` header check now runs _before_ the dev bypass. Missing-header requests receive `400` even when `STRIPE_WEBHOOK_SECRET` is not configured. In production (`NODE_ENV=production`) with no secret, requests receive `503`.
+- **Remove `any` casts from Step7Review**: Replaced `serviceType as any` / `propertyType as any` / `onSuccess: (data: any)` with proper `ServiceType`, `PropertyType`, `QuoteResponse`, and `Booking` imports from `@workspace/api-client-react`.
+- **Zustand selectors in Step8Payment**: Replaced a full `useBookingStore()` subscription with granular per-field selectors (`useBookingStore((s) => s.field)`) — components no longer re-render on every unrelated state mutation.
+- **Step8Payment UX**: Added a full-width "Retry Payment" button (with `RefreshCw` icon) when `createSession.isError` is true; added `aria-busy` on the primary CTA; improved copy ("Redirecting to Stripe…", AU payment method note below button).
+- **`payment_intent.payment_failed` CAS**: Webhook also guards the payment-failed revert with the same `MUTABLE_STATUSES` check.
+
 ## External Dependencies
 
 - **PostgreSQL**: Primary relational database.
