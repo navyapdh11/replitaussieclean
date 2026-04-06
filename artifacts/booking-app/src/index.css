@@ -74,6 +74,15 @@
   --radius: 0.75rem;
 }
 
+/* Scrollbar hide utility — cross-browser (fixes missing Tailwind plugin) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @layer base {
   * {
     @apply border-border;

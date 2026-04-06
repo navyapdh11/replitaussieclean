@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +24,7 @@ import TermsAndConditions from "@/pages/terms";
 import AccessibilityStatement from "@/pages/accessibility";
 import RefundPolicy from "@/pages/refund-policy";
 import ReferralPage from "@/pages/referral";
+import StaffDashboard from "@/pages/staff";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,9 +54,19 @@ function Router() {
       <Route path="/accessibility" component={AccessibilityStatement} />
       <Route path="/refund-policy" component={RefundPolicy} />
       <Route path="/referral" component={ReferralPage} />
+      <Route path="/staff" component={StaffDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
+}
+
+const CHAT_EXCLUDED_PATHS = ["/staff"];
+
+function ConditionalChatWidget() {
+  const [location] = useLocation();
+  const hide = CHAT_EXCLUDED_PATHS.some((p) => location === p || location.startsWith(p + "/"));
+  if (hide) return null;
+  return <AIChatWidget />;
 }
 
 function App() {
@@ -69,7 +80,7 @@ function App() {
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />
-            <AIChatWidget />
+            <ConditionalChatWidget />
           </WouterRouter>
           <Toaster />
         </TooltipProvider>
