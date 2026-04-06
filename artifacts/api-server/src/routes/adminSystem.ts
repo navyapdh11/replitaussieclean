@@ -106,7 +106,7 @@ router.patch("/admin/system/tenant", async (req, res): Promise<void> => {
   const allowed = ["name", "email", "phone", "abn", "primaryColor", "secondaryColor", "logo", "domain"] as const;
   const updates: Record<string, unknown> = {};
   for (const k of allowed) {
-    if (k in b && b[k] !== undefined) updates[k] = b[k];
+    if (Object.prototype.hasOwnProperty.call(b, k) && b[k] !== undefined) updates[k] = b[k];
   }
 
   /* Guard: nothing to update */
