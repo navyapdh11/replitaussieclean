@@ -2,20 +2,9 @@ import { Router, type IRouter } from "express";
 import { eq, and, desc, count, inArray } from "drizzle-orm";
 import { db, staffTable, staffAvailabilityTable, jobAssignmentsTable } from "@workspace/db";
 import { randomUUID } from "crypto";
+import { EMAIL_RE, PHONE_AU_RE } from "../middlewares/validate";
 
 const router: IRouter = Router();
-
-/* ── Shared regex patterns ───────────────────────────────────────────────── */
-const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-/**
- * Australian phone number:
- *  - Mobile:    04XX XXX XXX  (10 digits)
- *  - Landline:  0[23578] XXXX XXXX (10 digits)
- *  - Freecall:  1300 XXX XXX (10 digits) | 1800 XXX XXX (10 digits)
- *  - Intl:      +61 followed by any of the above (minus leading 0)
- * Spaces/hyphens/parens stripped before matching.
- */
-const PHONE_AU_RE = /^(\+?61[2-9]\d{8}|0[2-9]\d{8}|1[38]00\d{6})$/;
 
 /* ── GET /staff ─────────────────────────────────────────────────────────── */
 router.get("/staff", async (req, res): Promise<void> => {
@@ -134,7 +123,7 @@ router.patch("/staff/:id", async (req, res): Promise<void> => {
   ] as const;
   const updates: Record<string, unknown> = {};
   for (const k of allowed) {
-    if (k in b) updates[k] = b[k];
+    if (Object.prototype.hasOwnProperty.call(b, k)) updates[k] = b[k];
   }
 
   /* Re-validate email format if being updated */

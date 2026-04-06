@@ -2,17 +2,7 @@ import { Router, type IRouter } from "express";
 import { z } from "zod";
 import { logger } from "../lib/logger";
 import { generalLimiter } from "../lib/ratelimit";
-import { sendEmail } from "../lib/email";
-
-/** Escape user-supplied strings before injecting into HTML email content */
-function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+import { sendEmail, escHtml } from "../lib/email";
 
 const router: IRouter = Router();
 

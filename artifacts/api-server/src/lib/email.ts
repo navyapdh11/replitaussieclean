@@ -13,7 +13,7 @@ function formatCurrency(cents: number): string {
 }
 
 /** Escape user-supplied strings before injecting into HTML */
-function escHtml(s: string): string {
+export function escHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

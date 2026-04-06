@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, desc, count, and } from "drizzle-orm";
 import { db, tenantsTable, bookingsTable, staffTable } from "@workspace/db";
 import { randomUUID } from "crypto";
+import { EMAIL_RE } from "../middlewares/validate";
 
 const router: IRouter = Router();
 
@@ -10,26 +11,28 @@ const PLAN_PRICE: Record<string, number> = { starter: 99, pro: 199, enterprise: 
 // GET /api/tenants — list all tenants with stats
 router.get("/tenants", async (_req, res): Promise<void> => {
   try {
-    const tenants = await db.select().from(tenantsTable).orderBy(desc(tenantsTable.createdAt));
+    // Fetch tenants + per-tenant counts in 3 queries instead of 1 + 2N (N+1).
+    const [tenants, bookingCounts, staffCounts] = await Promise.all([
+      db.select().from(tenantsTable).orderBy(desc(tenantsTable.createdAt)),
+      db
+        .select({ tenantId: bookingsTable.tenantId, cnt: count(bookingsTable.id) })
+        .from(bookingsTable)
+        .groupBy(bookingsTable.tenantId),
+      db
+        .select({ tenantId: staffTable.tenantId, cnt: count(staffTable.id) })
+        .from(staffTable)
+        .groupBy(staffTable.tenantId),
+    ]);
 
-    const enriched = await Promise.all(
-      tenants.map(async (t) => {
-        const [[{ bookingCount }], [{ staffCount }]] = await Promise.all([
-          db.select({ bookingCount: count(bookingsTable.id) })
-            .from(bookingsTable)
-            .where(eq(bookingsTable.tenantId, t.id)),
-          db.select({ staffCount: count(staffTable.id) })
-            .from(staffTable)
-            .where(eq(staffTable.tenantId, t.id)),
-        ]);
-        return {
-          ...t,
-          bookingCount: Number(bookingCount),
-          staffCount:   Number(staffCount),
-          monthlyPrice: PLAN_PRICE[t.plan] ?? 99,
-        };
-      }),
-    );
+    const bookingMap = new Map(bookingCounts.map((r) => [r.tenantId, Number(r.cnt)]));
+    const staffMap   = new Map(staffCounts.map((r)   => [r.tenantId, Number(r.cnt)]));
+
+    const enriched = tenants.map((t) => ({
+      ...t,
+      bookingCount: bookingMap.get(t.id) ?? 0,
+      staffCount:   staffMap.get(t.id)   ?? 0,
+      monthlyPrice: PLAN_PRICE[t.plan]   ?? 99,
+    }));
 
     const totalMrr = enriched.reduce((s, t) => s + (t.active ? t.monthlyPrice : 0), 0);
     res.json({ tenants: enriched, totalMrr, totalActive: enriched.filter((t) => t.active).length });
@@ -134,7 +137,7 @@ router.patch("/tenants/:id", async (req, res): Promise<void> => {
   const b = req.body;
   const allowed = ["name","domain","logo","primaryColor","secondaryColor","abn","phone","email","plan"] as const;
   const updates: Record<string, unknown> = {};
-  for (const k of allowed) { if (k in b) updates[k] = b[k]; }
+  for (const k of allowed) { if (Object.prototype.hasOwnProperty.call(b, k)) updates[k] = b[k]; }
 
   if (Object.keys(updates).length === 0) {
     res.status(400).json({ error: "No valid fields to update" });
@@ -148,7 +151,6 @@ router.patch("/tenants/:id", async (req, res): Promise<void> => {
 
   /* Validate email format when email is being updated */
   if (typeof b.email === "string" && b.email.trim()) {
-    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     if (!EMAIL_RE.test(b.email.trim())) {
       res.status(400).json({ error: "Invalid email address" });
       return;

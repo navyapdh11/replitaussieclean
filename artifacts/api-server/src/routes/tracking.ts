@@ -70,6 +70,10 @@ export function setupTracking(io: SocketIOServer): Namespace {
 
     // Customers (unauthenticated) can only subscribe to a job room.
     socket.on("join_job", ({ bookingId }: JoinJobPayload) => {
+      if (typeof bookingId !== "string" || bookingId.length === 0 || bookingId.length > 128) {
+        socket.emit("error", { message: "Invalid bookingId" });
+        return;
+      }
       socket.join(`job:${bookingId}`);
       const current = trackingStore.get(bookingId);
       if (current) {
@@ -84,9 +88,19 @@ export function setupTracking(io: SocketIOServer): Namespace {
         socket.emit("error", { message: "Unauthorised: authenticate first" });
         return;
       }
+      // Validate coordinate ranges before storing or broadcasting.
+      if (
+        typeof lat !== "number" || !isFinite(lat) || lat < -90  || lat > 90 ||
+        typeof lng !== "number" || !isFinite(lng) || lng < -180 || lng > 180
+      ) {
+        socket.emit("error", { message: "Invalid coordinates" });
+        return;
+      }
+      const safeHeading = typeof heading === "number" && isFinite(heading) ? heading : 0;
+      const safeSpeed   = typeof speed   === "number" && isFinite(speed)   && speed >= 0 ? speed : 0;
       const prev = trackingStore.get(bookingId);
       const status = prev?.status ?? "en_route";
-      const locationData: LocationEntry = { lat, lng, heading, speed, status, timestamp: Date.now() };
+      const locationData: LocationEntry = { lat, lng, heading: safeHeading, speed: safeSpeed, status, timestamp: Date.now() };
       trackingStore.set(bookingId, locationData);
 
       trackingNS.to(`job:${bookingId}`).emit("cleaner_location", {

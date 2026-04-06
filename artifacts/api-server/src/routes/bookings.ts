@@ -192,11 +192,6 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
       updates.status = parsed.data.status;
 
       // CAS update: only apply if status hasn't changed since we read it.
-      if (Object.keys(updates).length === 0) {
-        res.status(400).json({ error: "No updatable fields provided" });
-        return;
-      }
-
       const [booking] = await db
         .update(bookingsTable)
         .set(updates)

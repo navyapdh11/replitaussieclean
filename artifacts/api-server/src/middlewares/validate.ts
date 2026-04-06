@@ -23,7 +23,7 @@ type Schema = Record<string, FieldRule>;
 
 /* ─── Patterns ────────────────────────────────────────────────────────── */
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const URL_RE   = /^https?:\/\/.+/i;
 
@@ -38,7 +38,7 @@ const URL_RE   = /^https?:\/\/.+/i;
  * Note: the former standalone `1300\d{6}` alternative was a strict subset of
  * `1[38]00\d{6}` and has been removed to avoid the redundant branch.
  */
-const PHONE_AU_RE = /^(\+?61[2-9]\d{8}|0[2-9]\d{8}|1[38]00\d{6})$/;
+export const PHONE_AU_RE = /^(\+?61[2-9]\d{8}|0[2-9]\d{8}|1[38]00\d{6})$/;
 
 /* ─── Core validator ──────────────────────────────────────────────────── */
 

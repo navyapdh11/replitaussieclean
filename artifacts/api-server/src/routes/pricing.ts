@@ -26,7 +26,8 @@ router.post("/pricing/quote", quoteLimiter, async (req, res): Promise<void> => {
       timeSlot: parsed.data.timeSlot,
     });
   } catch (err) {
-    res.status(500).json({ error: "Pricing calculation failed", details: String(err) });
+    const detail = process.env.NODE_ENV !== "production" && err instanceof Error ? err.message : undefined;
+    res.status(500).json({ error: "Pricing calculation failed", ...(detail && { details: detail }) });
     return;
   }
 

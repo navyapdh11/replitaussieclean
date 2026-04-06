@@ -72,10 +72,16 @@ router.post("/checkout/session", async (req, res): Promise<void> => {
       cancel_url:  `${appUrl}/booking/cancelled?booking_id=${bookingId}`,
     });
 
+    if (!session.url) {
+      logger.error({ bookingId }, "Stripe returned no checkout URL");
+      res.status(502).json({ error: "Payment provider returned no checkout URL. Please try again." });
+      return;
+    }
+
     res.json(
       CreateCheckoutSessionResponse.parse({
         sessionId: session.id,
-        url:       session.url!,
+        url:       session.url,
       })
     );
   } catch (err) {
