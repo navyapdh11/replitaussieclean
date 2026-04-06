@@ -55,7 +55,7 @@ export function Step4Schedule() {
             value={store.date || ""}
             onChange={(e) => store.updateData({ date: e.target.value })}
             className="w-full p-4 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-            style={{ colorScheme: "dark" }}
+            style={{ colorScheme: "inherit" }}
           />
           {weekend && store.date && (
             <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-xs text-yellow-400 font-medium">

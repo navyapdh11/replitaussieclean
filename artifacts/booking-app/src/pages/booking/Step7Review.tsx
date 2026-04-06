@@ -28,20 +28,24 @@ interface QuoteData {
 }
 
 function useCountdown(validUntil: string | null): { minutes: number; seconds: number; expired: boolean } {
-  const [remaining, setRemaining] = useState(0);
+  // null = not yet computed; avoids a spurious zero-remaining flash on the first
+  // render after validUntil is set, which would otherwise trigger the auto-refresh
+  // effect before the first real tick runs.
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!validUntil) return;
+    if (!validUntil) { setRemaining(null); return; }
     const target = new Date(validUntil).getTime();
     const tick = () => setRemaining(Math.max(0, target - Date.now()));
-    tick();
+    tick(); // compute immediately so remaining is correct after the first render
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [validUntil]);
 
+  if (remaining === null) return { minutes: 15, seconds: 0, expired: false };
   const minutes = Math.floor(remaining / 60000);
   const seconds = Math.floor((remaining % 60000) / 1000);
-  return { minutes, seconds, expired: remaining === 0 && validUntil !== null };
+  return { minutes, seconds, expired: remaining === 0 };
 }
 
 const TIP_OPTIONS = [
@@ -190,7 +194,7 @@ export function Step7Review() {
     );
   };
 
-  const isUrgent = quoteData && minutes === 0 && seconds <= 60;
+  const isUrgent = quoteData && minutes === 0; // last minute of the lock window
 
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">

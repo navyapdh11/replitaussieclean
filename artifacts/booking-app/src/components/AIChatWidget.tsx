@@ -16,6 +16,9 @@ const STARTERS = [
   "What's included in a standard clean?",
 ];
 
+const MAX_INPUT_CHARS = 1000;
+const MAX_HISTORY_MESSAGES = 12;
+
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -36,11 +39,12 @@ export function AIChatWidget() {
   }, [messages]);
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+    const trimmed = text.trim().slice(0, MAX_INPUT_CHARS);
+    if (!trimmed || isLoading) return;
 
     const userMessage: Message = {
       role: "user",
-      content: text.trim(),
+      content: trimmed,
       id: nextId(),
     };
 
@@ -55,14 +59,17 @@ export function AIChatWidget() {
     ]);
 
     try {
+      // Exclude the static welcome message and cap history to prevent
+      // unbounded request growth as the conversation grows.
+      const history = [...messages, userMessage]
+        .filter((m) => m.id !== "welcome")
+        .slice(-MAX_HISTORY_MESSAGES)
+        .map((m) => ({ role: m.role, content: m.content }));
+
       const response = await fetch(`${BASE_URL}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...messages, userMessage]
-            .filter((m) => m.id !== "welcome")
-            .map((m) => ({ role: m.role, content: m.content })),
-        }),
+        body: JSON.stringify({ messages: history }),
       });
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
@@ -192,8 +199,10 @@ export function AIChatWidget() {
                 type="text"
                 aria-label="Ask AussieClean assistant"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT_CHARS))}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
                 placeholder="Ask a question..."
+                maxLength={MAX_INPUT_CHARS}
                 disabled={isLoading}
                 className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:border-cyan-400 focus:outline-none disabled:opacity-50"
               />

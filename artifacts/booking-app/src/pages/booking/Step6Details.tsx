@@ -69,11 +69,15 @@ export function Step6Details() {
               Last Name <span className="text-destructive" aria-hidden="true">*</span>
               <span className="sr-only">(required)</span>
             </label>
-            <input 
+            <input
               id="contact-last-name"
-              type="text" 
+              type="text"
               placeholder="Doe"
               autoComplete="family-name"
+              required
+              aria-required="true"
+              aria-invalid={hasError && !store.lastName ? true : undefined}
+              aria-describedby={hasError ? errorId : undefined}
               value={store.lastName || ""}
               onChange={(e) => store.updateData({ lastName: e.target.value })}
               className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
@@ -86,11 +90,15 @@ export function Step6Details() {
             Email Address <span className="text-destructive" aria-hidden="true">*</span>
             <span className="sr-only">(required)</span>
           </label>
-          <input 
+          <input
             id="contact-email"
-            type="email" 
+            type="email"
             placeholder="jane@example.com"
             autoComplete="email"
+            required
+            aria-required="true"
+            aria-invalid={hasError && !store.email ? true : undefined}
+            aria-describedby={hasError ? errorId : undefined}
             value={store.email || ""}
             onChange={(e) => store.updateData({ email: e.target.value })}
             className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
@@ -102,11 +110,15 @@ export function Step6Details() {
             Phone Number <span className="text-destructive" aria-hidden="true">*</span>
             <span className="sr-only">(required, Australian number)</span>
           </label>
-          <input 
+          <input
             id="contact-phone"
-            type="tel" 
+            type="tel"
             placeholder="0412 345 678"
             autoComplete="tel"
+            required
+            aria-required="true"
+            aria-invalid={hasError && !store.phone ? true : undefined}
+            aria-describedby={hasError ? errorId : undefined}
             value={store.phone || ""}
             onChange={(e) => store.updateData({ phone: e.target.value })}
             className="w-full p-3.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"

@@ -412,7 +412,8 @@ export default function Home() {
                 {activeFilter === "all"
                   ? `Showing all ${SERVICES.length} services`
                   : `Showing 1 service: ${SERVICES.find((s) => s.id === activeFilter)?.label}`}
-                {locationFilter !== "All Areas" ? `, filtered to ${locationFilter}` : ""}
+                {/* locationFilter affects quote pricing only — not card visibility.
+                    Omit it from this announcement to avoid misleading screen readers. */}
               </div>
             </div>
 

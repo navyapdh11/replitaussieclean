@@ -133,7 +133,7 @@ export function LiveTracker({ bookingId, suburb, state }: Props) {
       bookingId,
       (loc) => {
         setLocation(loc);
-        setConnected(true);
+        setConnected(true); // first real message confirms an active connection
         computeEta(loc);
       },
       (stat) => {
@@ -143,7 +143,9 @@ export function LiveTracker({ bookingId, suburb, state }: Props) {
       }
     );
 
-    setConnected(true);
+    // Do NOT set connected=true here — no real socket message has arrived yet.
+    // The flag is set inside the callbacks above, ensuring it only turns true
+    // when the server has actually responded.
     return () => { unsubRef.current?.(); };
   }, [bookingId, computeEta]);
 
