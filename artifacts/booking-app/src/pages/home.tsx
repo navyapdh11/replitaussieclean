@@ -257,60 +257,88 @@ export default function Home() {
 
         {/* ── Hero ─────────────────────────────────────────── */}
         <section aria-label="Hero" className="relative overflow-hidden">
+          {/* Background layers */}
           <div className="absolute inset-0 bg-background" aria-hidden="true">
             <img
               src={`${import.meta.env.BASE_URL}images/hero-bg.png`}
               alt=""
-              className="w-full h-full object-cover opacity-50"
+              className="w-full h-full object-cover opacity-40"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/40 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/50 to-background" />
           </div>
 
+          {/* Ambient radial glows */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/8 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
+          <div className="absolute top-1/3 left-1/4 w-[400px] h-[300px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
+
+          {/* Subtle dot-grid pattern */}
+          <svg
+            className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern id="hero-grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="currentColor" className="text-primary" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hero-grid)" />
+          </svg>
+
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 md:pt-48 md:pb-32 flex flex-col items-center text-center">
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/25 text-primary text-sm font-semibold mb-8 shadow-sm shadow-primary/10"
             >
               <Star className="w-4 h-4 fill-primary" aria-hidden="true" />
               <span>Australia's #1 Premium Cleaning Service</span>
             </motion.div>
 
+            {/* Headline */}
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl md:text-7xl font-extrabold text-foreground max-w-4xl leading-tight mb-8"
+              transition={{ duration: 0.65, delay: 0.1 }}
+              className="text-5xl md:text-7xl font-extrabold text-foreground max-w-4xl leading-[1.1] mb-8"
             >
-              Immaculate spaces, <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">
+              Immaculate spaces,{" "}
+              <br className="hidden sm:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-cyan-300 to-blue-400">
                 zero effort.
               </span>
             </motion.h1>
 
+            {/* Sub-copy */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="hero-text text-lg md:text-xl text-muted-foreground max-w-2xl mb-12"
+              transition={{ duration: 0.65, delay: 0.2 }}
+              className="hero-text text-lg md:text-xl text-muted-foreground max-w-2xl mb-12 leading-relaxed"
             >
-              Book professional, vetted cleaners in under 60 seconds. Experience
-              the standard of clean you deserve with instant transparent quoting
-              across NSW, VIC, QLD, WA, and SA.
+              Book professional, vetted cleaners in under 60 seconds. Instant
+              transparent quoting across NSW, VIC, QLD, WA, and SA.
             </motion.p>
 
+            {/* CTA row */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.65, delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
             >
               <Link
                 href="/booking"
-                className="px-8 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto"
+                className="relative overflow-hidden px-8 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/45 hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto group"
                 onClick={() => analytics.capture("cta_clicked", { location: "hero" })}
               >
+                {/* Shine sweep */}
+                <span
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none"
+                  aria-hidden="true"
+                />
                 Get an Instant Quote
               </Link>
               <a
@@ -320,27 +348,52 @@ export default function Home() {
                 Browse Services
               </a>
             </motion.div>
+
+            {/* Social proof row — beneath CTAs */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.55 }}
+              className="flex items-center gap-3 mt-8 text-sm text-muted-foreground"
+            >
+              <div className="flex -space-x-2" aria-hidden="true">
+                {["bg-cyan-500","bg-blue-500","bg-violet-500","bg-emerald-500"].map((c) => (
+                  <div key={c} className={`w-7 h-7 rounded-full ${c} border-2 border-background`} />
+                ))}
+              </div>
+              <span>Trusted by <strong className="text-foreground">50,000+</strong> Australians</span>
+            </motion.div>
           </div>
         </section>
 
         {/* ── Trust Strip ──────────────────────────────────── */}
-        <section aria-label="Key statistics" className="py-8 bg-card border-y border-border/50">
+        <section aria-label="Key statistics" className="py-10 bg-card border-y border-border/50 relative overflow-hidden">
+          {/* Subtle top-edge glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent pointer-events-none" aria-hidden="true" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-border/30">
               {[
-                { stat: "4.9★",   label: "Average Rating",       sub: "from 2,847 reviews"        },
-                { stat: "50k+",   label: "Cleans Completed",      sub: "across Australia"           },
-                { stat: "100%",   label: "Satisfaction Guarantee", sub: "or we re-clean free"       },
-                { stat: "60 sec", label: "Average Booking Time",  sub: "instant online quote"       },
-              ].map(({ stat, label, sub }) => (
-                <div key={label} className="flex flex-col items-center text-center">
-                  <p className="text-2xl md:text-3xl font-extrabold text-primary">{stat}</p>
-                  <p className="text-sm font-semibold text-foreground mt-0.5">{label}</p>
+                { stat: "4.9★",   label: "Average Rating",        sub: "from 2,847 reviews",   accent: "text-amber-400" },
+                { stat: "50k+",   label: "Cleans Completed",       sub: "across Australia",      accent: "text-primary"   },
+                { stat: "100%",   label: "Satisfaction Guarantee", sub: "or we re-clean free",  accent: "text-green-400" },
+                { stat: "60 sec", label: "Booking Time",           sub: "instant online quote", accent: "text-blue-400"  },
+              ].map(({ stat, label, sub, accent }, i) => (
+                <motion.div
+                  key={label}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.08 }}
+                  className="flex flex-col items-center text-center px-4 py-2"
+                >
+                  <p className={`text-3xl md:text-4xl font-extrabold ${accent} tabular-nums`}>{stat}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">{label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent pointer-events-none" aria-hidden="true" />
         </section>
 
         {/* ── Services Section ─────────────────────────────── */}

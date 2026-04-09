@@ -33,12 +33,27 @@ export default function Success() {
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      const el = document.createElement("textarea");
-      el.value = text;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
+      // Fallback for browsers where clipboard API is unavailable (non-secure context)
+      try {
+        const el = Object.assign(document.createElement("textarea"), {
+          value: text,
+          style: "position:fixed;top:-9999px;opacity:0",
+          readOnly: true,
+          "aria-hidden": true,
+        });
+        document.body.appendChild(el);
+        el.focus();
+        el.select();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        el.setSelectionRange(0, text.length);
+        document.body.removeChild(el);
+      } catch {
+        /* silent — clipboard unavailable */
+      }
     }
     setCopied(type);
     setTimeout(() => setCopied(null), 2000);
@@ -59,9 +74,13 @@ export default function Success() {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-card border border-border p-8 md:p-12 rounded-3xl max-w-lg w-full text-center shadow-2xl space-y-6"
       >
-        {/* Confirmation */}
-        <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle className="w-12 h-12 text-green-500" />
+        {/* Confirmation icon with pulse ring */}
+        <div className="relative w-24 h-24 mx-auto flex-shrink-0">
+          <span className="absolute inset-0 rounded-full bg-green-500/20 animate-ping" aria-hidden="true" style={{ animationDuration: "2s" }} />
+          <span className="absolute inset-2 rounded-full bg-green-500/10" aria-hidden="true" />
+          <div className="relative w-full h-full bg-green-500/15 rounded-full flex items-center justify-center border border-green-500/25">
+            <CheckCircle className="w-12 h-12 text-green-400" aria-hidden="true" />
+          </div>
         </div>
         <div>
           <h1 className="text-3xl font-extrabold text-foreground mb-3">Booking Confirmed!</h1>
@@ -111,8 +130,9 @@ export default function Success() {
               </div>
               <button
                 onClick={() => copyToClipboard(referralCode, "code")}
+                aria-label={copied === "code" ? "Copied!" : "Copy referral code"}
+                aria-live="polite"
                 className="p-3.5 rounded-xl border border-border hover:bg-secondary transition-colors flex-shrink-0"
-                title="Copy code"
               >
                 {copied === "code"
                   ? <Check className="w-5 h-5 text-green-400" />

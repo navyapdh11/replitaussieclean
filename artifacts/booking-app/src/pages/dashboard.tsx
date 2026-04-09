@@ -34,12 +34,14 @@ export default function Dashboard() {
 
         <form onSubmit={handleSearch} className="bg-card border border-border p-6 rounded-2xl flex flex-col sm:flex-row gap-4 max-w-xl">
           <div className="flex-1">
-            <label className="sr-only">Email Address</label>
+            <label htmlFor="dashboard-email" className="sr-only">Email Address</label>
             <input 
+              id="dashboard-email"
               type="email" 
               placeholder="Enter your booking email..."
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               className="w-full p-3.5 rounded-xl border border-border bg-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
           </div>
