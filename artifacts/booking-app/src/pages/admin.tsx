@@ -4,7 +4,8 @@ import { Footer } from "@/components/layout/Footer";
 import { SkipToContent } from "@/components/layout/SkipToContent";
 import { useListBookings } from "@/lib/api-client";
 import { formatCurrency, cn } from "@/lib/utils";
-import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck, ShieldCheck, MapPin, Search, Activity } from "lucide-react";
+import { useAdminMenu, type Role, type Permission } from "@/hooks/use-admin-menu";
+import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck, ShieldCheck, MapPin, Search, Activity, ChevronRight, Layers } from "lucide-react";
 import { BookingsTab } from "@/components/admin/BookingsTab";
 import { DispatchPanel } from "@/components/admin/DispatchPanel";
 import { PricingAnalyticsTab } from "@/components/admin/PricingAnalyticsTab";
@@ -20,16 +21,45 @@ type AdminTab = "bookings" | "dispatch" | "pricing" | "staff" | "scheduling" | "
 
 const VALID_TABS: AdminTab[] = ["bookings", "dispatch", "pricing", "staff", "scheduling", "ml", "system", "suburbs", "seo", "observability"];
 
+const TAB_PERMISSIONS: Record<AdminTab, Permission> = {
+  bookings: "bookings:read",
+  dispatch: "dispatch:read",
+  pricing: "pricing:read",
+  staff: "staff:read",
+  scheduling: "scheduling:read",
+  ml: "ml:read",
+  suburbs: "suburbs:read",
+  seo: "seo:read",
+  observability: "observability:read",
+  system: "system:read",
+};
+
+const TAB_ICONS: Record<AdminTab, typeof ClipboardList> = {
+  bookings: ClipboardList,
+  dispatch: Truck,
+  pricing: BarChart3,
+  staff: Users,
+  scheduling: UserCheck,
+  ml: Brain,
+  suburbs: MapPin,
+  seo: Search,
+  observability: Activity,
+  system: ShieldCheck,
+};
+
 function getHashTab(): AdminTab {
   const hash = window.location.hash.replace("#", "") as AdminTab;
   return VALID_TABS.includes(hash) ? hash : "bookings";
 }
 
 export default function AdminDashboard() {
+  const currentRole: Role = "manager";
+  const { canAccess, permissions } = useAdminMenu(currentRole);
   const [tab, setTab] = useState<AdminTab>(getHashTab);
   const [searchEmail, setSearchEmail]   = useState("");
   const [appliedEmail, setAppliedEmail] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["operations"]));
 
   // Sync URL hash when tab changes
   const switchTab = (id: AdminTab) => {
@@ -59,18 +89,55 @@ export default function AdminDashboard() {
     revenue:   list.reduce((s, b) => s + (b.quoteAmountCents ?? 0) + (b.gstAmountCents ?? 0), 0),
   };
 
-  const TABS = [
-    { id: "bookings"    as const, label: "Bookings",    icon: ClipboardList },
-    { id: "dispatch"    as const, label: "Dispatch",    icon: Truck         },
-    { id: "pricing"     as const, label: "Pricing",     icon: BarChart3     },
-    { id: "staff"       as const, label: "Staff",       icon: Users         },
-    { id: "scheduling"  as const, label: "Scheduling",  icon: UserCheck     },
-    { id: "ml"          as const, label: "ML Forecast", icon: Brain         },
-    { id: "suburbs"     as const, label: "Suburbs",     icon: MapPin        },
-    { id: "seo"         as const, label: "SEO Rankings",icon: Search        },
-    { id: "observability" as const, label: "Observability", icon: Activity  },
-    { id: "system"      as const, label: "Admin Only",  icon: ShieldCheck   },
+  const MENU_GROUPS = [
+    {
+      id: "operations",
+      label: "Operations",
+      icon: Layers,
+      items: [
+        { id: "bookings", label: "Bookings", permission: "bookings:read" as Permission },
+        { id: "dispatch", label: "Dispatch", permission: "dispatch:read" as Permission },
+        { id: "scheduling", label: "Scheduling", permission: "scheduling:read" as Permission },
+      ],
+    },
+    {
+      id: "analytics",
+      label: "Analytics",
+      icon: BarChart3,
+      items: [
+        { id: "pricing", label: "Pricing", permission: "pricing:read" as Permission },
+        { id: "suburbs", label: "Suburbs", permission: "suburbs:read" as Permission },
+        { id: "seo", label: "SEO Rankings", permission: "seo:read" as Permission },
+      ],
+    },
+    {
+      id: "management",
+      label: "Management",
+      icon: Users,
+      items: [
+        { id: "staff", label: "Staff", permission: "staff:read" as Permission },
+        { id: "ml", label: "ML Forecast", permission: "ml:read" as Permission },
+      ],
+    },
+    {
+      id: "system",
+      label: "System",
+      icon: ShieldCheck,
+      items: [
+        { id: "observability", label: "Observability", permission: "observability:read" as Permission },
+        { id: "system", label: "Admin Only", permission: "system:read" as Permission },
+      ],
+    },
   ];
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col pt-20">
@@ -119,25 +186,58 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Tab navigation */}
-        <div role="tablist" aria-label="Admin sections" className="flex gap-0.5 border-b border-border overflow-x-auto">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={tab === id}
-              aria-controls={`tabpanel-${id}`}
-              onClick={() => switchTab(id)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px whitespace-nowrap",
-                tab === id
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="w-4 h-4" /> {label}
-            </button>
-          ))}
+        {/* DFS-driven permission-filtered navigation */}
+        <div className="space-y-2">
+          {MENU_GROUPS.map(group => {
+            const accessibleItems = group.items.filter(item => canAccess(item.permission));
+            if (accessibleItems.length === 0) return null;
+            
+            const isExpanded = expandedGroups.has(group.id);
+            const Icon = group.icon;
+            
+            return (
+              <div key={group.id} className="border border-border rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggleGroup(group.id)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-card hover:bg-secondary/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">{group.label}</span>
+                    <span className="text-xs text-muted-foreground">({accessibleItems.length})</span>
+                  </div>
+                  <ChevronRight className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-90")} />
+                </button>
+                
+                {isExpanded && (
+                  <div className="border-t border-border">
+                    <div role="tablist" aria-label={group.label} className="flex gap-0.5 p-2 overflow-x-auto">
+                      {accessibleItems.map(item => {
+                        const TabIcon = TAB_ICONS[item.id as AdminTab];
+                        return (
+                          <button
+                            key={item.id}
+                            role="tab"
+                            aria-selected={tab === item.id}
+                            aria-controls={`tabpanel-${item.id}`}
+                            onClick={() => switchTab(item.id as AdminTab)}
+                            className={cn(
+                              "flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 rounded-lg transition-colors -mb-px whitespace-nowrap",
+                              tab === item.id
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/50",
+                            )}
+                          >
+                            <TabIcon className="w-4 h-4" /> {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Tab bodies */}
