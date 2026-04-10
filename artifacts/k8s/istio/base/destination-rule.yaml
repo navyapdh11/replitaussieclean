@@ -1,0 +1,127 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: booking-app-dr
+  namespace: aussie-clean
+spec:
+  host: booking-app
+  trafficPolicy:
+    connectionPool:
+      http:
+        h2UpgradePolicy: UPGRADE
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 100
+    loadBalancer:
+      simple: LEAST_REQUEST
+    outlierDetection:
+      baseEjectionTime: 30s
+      consecutive5xxErrors: 5
+      interval: 30s
+      maxEjectionPercent: 50
+    tls:
+      mode: SIMPLE
+      sni: booking-app.aussie-clean.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-server-dr
+  namespace: aussie-clean
+spec:
+  host: api-server
+  trafficPolicy:
+    connectionPool:
+      http:
+        h2UpgradePolicy: UPGRADE
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 500
+        maxRequestsPerConnection: 50
+    loadBalancer:
+      simple: LEAST_CONN
+    outlierDetection:
+      baseEjectionTime: 30s
+      consecutive5xxErrors: 3
+      interval: 30s
+      maxEjectionPercent: 30
+    tls:
+      mode: SIMPLE
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: ai-service-dr
+  namespace: aussie-clean
+spec:
+  host: ai-service
+  trafficPolicy:
+    connectionPool:
+      http:
+        h2UpgradePolicy: UPGRADE
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 10
+    loadBalancer:
+      simple: RANDOM
+    outlierDetection:
+      baseEjectionTime: 60s
+      consecutive5xxErrors: 2
+      interval: 60s
+      maxEjectionPercent: 20
+    tls:
+      mode: MUTUAL
+      clientCertificate: /etc/istio/certs/client cert
+      privateKey: /etc/istio/certs/client key
+      caCertificates: /etc/istio/certs/ca
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: postgres-dr
+  namespace: aussie-clean
+spec:
+  host: postgres.aussie-clean.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        connectTimeout: 10s
+        maxConnections: 100
+      http:
+        h2UpgradePolicy: UPGRADE
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 500
+    tls:
+      mode: DISABLE
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: redis-dr
+  namespace: aussie-clean
+spec:
+  host: redis.aussie-clean.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        connectTimeout: 5s
+        maxConnections: 200
+    tls:
+      mode: DISABLE
