@@ -54,7 +54,7 @@ function getHashTab(): AdminTab {
 
 export default function AdminDashboard() {
   const currentRole: Role = "manager";
-  const { canAccess, permissions } = useAdminMenu(currentRole);
+  const { canAccess, getGroupItemCount } = useAdminMenu(currentRole);
   const [tab, setTab] = useState<AdminTab>(getHashTab);
   const [searchEmail, setSearchEmail]   = useState("");
   const [appliedEmail, setAppliedEmail] = useState("");
@@ -139,6 +139,10 @@ export default function AdminDashboard() {
     });
   };
 
+  const getItemCount = (groupId: string): number => {
+    return getGroupItemCount(groupId);
+  };
+
   return (
     <div className="min-h-screen flex flex-col pt-20">
       <SkipToContent />
@@ -204,7 +208,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2">
                     <Icon className="w-5 h-5 text-primary" />
                     <span className="font-semibold">{group.label}</span>
-                    <span className="text-xs text-muted-foreground">({accessibleItems.length})</span>
+                    <span className="text-xs text-muted-foreground">({getItemCount(group.id)})</span>
                   </div>
                   <ChevronRight className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-90")} />
                 </button>
