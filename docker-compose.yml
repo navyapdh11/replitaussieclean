@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  api-server:
+    build:
+      context: .
+      dockerfile: artifacts/api-server/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+    restart: unless-stopped
+
+  booking-app:
+    build:
+      context: .
+      dockerfile: artifacts/booking-app/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - VITE_API_URL=http://api-server:3000
+    depends_on:
+      - api-server
+    restart: unless-stopped
+
+networks:
+  default:
+    name: aussieclean-network
