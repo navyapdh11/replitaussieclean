@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm -F booking-app run build",
+  "buildCommand": "cd artifacts/booking-app && pnpm run build",
   "outputDirectory": "artifacts/booking-app/dist",
   "installCommand": "pnpm install"
 }
