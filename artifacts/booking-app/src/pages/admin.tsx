@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SkipToContent } from "@/components/layout/SkipToContent";
-import { useListBookings } from "@workspace/api-client-react";
+import { useListBookings } from "@/lib/api-client";
 import { formatCurrency, cn } from "@/lib/utils";
 import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck, ShieldCheck, MapPin, Search, Activity } from "lucide-react";
 import { BookingsTab } from "@/components/admin/BookingsTab";

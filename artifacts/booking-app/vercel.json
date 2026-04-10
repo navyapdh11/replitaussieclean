@@ -1,12 +1,8 @@
 {
   "framework": "vite",
-  "buildCommand": "pnpm run build",
-  "outputDirectory": "dist/public",
-  "installCommand": "pnpm install",
-  "env": {
-    "BASE_URL": "@base-url",
-    "TENANT_ID": "@tenant-id"
-  },
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install --legacy-peer-deps",
   "headers": [
     {
       "source": "/api/(.*)",

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useListBookings } from "@workspace/api-client-react";
+import { useListBookings } from "@/lib/api-client";
 import { formatCurrency, cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { Search, MapPin, Calendar, CircleDollarSign } from "lucide-react";

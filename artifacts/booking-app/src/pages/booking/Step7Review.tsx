@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useBookingStore, FREQUENCY_DISCOUNT } from "@/lib/store";
-import { useGetQuote, useCreateBooking } from "@workspace/api-client-react";
-import type { ServiceType, PropertyType, QuoteResponse, Booking } from "@workspace/api-client-react";
+import { useGetQuote, useCreateBooking } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/utils";
 import { Loader2, AlertCircle, FileText, Clock, RefreshCw, ShieldCheck, Heart } from "lucide-react";
 

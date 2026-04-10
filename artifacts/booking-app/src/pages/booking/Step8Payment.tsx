@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useBookingStore } from "@/lib/store";
-import { useCreateCheckoutSession } from "@workspace/api-client-react";
+import { useCreateCheckoutSession } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/utils";
 import { CreditCard, Loader2, ShieldCheck, RefreshCw, AlertCircle } from "lucide-react";
 
