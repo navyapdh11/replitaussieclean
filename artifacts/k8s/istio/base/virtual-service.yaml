@@ -1,0 +1,204 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: booking-app-vs
+  namespace: aussie-clean
+spec:
+  hosts:
+  - booking-app
+  - booking-app.aussie-clean.svc.cluster.local
+  gateways:
+  - booking-gateway
+  http:
+  - name: default-route
+    match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: booking-app
+        port:
+          number: 3000
+    retries:
+      attempts: 3
+      perTryTimeout: 5s
+      retryOn: gateway-error,connect-failure,refused-stream
+    timeout: 30s
+    headers:
+      request:
+        set:
+          x-request-id: "{{ request_id }}"
+          x-forwarded-proto: "https"
+      response:
+        set:
+          x-envoy-upstream-health-check-cluster: "booking-app"
+  - name: api-route
+    match:
+    - uri:
+        prefix: /api
+    route:
+    - destination:
+        host: booking-app
+        port:
+          number: 3000
+    retries:
+      attempts: 2
+      perTryTimeout: 3s
+      retryOn: 5xx,connect-failure,reset
+    timeout: 15s
+  - name: health-check
+    match:
+    - uri:
+        exact: /health
+    route:
+    - destination:
+        host: booking-app
+        port:
+          number: 3000
+    retries:
+      attempts: 0
+  - name: websocket
+    match:
+    - uri:
+        prefix: /ws
+    route:
+    - destination:
+        host: booking-app
+        port:
+          number: 3000
+    websocketUpgrade: true
+  - name: static-assets
+    match:
+    - uri:
+        prefix: /static
+    - uri:
+        prefix: /_next/static
+    route:
+    - destination:
+        host: booking-app
+        port:
+          number: 3000
+    headers:
+      request:
+        set:
+          x-cdn-cache: "HIT"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-server-vs
+  namespace: aussie-clean
+spec:
+  hosts:
+  - api-server
+  - api-server.aussie-clean.svc.cluster.local
+  gateways:
+  - api-gateway
+  http:
+  - name: graphql-api
+    match:
+    - uri:
+        prefix: /graphql
+    route:
+    - destination:
+        host: api-server
+        port:
+          number: 8080
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+    timeout: 60s
+    corsPolicy:
+      allowOrigin:
+      - "*"
+      allowMethods:
+      - GET
+      - POST
+      - OPTIONS
+      allowHeaders:
+      - Content-Type
+      - Authorization
+      - X-Request-ID
+      exposeHeaders:
+      - X-Request-ID
+      maxAge: 86400
+  - name: rest-api
+    match:
+    - uri:
+        prefix: /api/v1
+    route:
+    - destination:
+        host: api-server
+        port:
+          number: 8080
+    retries:
+      attempts: 3
+      perTryTimeout: 5s
+    timeout: 30s
+  - name: webhook-api
+    match:
+    - uri:
+        prefix: /webhooks
+    route:
+    - destination:
+        host: api-server
+        port:
+          number: 8080
+    retries:
+      attempts: 1
+      perTryTimeout: 3s
+    timeout: 10s
+    matchRequest:
+      headers:
+        x-webhook-secret:
+          present: true
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ai-service-vs
+  namespace: aussie-clean
+spec:
+  hosts:
+  - ai-service
+  - ai-service.aussie-clean.svc.cluster.local
+  http:
+  - name: chat-completion
+    match:
+    - uri:
+        prefix: /v1/chat
+    route:
+    - destination:
+        host: ai-service
+        port:
+          number: 8080
+    retries:
+      attempts: 2
+      perTryTimeout: 60s
+    timeout: 120s
+  - name: embeddings
+    match:
+    - uri:
+        prefix: /v1/embeddings
+    route:
+    - destination:
+        host: ai-service
+        port:
+          number: 8080
+    retries:
+      attempts: 2
+      perTryTimeout: 30s
+    timeout: 60s
+  - name: moderation
+    match:
+    - uri:
+        prefix: /v1/moderation
+    route:
+    - destination:
+        host: ai-service
+        port:
+          number: 8080
+    retries:
+      attempts: 1
+      perTryTimeout: 10s
+    timeout: 30s
