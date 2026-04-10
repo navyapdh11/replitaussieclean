@@ -1,0 +1,94 @@
+apiVersion: telemetry.istio.io/v1beta1
+kind: Telemetry
+metadata:
+  name: aussie-clean-metrics
+  namespace: aussie-clean
+spec:
+  tracing:
+  - providers:
+    - name: jaeger
+    randomSampling:
+      value: 10.0
+  metrics:
+  - providers:
+    - name: prometheus
+  accessLogging:
+  - providers:
+    - name: envoy
+---
+apiVersion: telemetry.istio.io/v1beta1
+kind: Telemetry
+metadata:
+  name: booking-app-telemetry
+  namespace: aussie-clean
+spec:
+  tracing:
+  - providers:
+    - name: jaeger
+    randomSampling:
+      value: 15.0
+  metrics:
+  - providers:
+    - name: prometheus
+    overrides:
+    - match:
+        metric: REQUEST_COUNT
+      gauge:
+        value: 
+          dimensions:
+            destination_service: "destination.service.name"
+            destination_version: "destination.labels.version"
+            response_code: "response.code"
+    - match:
+        metric: REQUEST_DURATION
+      gauge:
+        value: {}
+    - match:
+        metric: REQUEST_SIZE
+      gauge:
+        value: {}
+    - match:
+        metric: RESPONSE_SIZE
+      gauge:
+        value: {}
+    - match:
+        metric: TCP_BYTES_IN
+      gauge:
+        value: {}
+    - match:
+        metric: TCP_BYTES_OUT
+      gauge:
+        value: {}
+  accessLogging:
+  - providers:
+    - name: envoy
+    filter:
+      regex: "(GET|POST|PUT|DELETE|PATCH).*(:status|=([23]|4[0-4]|5[0-2]))"
+---
+apiVersion: telemetry.istio.io/v1beta1
+kind: Telemetry
+metadata:
+  name: api-server-telemetry
+  namespace: aussie-clean
+spec:
+  tracing:
+  - providers:
+    - name: jaeger
+    randomSampling:
+      value: 20.0
+  metrics:
+  - providers:
+    - name: prometheus
+    overrides:
+    - match:
+        metric: REQUEST_COUNT
+      gauge:
+        value:
+          dimensions:
+            operation: "request.url_path"
+            grpc_status: "grpc.status"
+  accessLogging:
+  - providers:
+    - name: envoy
+    filter:
+      maskValue: "***"

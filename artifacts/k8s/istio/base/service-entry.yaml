@@ -1,0 +1,64 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-postgres
+  namespace: aussie-clean
+spec:
+  hosts:
+  - postgres.external.aussie-clean.com.au
+  location: MESH_EXTERNAL
+  ports:
+  - number: 5432
+    name: tcp-postgres
+    protocol: TCP
+  resolution: DNS
+  endpoints:
+  - address: postgres.aws.perth-tea.aus:5432
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-redis
+  namespace: aussie-clean
+spec:
+  hosts:
+  - redis.external.aussie-clean.com.au
+  location: MESH_EXTERNAL
+  ports:
+  - number: 6379
+    name: tcp-redis
+    protocol: TCP
+  resolution: DNS
+  endpoints:
+  - address: redis.aws.perth-tea.aus:6379
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-ai-provider
+  namespace: aussie-clean
+spec:
+  hosts:
+  - ai.openai.com
+  - api.openai.com
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-stripe
+  namespace: aussie-clean
+spec:
+  hosts:
+  - api.stripe.com
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS

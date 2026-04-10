@@ -1,0 +1,27 @@
+apiVersion: v2
+name: aussie-clean-istio
+description: Istio configurations for AussieClean service mesh
+type: application
+version: 1.0.0
+appVersion: "1.0"
+keywords:
+  - istio
+  - service-mesh
+  - observability
+maintainers:
+  - name: AussieClean DevOps
+    email: dev@aussieclean.com.au
+---
+apiVersion: v2
+name: aussie-clean-grafana
+description: Grafana dashboards for AussieClean
+type: application
+version: 1.0.0
+appVersion: "1.0"
+keywords:
+  - grafana
+  - dashboards
+  - monitoring
+maintainers:
+  - name: AussieClean DevOps
+    email: dev@aussieclean.com.au

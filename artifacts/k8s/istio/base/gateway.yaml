@@ -1,0 +1,101 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: booking-gateway
+  namespace: aussie-clean
+  labels:
+    app: booking-app
+    istio: ingress-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    tls:
+      mode: REDIRECT
+    hosts:
+    - replitaussieclean.vercel.app
+    - "replitaussieclean.perth-tea.aus"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTP
+    tls:
+      mode: SIMPLE
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+      credentialName: booking-app-tls
+    hosts:
+    - replitaussieclean.vercel.app
+    - "replitaussieclean.perth-tea.aus"
+  - port:
+      number: 443
+      name: https-ws
+      protocol: HTTP2
+    tls:
+      mode: SIMPLE
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+    hosts:
+    - "*.replitaussieclean.perth-tea.aus"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: api-gateway
+  namespace: aussie-clean
+  labels:
+    app: api-server
+    istio: ingress-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    tls:
+      mode: REDIRECT
+    hosts:
+    - api.replitaussieclean.vercel.app
+    - "api.replitaussieclean.perth-tea.aus"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTP
+    tls:
+      mode: SIMPLE
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+      credentialName: api-tls
+    hosts:
+    - api.replitaussieclean.vercel.app
+    - "api.replitaussieclean.perth-tea.aus"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: metrics-gateway
+  namespace: aussie-clean
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 15021
+      name: metrics
+      protocol: HTTP
+    hosts:
+    - metrics.replitaussieclean.perth-tea.aus
+  - port:
+      number: 15020
+      name: agent
+      protocol: HTTP
+    tls:
+      mode: DISABLE
+    hosts:
+    - "*"

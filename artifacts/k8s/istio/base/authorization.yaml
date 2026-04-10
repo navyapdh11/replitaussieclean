@@ -1,0 +1,116 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: booking-app-auth
+  namespace: aussie-clean
+spec:
+  selector:
+    matchLabels:
+      app: booking-app
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/aussie-clean/sa/booking-app"]
+    - source:
+        principals: ["cluster.local/ns/aussie-clean/sa/istio-ingressgateway"]
+  - to:
+    - operation:
+        methods: ["GET", "HEAD"]
+    - operation:
+        methods: ["POST", "PUT", "PATCH"]
+        paths: ["/api/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: api-server-auth
+  namespace: aussie-clean
+spec:
+  selector:
+    matchLabels:
+      app: api-server
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/aussie-clean/sa/booking-app"]
+    - source:
+        principals: ["cluster.local/ns/aussie-clean/sa/istio-ingressgateway"]
+    - source:
+        principals: ["cluster.local/ns/aussie-clean/sa/ai-service"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+        paths: ["/api/*", "/graphql", "/webhooks/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: ai-service-auth
+  namespace: aussie-clean
+spec:
+  selector:
+    matchLabels:
+      app: ai-service
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/aussie-clean/sa/api-server"]
+  - to:
+    - operation:
+        methods: ["POST"]
+        paths: ["/v1/chat/*", "/v1/embeddings", "/v1/moderation"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: ingressgateway-auth
+  namespace: aussie-clean
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        notPrincipals:
+        - ""
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: booking-app-mtls
+  namespace: aussie-clean
+spec:
+  selector:
+    matchLabels:
+      app: booking-app
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: api-server-mtls
+  namespace: aussie-clean
+spec:
+  selector:
+    matchLabels:
+      app: api-server
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: ai-service-mtls
+  namespace: aussie-clean
+spec:
+  selector:
+    matchLabels:
+      app: ai-service
+  mtls:
+    mode: MUTUAL
