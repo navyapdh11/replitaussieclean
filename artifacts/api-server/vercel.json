@@ -1,0 +1,14 @@
+{
+  "framework": "express",
+  "buildCommand": "node build.mjs",
+  "outputDirectory": "dist",
+  "installCommand": "pnpm install",
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "@database-url",
+    "STRIPE_SECRET_KEY": "@stripe-secret-key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe-webhook-secret",
+    "OPENAI_API_KEY": "@openai-api-key",
+    "RESEND_API_KEY": "@resend-api-key"
+  }
+}
