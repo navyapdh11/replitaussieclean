@@ -1,0 +1,179 @@
+{
+  "knowledge_base": {
+    "services": [
+      {
+        "id": "standard_clean",
+        "name": "Standard Home Clean",
+        "description": "Regular weekly or fortnightly upkeep cleaning",
+        "price_from": 149,
+        "duration": "2-3 hours",
+        "includes": ["Dusting", "Vacuuming", "Mopping", "Bathroom cleaning", "Kitchen wipe-down", "Surface cleaning"],
+        "keywords": ["regular", "weekly", "fortnightly", "maintenance", "basic"]
+      },
+      {
+        "id": "deep_clean",
+        "name": "Deep / Spring Clean",
+        "description": "Thorough top-to-bottom deep cleaning",
+        "price_from": 249,
+        "duration": "4-6 hours",
+        "includes": ["Behind furniture", "Inside cabinets", "Skirting boards", "Window sills", "Appliance cleaning", "Detail dusting"],
+        "keywords": ["deep", "spring", "thorough", "detail", "top-to-bottom"]
+      },
+      {
+        "id": "end_of_lease",
+        "name": "End-of-Lease / Bond Clean",
+        "description": "Bond-back guaranteed cleaning for rental moves",
+        "price_from": 349,
+        "duration": "4-8 hours",
+        "includes": ["Full interior", "Inside oven", "Inside fridge", "Cabinets & drawers", "Walls spot clean", "Carpet steam clean", "Photo report"],
+        "keywords": ["bond", "lease", "rental", "moving", " vacate", "tenant"]
+      },
+      {
+        "id": "carpet_clean",
+        "name": "Carpet & Upholstery Clean",
+        "description": "Professional steam or dry cleaning",
+        "price_from": 189,
+        "duration": "1-2 hours per room",
+        "includes": ["Steam cleaning", "Stain treatment", "Drying", "Upholstery refresh"],
+        "keywords": ["carpet", "upholstery", "steam", "stain", "fabric"]
+      },
+      {
+        "id": "window_clean",
+        "name": "Window Cleaning",
+        "description": "Internal and external window cleaning",
+        "price_from": 149,
+        "duration": "2-3 hours",
+        "includes": ["Internal glass", "External glass", "Frames", "Sills", "Flyscreens"],
+        "keywords": ["window", "glass", "frames", "sills"]
+      },
+      {
+        "id": "eco_clean",
+        "name": "Eco-Friendly / Green Clean",
+        "description": "Non-toxic, sustainable cleaning with eco products",
+        "price_from": 169,
+        "duration": "2-3 hours",
+        "includes": ["Plant-based products", "Pet-safe", "Child-safe", "Allergy-friendly"],
+        "keywords": ["eco", "green", "organic", "non-toxic", "sustainable", "pet safe"]
+      },
+      {
+        "id": "office_clean",
+        "name": "Office / Commercial Clean",
+        "description": "Professional commercial space cleaning",
+        "price_from": 399,
+        "duration": "2-4 hours",
+        "includes": ["Desk cleaning", "Kitchen sanitation", "Restroom cleaning", "Floor care", "Common areas"],
+        "keywords": ["office", "commercial", "business", "workspace", "corporate"]
+      },
+      {
+        "id": "medical_clean",
+        "name": "Medical / Healthcare Facility Clean",
+        "description": "Hospital-grade cleaning meeting AS/NZS 4187",
+        "price_from": 899,
+        "duration": "4-8 hours",
+        "includes": ["AS/NZS 4187 compliance", "Sterilisation", "High-touch points", "Medical waste protocols"],
+        "keywords": ["medical", "healthcare", "hospital", "clinical", "AS/NZS 4187", "sterile"]
+      }
+    ],
+    "faq": [
+      {
+        "question": "How much does cleaning cost?",
+        "answer": "Prices start from $149 for standard home cleaning. Final quotes are calculated based on property size, service type, and current availability. Use our instant quote tool for accurate pricing.",
+        "keywords": ["cost", "price", "cheap", "expensive", "quote", "how much"]
+      },
+      {
+        "question": "Do you service my suburb?",
+        "answer": "We service most suburbs across NSW, VIC, QLD, WA, and SA. Enter your suburb in our instant quote tool to check availability in your area.",
+        "keywords": ["suburb", "area", "location", "service", "available", "near me"]
+      },
+      {
+        "question": "What payment methods do you accept?",
+        "answer": "We accept all major credit/debit cards through secure Stripe checkout, PayPal, and bank transfer. Payment is required at time of booking.",
+        "keywords": ["payment", "pay", "card", "stripe", "paypal"]
+      },
+      {
+        "question": "Can I cancel or reschedule?",
+        "answer": "Yes! You can reschedule or cancel up to 24 hours before your appointment for a full refund. Late cancellations may incur a fee.",
+        "keywords": ["cancel", "reschedule", "change", "refund", "flexible"]
+      },
+      {
+        "question": "Are your cleaners police-checked?",
+        "answer": "Yes, all AussieClean cleaners undergo comprehensive background checks, are fully insured, and complete our vetting process including reference verification.",
+        "keywords": ["cleaner", "police", "background", "check", "trusted", "verified", "insurance"]
+      },
+      {
+        "question": "Do you guarantee the clean?",
+        "answer": "Yes! We offer a 100% satisfaction guarantee. If you're not happy with any aspect of our service, we'll return and re-clean for free.",
+        "keywords": ["guarantee", "satisfaction", "happy", "quality", "promise"]
+      },
+      {
+        "question": "How long does booking take?",
+        "answer": "Our instant quote and booking system takes under 2 minutes. Select your service, enter your details, and confirm payment - it's that quick!",
+        "keywords": ["booking", "fast", "quick", "minutes", "instant"]
+      },
+      {
+        "question": "What happens if something is damaged?",
+        "answer": "All our cleaners are fully insured for up to $5 million. In the rare event of any damage, simply contact us and we'll arrange immediate compensation or repair.",
+        "keywords": ["damage", "broken", "insurance", "cover", "compensation"]
+      },
+      {
+        "question": "Do I need to be home during the clean?",
+        "answer": "Not at all! Many customers provide a key or access code. We'll send you a notification when the cleaner arrives and completes the job.",
+        "keywords": ["home", "present", "key", "access", "empty"]
+      },
+      {
+        "question": "What products do you use?",
+        "answer": "We use premium eco-certified products that are safe for children and pets. For our eco-clean service, we use 100% plant-based, biodegradable products.",
+        "keywords": ["products", "eco", "chemical", "safe", "organic"]
+      }
+    ],
+    "policies": [
+      {
+        "id": "cancellation",
+        "title": "Cancellation Policy",
+        "content": "Free cancellation up to 24 hours before booking. Late cancellations: 50% fee. No-shows: full charge.",
+        "keywords": ["cancel", "refund", "policy"]
+      },
+      {
+        "id": "satisfaction",
+        "title": "Satisfaction Guarantee",
+        "content": "100% satisfaction guarantee - if you're not happy, we'll re-clean for free within 24 hours.",
+        "keywords": ["guarantee", "happy", "refund", "re-clean"]
+      },
+      {
+        "id": "pricing",
+        "title": "Pricing Policy",
+        "content": "All prices include GST. Dynamic pricing applies based on demand, time slot, and availability. Final quote confirmed before payment.",
+        "keywords": ["price", "gst", "tax", "quote"]
+      }
+    ],
+    "common_queries": {
+      "pricing": {
+        "response": "I can help you get an instant quote! Just tell me about your property (size, rooms) and the service you need. Or click 'Book Now' for an exact price.",
+        "triggers": ["price", "cost", "quote", "expensive", "cheap", "how much", "pricing"]
+      },
+      "booking": {
+        "response": "Great choice! You can book instantly on our site - takes less than 2 minutes. Would you like help choosing the right service?",
+        "triggers": ["book", "booking", "schedule", "appointment", "date", "time"]
+      },
+      "location": {
+        "response": "We service most areas! What's your suburb? I can check if we cover your area and show you available time slots.",
+        "triggers": ["suburb", "area", "location", "near", "service", "where"]
+      },
+      "services": {
+        "response": "We offer 18+ cleaning services - from standard home cleans to end-of-lease, carpet cleaning, commercial, and specialised cleaning. What's your situation?",
+        "triggers": ["service", "services", "what do you offer", "types"]
+      },
+      "contact": {
+        "response": "For urgent enquiries, call 1300 CLEAN AU (1300 253 262). Otherwise, I'm happy to help you book online right now!",
+        "triggers": ["phone", "call", "contact", "speak", "talk to someone", "human"]
+      }
+    }
+  },
+  "rag_config": {
+    "chunk_size": 500,
+    "max_results": 3,
+    "relevance_threshold": 0.3,
+    "keyword_weight": 0.4,
+    "semantic_weight": 0.6
+  }
+}

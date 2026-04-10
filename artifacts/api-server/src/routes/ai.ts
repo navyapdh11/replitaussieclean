@@ -4,32 +4,198 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import { eq } from "drizzle-orm";
 import { chatLimiter } from "../lib/ratelimit";
 import { logger } from "../lib/logger";
+import knowledgeBase from "../lib/knowledge-base.json" with { type: "json" };
+
 const router: IRouter = Router();
 
 const ALLOWED_ROLES = new Set(["user", "assistant", "system"]);
 const MAX_CONTENT_LENGTH = 2000;
 const MAX_MESSAGES = 20;
 
-/** Simple in-module cache so DB isn't queried on every chat turn */
 interface PromptCache { areaList: string; priceList: string; expiresAt: number }
 let promptCache: PromptCache | null = null;
-const PROMPT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const PROMPT_CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface KnowledgeItem {
+  id?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  content?: string;
+  answer?: string;
+  price_from?: number;
+  duration?: string;
+  includes?: string[];
+  keywords?: string[];
+  question?: string;
+  triggers?: string[];
+}
+
+interface RagResult {
+  type: "service" | "faq" | "policy" | "intent";
+  content: string;
+  confidence: number;
+  metadata?: Record<string, unknown>;
+}
+
+function calculateKeywordScore(query: string, item: KnowledgeItem): number {
+  const queryLower = query.toLowerCase();
+  const keywords = item.keywords || [];
+  
+  let score = 0;
+  for (const keyword of keywords) {
+    if (queryLower.includes(keyword.toLowerCase())) {
+      score += 1;
+    }
+    for (const word of queryLower.split(/\s+/)) {
+      if (keyword.toLowerCase().includes(word)) {
+        score += 0.5;
+      }
+    }
+  }
+  return score;
+}
+
+function extractUserIntent(userMessage: string): string | null {
+  const message = userMessage.toLowerCase();
+  
+  const intentMap = knowledgeBase.knowledge_base.common_queries;
+  
+  for (const [intent, config] of Object.entries(intentMap)) {
+    const triggers = (config as { triggers?: string[] }).triggers || [];
+    for (const trigger of triggers) {
+      if (message.includes(trigger)) {
+        return intent;
+      }
+    }
+  }
+  return null;
+}
+
+function semanticSearch(query: string): RagResult[] {
+  const results: RagResult[] = [];
+  const queryLower = query.toLowerCase();
+  
+  const services = knowledgeBase.knowledge_base.services as KnowledgeItem[];
+  for (const service of services) {
+    const keywordScore = calculateKeywordScore(query, service);
+    const hasKeywordMatch = keywordScore > 0;
+    
+    const textToSearch = `${service.name} ${service.description} ${service.includes?.join(" ")}`.toLowerCase();
+    const hasDirectMatch = textToSearch.includes(queryLower) || queryLower.split(/\s+/).some(w => w.length > 3 && textToSearch.includes(w));
+    
+    if (hasKeywordMatch || hasDirectMatch) {
+      const confidence = Math.min(1, (keywordScore * 0.3) + (hasDirectMatch ? 0.5 : 0));
+      results.push({
+        type: "service",
+        content: `${service.name}: ${service.description}. From $${service.price_from}. Includes: ${service.includes?.slice(0, 5).join(", ")}`,
+        confidence,
+        metadata: { serviceId: service.id, priceFrom: service.price_from }
+      });
+    }
+  }
+  
+  const faqs = knowledgeBase.knowledge_base.faq as KnowledgeItem[];
+  for (const faq of faqs) {
+    const keywordScore = calculateKeywordScore(query, faq);
+    const questionMatch = faq.question?.toLowerCase().includes(queryLower) || queryLower.split(/\s+/).some(w => w.length > 3 && faq.question?.toLowerCase().includes(w));
+    
+    if (keywordScore > 0 || questionMatch) {
+      results.push({
+        type: "faq",
+        content: `Q: ${faq.question}\nA: ${faq.answer}`,
+        confidence: Math.min(1, (keywordScore * 0.3) + (questionMatch ? 0.6 : 0)),
+        metadata: {}
+      });
+    }
+  }
+  
+  const policies = knowledgeBase.knowledge_base.policies as KnowledgeItem[];
+  for (const policy of policies) {
+    const keywordScore = calculateKeywordScore(query, policy);
+    if (keywordScore > 0.5) {
+      results.push({
+        type: "policy",
+        content: `${policy.title}: ${policy.content}`,
+        confidence: Math.min(1, keywordScore * 0.2),
+        metadata: { policyId: policy.id }
+      });
+    }
+  }
+  
+  const intent = extractUserIntent(query);
+  if (intent) {
+    const intentConfig = knowledgeBase.knowledge_base.common_queries[intent as keyof typeof knowledgeBase.knowledge_base.common_queries] as { response: string; triggers?: string[] };
+    results.push({
+      type: "intent",
+      content: intentConfig.response,
+      confidence: 0.8,
+      metadata: { intent }
+    });
+  }
+  
+  results.sort((a, b) => b.confidence - a.confidence);
+  return results.slice(0, 4);
+}
+
+function buildContextFromRag(userMessage: string): string {
+  const ragResults = semanticSearch(userMessage);
+  
+  if (ragResults.length === 0) {
+    return "";
+  }
+  
+  const contextParts = ["RELEVANT CONTEXT FROM KNOWLEDGE BASE:"];
+  
+  const serviceContext = ragResults.filter(r => r.type === "service").slice(0, 2);
+  if (serviceContext.length > 0) {
+    contextParts.push("\n--- MATCHING SERVICES ---");
+    for (const s of serviceContext) {
+      contextParts.push(s.content);
+    }
+  }
+  
+  const faqContext = ragResults.filter(r => r.type === "faq").slice(0, 2);
+  if (faqContext.length > 0) {
+    contextParts.push("\n--- RELEVANT FAQS ---");
+    for (const f of faqContext) {
+      contextParts.push(f.content);
+    }
+  }
+  
+  return contextParts.join("\n");
+}
 
 async function getCachedPromptData(): Promise<{ areaList: string; priceList: string }> {
   const now = Date.now();
   if (promptCache && now < promptCache.expiresAt) {
     return { areaList: promptCache.areaList, priceList: promptCache.priceList };
   }
-  const [serviceAreas, priceRules] = await Promise.all([
-    db.select().from(serviceAreasTable).where(eq(serviceAreasTable.active, true)),
-    db.select().from(priceRulesTable).where(eq(priceRulesTable.active, true)),
-  ]);
-  const areaList = serviceAreas.map((a) => `${a.suburb}, ${a.state}`).join(" • ");
-  const priceList = priceRules
-    .map((r) => `${r.serviceType.replace(/_/g, " ")} (${r.propertyType}): from $${r.basePriceCents / 100}`)
-    .join("\n");
-  promptCache = { areaList, priceList, expiresAt: now + PROMPT_CACHE_TTL_MS };
-  return { areaList, priceList };
+  
+  try {
+    const [serviceAreas, priceRules] = await Promise.all([
+      db.select().from(serviceAreasTable).where(eq(serviceAreasTable.active, true)).limit(100),
+      db.select().from(priceRulesTable).where(eq(priceRulesTable.active, true)).limit(50),
+    ]);
+    
+    const areaList = serviceAreas.length > 0 
+      ? serviceAreas.map((a) => `${a.suburb}, ${a.state}`).join(" • ")
+      : "Sydney, Melbourne, Brisbane, Perth, Adelaide, Gold Coast, Newcastle";
+    
+    const priceList = priceRules.length > 0
+      ? priceRules.map((r) => `${r.serviceType.replace(/_/g, " ")} (${r.propertyType}): from $${(r.basePriceCents || 0) / 100}`)
+        .join("\n")
+      : "Standard Clean: from $149\nDeep Clean: from $249\nEnd of Lease: from $349";
+    
+    promptCache = { areaList, priceList, expiresAt: now + PROMPT_CACHE_TTL_MS };
+    return { areaList, priceList };
+  } catch (err) {
+    logger.warn({ err }, "Failed to fetch DB data, using fallback");
+    return {
+      areaList: "Sydney, Melbourne, Brisbane, Perth, Adelaide, Gold Coast",
+      priceList: "Standard Clean: from $149\nDeep Clean: from $249"
+    };
+  }
 }
 
 router.post("/ai/chat", chatLimiter, async (req, res): Promise<void> => {
@@ -56,10 +222,13 @@ router.post("/ai/chat", chatLimiter, async (req, res): Promise<void> => {
     }
   }
 
+  const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
+  const ragContext = buildContextFromRag(lastUserMessage);
+
   try {
     const { areaList, priceList } = await getCachedPromptData();
 
-    const systemPrompt = `You are AussieClean's friendly AI booking assistant. Help customers choose the right cleaning service and guide them through booking.
+    let systemPrompt = `You are AussieClean's friendly AI booking assistant. Help customers choose the right cleaning service and guide them through booking.
 
 Key info:
 - Service areas covered: ${areaList}
@@ -69,51 +238,39 @@ Key info:
 - 100% satisfaction guarantee — free re-clean if you're not happy
 - Call 1300 CLEAN AU (1300 253 262) for urgent or complex enquiries
 
-Complete service catalogue (18 categories — Australia's most comprehensive):
-
+Complete service catalogue:
 RESIDENTIAL:
-• Standard Home Clean — regular weekly/fortnightly upkeep from $149 (WHS Act 2011)
+• Standard Home Clean — regular weekly/fortnightly upkeep from $149
 • Deep / Spring Clean — thorough top-to-bottom cleaning from $249
-• End-of-Lease / Bond Clean — bond-back guaranteed from $349 (Australian Consumer Law)
+• End-of-Lease / Bond Clean — bond-back guaranteed from $349
 • Carpet & Upholstery Clean — steam or dry cleaning from $189/room
 • Window Cleaning — internal & external from $149
 • Eco-Friendly / Green Clean — non-toxic, sustainable products from $169
 
 COMMERCIAL:
-• Office / Commercial Clean — daily, weekly or one-off from $399 (WHS compliant)
+• Office / Commercial Clean — daily, weekly or one-off from $399
 • Strata / Body Corporate Clean — common areas & lobbies from $499/week
-• Retail / Shop Clean — after-hours or early-morning from $349
-• Hospitality / Hotel Clean — room turnover & common areas from $599
 
 MEDICAL & AGED CARE:
-• Medical / Healthcare Facility Clean — hospital-grade, AS/NZS 4187 + NHMRC guidelines from $899
-• Aged Care & NDIS Clean — gentle, empathetic care-environment cleaning from $649
+• Medical / Healthcare Facility Clean — hospital-grade from $899
+• Aged Care & NDIS Clean — gentle, empathetic care cleaning from $649
 
-INSTITUTIONAL:
-• School / Childcare / Educational Clean — police-checked staff, child-safe products from $549
+Price List:
+${priceList}`;
 
-INDUSTRIAL:
-• Industrial / Warehouse Clean — heavy-duty, WHS + POEO Act compliant from $1,299
-• Post-Construction / Builders Clean — dust removal, fit-out cleaning from $899
+    if (ragContext) {
+      systemPrompt += `\n\n${ragContext}\n\nIMPORTANT: Use the context above to provide accurate, specific answers. If context is relevant, reference it directly.`;
+    }
 
-SPECIALIZED:
-• Pressure Wash & Exterior Clean — driveways, decks, facades from $349
-• Biohazard / Crime Scene / Sanitisation Clean — specialist PPE, safe disposal from $1,500
-• Solar Panel / Duct / Air-Con Clean — roof-access certified team from $449
-
-Current pricing from admin:
-${priceList}
-
-Be warm, helpful, and conversational. Use plain Australian English. Keep responses concise (under 120 words unless asked for detail). Always guide users toward clicking "Book Now" or "Get an Instant Quote". If a customer mentions compliance requirements (healthcare, aged care, school), proactively confirm we meet them.`;
+    systemPrompt += `\n\nBe warm, helpful, and conversational. Use plain Australian English. Keep responses concise (under 120 words unless asked for detail). Always guide users toward clicking "Book Now" or "Get an Instant Quote".`;
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const chatMessages = (messages as Array<{ role: "user" | "assistant" | "system"; content: string }>).map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    const chatMessages = (messages as Array<{ role: "user" | "assistant" | "system"; content: string }>)
+      .filter(m => m.role !== "system")
+      .map((m) => ({ role: m.role, content: m.content }));
 
     const stream = await openai.chat.completions.create({
       model: "gpt-4o-mini",
