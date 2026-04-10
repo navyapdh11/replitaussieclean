@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { SkipToContent } from "@/components/layout/SkipToContent";
 import { useListBookings } from "@workspace/api-client-react";
 import { formatCurrency, cn } from "@/lib/utils";
-import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck, ShieldCheck, MapPin, Search } from "lucide-react";
+import { RefreshCw, ClipboardList, Users, Calendar, TrendingUp, BarChart3, Truck, Brain, UserCheck, ShieldCheck, MapPin, Search, Activity } from "lucide-react";
 import { BookingsTab } from "@/components/admin/BookingsTab";
 import { DispatchPanel } from "@/components/admin/DispatchPanel";
 import { PricingAnalyticsTab } from "@/components/admin/PricingAnalyticsTab";
@@ -14,10 +14,11 @@ import { MLForecastTab } from "@/components/admin/MLForecastTab";
 import { AdminOnlyTab } from "@/components/admin/AdminOnlyTab";
 import { SuburbPerformanceTab } from "@/components/admin/SuburbPerformanceTab";
 import { SeoRankingTab } from "@/components/admin/SeoRankingTab";
+import { ObservabilityTab } from "@/components/admin/ObservabilityTab";
 
-type AdminTab = "bookings" | "dispatch" | "pricing" | "staff" | "scheduling" | "ml" | "system" | "suburbs" | "seo";
+type AdminTab = "bookings" | "dispatch" | "pricing" | "staff" | "scheduling" | "ml" | "system" | "suburbs" | "seo" | "observability";
 
-const VALID_TABS: AdminTab[] = ["bookings", "dispatch", "pricing", "staff", "scheduling", "ml", "system", "suburbs", "seo"];
+const VALID_TABS: AdminTab[] = ["bookings", "dispatch", "pricing", "staff", "scheduling", "ml", "system", "suburbs", "seo", "observability"];
 
 function getHashTab(): AdminTab {
   const hash = window.location.hash.replace("#", "") as AdminTab;
@@ -67,6 +68,7 @@ export default function AdminDashboard() {
     { id: "ml"          as const, label: "ML Forecast", icon: Brain         },
     { id: "suburbs"     as const, label: "Suburbs",     icon: MapPin        },
     { id: "seo"         as const, label: "SEO Rankings",icon: Search        },
+    { id: "observability" as const, label: "Observability", icon: Activity  },
     { id: "system"      as const, label: "Admin Only",  icon: ShieldCheck   },
   ];
 
@@ -158,6 +160,7 @@ export default function AdminDashboard() {
           {tab === "ml"         && <MLForecastTab />}
           {tab === "suburbs"    && <SuburbPerformanceTab />}
           {tab === "seo"        && <SeoRankingTab />}
+          {tab === "observability" && <ObservabilityTab />}
           {tab === "system"     && <AdminOnlyTab />}
         </div>
       </main>
