@@ -3,13 +3,17 @@ import { eq, desc, count, and } from "drizzle-orm";
 import { db, tenantsTable, bookingsTable, staffTable } from "@workspace/db";
 import { randomUUID } from "crypto";
 import { EMAIL_RE } from "../middlewares/validate";
+import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
+
+// Auth middleware — tenants management requires admin auth
+const adminAuth = requireAuth(["admin"]);
 
 const PLAN_PRICE: Record<string, number> = { starter: 99, pro: 199, enterprise: 499 };
 
 // GET /api/tenants — list all tenants with stats
-router.get("/tenants", async (_req, res): Promise<void> => {
+router.get("/tenants", adminAuth, async (_req, res): Promise<void> => {
   try {
     // Fetch tenants + per-tenant counts in 3 queries instead of 1 + 2N (N+1).
     const [tenants, bookingCounts, staffCounts] = await Promise.all([
@@ -79,7 +83,7 @@ router.get("/tenants/:slug", async (req, res): Promise<void> => {
 });
 
 // POST /api/tenants — create tenant
-router.post("/tenants", async (req, res): Promise<void> => {
+router.post("/tenants", adminAuth, async (req, res): Promise<void> => {
   const b = req.body;
   if (!b.name || !b.slug) {
     res.status(400).json({ error: "name and slug are required" });
@@ -133,7 +137,7 @@ router.post("/tenants", async (req, res): Promise<void> => {
 });
 
 // PATCH /api/tenants/:id — update tenant
-router.patch("/tenants/:id", async (req, res): Promise<void> => {
+router.patch("/tenants/:id", adminAuth, async (req, res): Promise<void> => {
   const b = req.body;
   const allowed = ["name","domain","logo","primaryColor","secondaryColor","abn","phone","email","plan"] as const;
   const updates: Record<string, unknown> = {};
@@ -172,7 +176,7 @@ router.patch("/tenants/:id", async (req, res): Promise<void> => {
 });
 
 // PATCH /api/tenants/:id/suspend — toggle active
-router.patch("/tenants/:id/suspend", async (req, res): Promise<void> => {
+router.patch("/tenants/:id/suspend", adminAuth, async (req, res): Promise<void> => {
   try {
     const [current] = await db
       .select()

@@ -14,6 +14,14 @@ const router: IRouter = Router();
  *  never be overwritten by a late-arriving or replayed webhook. */
 const MUTABLE_STATUSES = ["pending", "draft"] as const;
 
+/** Resolve tenant ID for webhook context — used for tenant-isolated updates */
+function resolveTenantId(req: Request): string | null {
+  const headerId = req.headers["x-tenant-id"];
+  if (typeof headerId === "string" && headerId.length > 0) return headerId;
+  if (process.env.MULTI_TENANT_MODE !== "true") return null;
+  return null;
+}
+
 router.post(
   "/webhooks/stripe",
   webhookLimiter,

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import type { Request } from "express";
 import { eq, and, desc } from "drizzle-orm";
 import { db, bookingsTable } from "@workspace/db";
 import {
@@ -13,6 +14,26 @@ import {
 } from "@workspace/api-zod";
 import { randomUUID } from "crypto";
 import { bookingLimiter } from "../lib/ratelimit";
+
+/** Resolve tenant ID from request — supports multi-tenant isolation.
+ *
+ * Priority:
+ *  1. `x-tenant-id` header (set by upstream auth/proxy)
+ *  2. `tenantId` query parameter (public endpoints, e.g. dashboard search)
+ *  3. Falls back to no filter when MULTI_TENANT_MODE is not enabled
+ */
+function resolveTenantId(req: Request): string | null {
+  const headerId = req.headers["x-tenant-id"];
+  if (typeof headerId === "string" && headerId.length > 0) return headerId;
+
+  const queryId = req.query.tenantId as string | undefined;
+  if (typeof queryId === "string" && queryId.length > 0) return queryId;
+
+  // When multi-tenant mode is off, don't filter — single-tenant deployment
+  if (process.env.MULTI_TENANT_MODE !== "true") return null;
+
+  return null;
+}
 
 /**
  * Allowed forward transitions for each booking status.
@@ -48,6 +69,8 @@ router.get("/bookings", async (req, res): Promise<void> => {
 
   try {
     const conditions = [];
+    const tenantId = resolveTenantId(req);
+    if (tenantId) conditions.push(eq(bookingsTable.tenantId, tenantId));
     if (query.data.email)  conditions.push(eq(bookingsTable.email,  query.data.email));
     if (query.data.status) conditions.push(eq(bookingsTable.status, query.data.status));
 
@@ -83,11 +106,13 @@ router.post("/bookings", bookingLimiter, async (req, res): Promise<void> => {
 
   try {
     const d = parsed.data;
+    const tenantId = resolveTenantId(req);
     const [booking] = await db
       .insert(bookingsTable)
       .values({
         id: randomUUID(),
         status: "pending",
+        tenantId:         tenantId ?? undefined,
         serviceType:      d.serviceType,
         propertyType:     d.propertyType,
         bedrooms:         d.bedrooms,
@@ -127,10 +152,14 @@ router.get("/bookings/:id", async (req, res): Promise<void> => {
   }
 
   try {
+    const tenantId = resolveTenantId(req);
+    const whereClauses = [eq(bookingsTable.id, params.data.id)];
+    if (tenantId) whereClauses.push(eq(bookingsTable.tenantId, tenantId));
+
     const [booking] = await db
       .select()
       .from(bookingsTable)
-      .where(eq(bookingsTable.id, params.data.id));
+      .where(and(...whereClauses));
 
     if (!booking) {
       res.status(404).json({ error: "Booking not found" });
@@ -164,15 +193,22 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
     if (parsed.data.stripePaymentId !== undefined) updates.stripePaymentId = parsed.data.stripePaymentId;
     if (parsed.data.notes           !== undefined) updates.notes           = parsed.data.notes;
 
+    // Tenant isolation: verify booking belongs to requesting tenant
+    const tenantId = resolveTenantId(req);
+    const tenantFilter = tenantId ? eq(bookingsTable.tenantId, tenantId) : undefined;
+
     if (parsed.data.status !== undefined) {
       // Atomic compare-and-set: fetch current status, validate transition,
       // then UPDATE with an extra WHERE clause on the expected status.
       // This prevents the SELECT→UPDATE race condition where two concurrent
       // requests both pass the status check and both apply the transition.
+      const whereClauses = [eq(bookingsTable.id, params.data.id)];
+      if (tenantFilter) whereClauses.push(tenantFilter);
+
       const [current] = await db
         .select({ status: bookingsTable.status })
         .from(bookingsTable)
-        .where(eq(bookingsTable.id, params.data.id))
+        .where(and(...whereClauses))
         .limit(1);
 
       if (!current) {
@@ -192,10 +228,13 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
       updates.status = parsed.data.status;
 
       // CAS update: only apply if status hasn't changed since we read it.
+      const casWhere = [eq(bookingsTable.id, params.data.id), eq(bookingsTable.status, current.status)];
+      if (tenantFilter) casWhere.push(tenantFilter);
+
       const [booking] = await db
         .update(bookingsTable)
         .set(updates)
-        .where(and(eq(bookingsTable.id, params.data.id), eq(bookingsTable.status, current.status)))
+        .where(and(...casWhere))
         .returning();
 
       if (!booking) {
@@ -213,10 +252,13 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
       return;
     }
 
+    const nonStatusWhere = [eq(bookingsTable.id, params.data.id)];
+    if (tenantFilter) nonStatusWhere.push(tenantFilter);
+
     const [booking] = await db
       .update(bookingsTable)
       .set(updates)
-      .where(eq(bookingsTable.id, params.data.id))
+      .where(and(...nonStatusWhere))
       .returning();
 
     if (!booking) {

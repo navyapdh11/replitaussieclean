@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface BookingState {
   serviceType?: string;
@@ -53,12 +54,46 @@ const initialState: BookingState = {
 
 export const TOTAL_STEPS = 8;
 
-export const useBookingStore = create<BookingStore>((set) => ({
-  ...initialState,
-  step: 1,
-  setStep: (step) => set({ step }),
-  nextStep: () => set((state) => ({ step: Math.min(TOTAL_STEPS, state.step + 1) })),
-  prevStep: () => set((state) => ({ step: Math.max(1, state.step - 1) })),
-  updateData: (data) => set((state) => ({ ...state, ...data })),
-  reset: () => set({ ...initialState, step: 1 }),
-}));
+export const useBookingStore = create<BookingStore>()(
+  persist(
+    (set) => ({
+      ...initialState,
+      step: 1,
+      setStep: (step) => set({ step }),
+      nextStep: () => set((state) => ({ step: Math.min(TOTAL_STEPS, state.step + 1) })),
+      prevStep: () => set((state) => ({ step: Math.max(1, state.step - 1) })),
+      updateData: (data) => set((state) => ({ ...state, ...data })),
+      reset: () => set({ ...initialState, step: 1 }),
+    }),
+    {
+      name: "aussieclean-booking",
+      storage: createJSONStorage(() => localStorage),
+      // Only persist booking data, not step navigation state
+      partialize: (state) => ({
+        serviceType: state.serviceType,
+        propertyType: state.propertyType,
+        bedrooms: state.bedrooms,
+        bathrooms: state.bathrooms,
+        extras: state.extras,
+        frequency: state.frequency,
+        date: state.date,
+        timeSlot: state.timeSlot,
+        addressLine1: state.addressLine1,
+        addressLine2: state.addressLine2,
+        suburb: state.suburb,
+        state: state.state,
+        postcode: state.postcode,
+        firstName: state.firstName,
+        lastName: state.lastName,
+        email: state.email,
+        phone: state.phone,
+        notes: state.notes,
+        referralCode: state.referralCode,
+        quoteAmountCents: state.quoteAmountCents,
+        gstAmountCents: state.gstAmountCents,
+        tipAmountCents: state.tipAmountCents,
+        bookingId: state.bookingId,
+      }),
+    },
+  ),
+);

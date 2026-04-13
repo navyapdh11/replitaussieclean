@@ -18,8 +18,12 @@ import analyticsRouter from "./analytics";
 import contactRouter from "./contact";
 import reviewsRouter from "./reviews";
 import { adminLimiter } from "../lib/ratelimit";
+import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
+
+// Auth middleware for admin endpoints (permissive in dev without ADMIN_API_KEY)
+const adminAuth = requireAuth(["admin"]);
 
 router.use(healthRouter);
 router.use(docsRouter);
@@ -33,13 +37,13 @@ router.use(trackingRouter);
 router.use(contactRouter);
 router.use(reviewsRouter);
 
-/* ── Admin-scoped routes: stricter rate limit ─────────────────────────── */
-router.use(adminLimiter, analyticsRouter);
-router.use(adminLimiter, staffRouter);
-router.use(adminLimiter, mlRouter);
-router.use(adminLimiter, schedulingRouter);
-router.use(adminLimiter, adminSystemRouter);
-router.use("/pricing-factors", adminLimiter, pricingFactorsRouter);
+/* ── Admin-scoped routes: auth + stricter rate limit ─────────────────── */
+router.use(adminAuth, adminLimiter, analyticsRouter);
+router.use(adminAuth, adminLimiter, staffRouter);
+router.use(adminAuth, adminLimiter, mlRouter);
+router.use(adminAuth, adminLimiter, schedulingRouter);
+router.use(adminAuth, adminLimiter, adminSystemRouter);
+router.use("/pricing-factors", adminAuth, adminLimiter, pricingFactorsRouter);
 
 /* ── Tenant routes: public branding + admin management ───────────────── */
 router.use(tenantsRouter);

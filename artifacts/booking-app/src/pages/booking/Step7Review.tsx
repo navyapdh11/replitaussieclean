@@ -2,18 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useBookingStore, FREQUENCY_DISCOUNT } from "@/lib/store";
 import { useGetQuote, useCreateBooking } from "@/lib/api-client";
+import type { ServiceType, PropertyType, Booking, QuoteResponse } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/utils";
 import { Loader2, AlertCircle, FileText, Clock, RefreshCw, ShieldCheck, Heart } from "lucide-react";
-
-interface QuoteBreakdown {
-  base: number;
-  extras: number;
-  demand: number;
-  weather: number;
-  traffic: number;
-  staffAvailability: number;
-  timeSlot: number;
-}
 
 interface QuoteData {
   quoteAmountCents: number;
@@ -84,20 +75,18 @@ export function Step7Review() {
   const fetchQuote = useCallback(() => {
     getQuote.mutate(
       {
-        data: {
-          serviceType: serviceType as ServiceType,
-          propertyType: propertyType as PropertyType,
-          bedrooms: bedrooms || 1,
-          bathrooms: bathrooms || 1,
-          extras,
-          suburb,
-          state: stateCode,
-          date,
-          timeSlot,
-        },
+        serviceType: serviceType as ServiceType,
+        propertyType: propertyType as PropertyType,
+        bedrooms: bedrooms || 1,
+        bathrooms: bathrooms || 1,
+        extras,
+        suburb,
+        state: stateCode,
+        date,
+        timeSlot,
       },
       {
-        onSuccess: (data: QuoteResponse) => {
+        onSuccess: (data) => {
           setQuoteData({
             quoteAmountCents: data.quoteAmountCents,
             gstAmountCents:   data.gstAmountCents,
@@ -112,14 +101,14 @@ export function Step7Review() {
               staffAvailability: data.breakdown.staffAvailability,
               timeSlot:          data.breakdown.timeSlot,
             },
-            factorsApplied: data.factorsApplied as Record<string, number>,
+            factorsApplied: data.factorsApplied,
             validUntil: data.validUntil,
             currency:   data.currency,
           });
         },
       },
     );
-  }, [serviceType, propertyType, bedrooms, bathrooms, extras, suburb, stateCode, date, timeSlot]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [serviceType, propertyType, bedrooms, bathrooms, extras, suburb, stateCode, date, timeSlot, getQuote]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchQuote(); }, [fetchQuote]);
 
@@ -156,34 +145,54 @@ export function Step7Review() {
 
   const handleConfirm = () => {
     if (!quoteData) return;
+
+    // Validation guard — prevent submission if required fields are missing
+    const requiredFields = {
+      date: store.date,
+      timeSlot: store.timeSlot,
+      addressLine1: store.addressLine1,
+      suburb: store.suburb,
+      state: store.state,
+      postcode: store.postcode,
+      firstName: store.firstName,
+      lastName: store.lastName,
+      email: store.email,
+      phone: store.phone,
+    };
+
+    const missingField = Object.entries(requiredFields).find(([, v]) => !v);
+    if (missingField) {
+      // Should not happen if user completed all steps, but guard against stale data
+      console.error(`Missing required field: ${missingField[0]}`);
+      return;
+    }
+
     createBooking.mutate(
       {
-        data: {
-          serviceType:     store.serviceType as ServiceType,
-          propertyType:    store.propertyType as PropertyType,
-          bedrooms:        store.bedrooms || 1,
-          bathrooms:       store.bathrooms || 1,
-          extras:          store.extras,
-          date:            store.date!,
-          timeSlot:        store.timeSlot!,
-          addressLine1:    store.addressLine1!,
-          addressLine2:    store.addressLine2,
-          suburb:          store.suburb!,
-          state:           store.state!,
-          postcode:        store.postcode!,
-          firstName:       store.firstName!,
-          lastName:        store.lastName!,
-          email:           store.email!,
-          phone:           store.phone!,
-          notes:           store.notes,
-          quoteAmountCents: discountedQuote,
-          gstAmountCents:   discountedGst,
-        },
+        serviceType:     store.serviceType as ServiceType,
+        propertyType:    store.propertyType as PropertyType,
+        bedrooms:        store.bedrooms || 1,
+        bathrooms:       store.bathrooms || 1,
+        extras:          store.extras,
+        date:            store.date!,
+        timeSlot:        store.timeSlot!,
+        addressLine1:    store.addressLine1!,
+        addressLine2:    store.addressLine2,
+        suburb:          store.suburb!,
+        state:           store.state!,
+        postcode:        store.postcode!,
+        firstName:       store.firstName!,
+        lastName:        store.lastName!,
+        email:           store.email!,
+        phone:           store.phone!,
+        notes:           store.notes,
+        quoteAmountCents: discountedQuote,
+        gstAmountCents:   discountedGst,
       },
       {
-        onSuccess: (res: Booking) => {
+        onSuccess: (res) => {
           store.updateData({
-            bookingId:        res.id,
+            bookingId:        res.data.id,
             quoteAmountCents: discountedQuote,
             gstAmountCents:   discountedGst,
           });

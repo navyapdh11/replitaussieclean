@@ -45,6 +45,13 @@ const TRACKING_TO_DB_STATUS: Record<string, string> = {
   completed:   "completed",
 };
 
+/** Allowed forward-only state transitions (matches bookings.ts STATUS_TRANSITIONS) */
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  en_route:    ["arrived", "in_progress"],
+  arrived:     ["in_progress"],
+  in_progress: ["completed"],
+};
+
 /** Secret token cleaners must present on connection to push updates. */
 const CLEANER_SECRET = process.env.CLEANER_SOCKET_SECRET ?? "";
 
@@ -117,16 +124,41 @@ export function setupTracking(io: SocketIOServer): Namespace {
         return;
       }
       const valid = ["en_route", "arrived", "in_progress", "completed"];
-      if (!valid.includes(status)) return;
+      if (!valid.includes(status)) {
+        socket.emit("error", { message: `Invalid status: ${status}` });
+        return;
+      }
 
-      const dbStatus = TRACKING_TO_DB_STATUS[status] ?? "confirmed";
+      // Validate state transition — prevent backward or invalid transitions
       try {
+        const existing = await db.select({ status: bookingsTable.status })
+          .from(bookingsTable)
+          .where(eq(bookingsTable.id, bookingId))
+          .limit(1);
+
+        if (existing.length === 0) {
+          socket.emit("error", { message: "Booking not found" });
+          return;
+        }
+
+        const currentStatus = existing[0].status;
+        const allowedNext = ALLOWED_TRANSITIONS[currentStatus];
+        if (!allowedNext?.includes(status)) {
+          socket.emit("error", {
+            message: `Invalid transition from ${currentStatus} to ${status}`,
+          });
+          return;
+        }
+
+        const dbStatus = TRACKING_TO_DB_STATUS[status] ?? "confirmed";
         await db
           .update(bookingsTable)
           .set({ status: dbStatus })
           .where(eq(bookingsTable.id, bookingId));
       } catch (err) {
         logger.warn({ err }, "Failed to update booking status from tracking event");
+        socket.emit("error", { message: "Failed to update booking status" });
+        return;
       }
 
       const current = trackingStore.get(bookingId) ?? {

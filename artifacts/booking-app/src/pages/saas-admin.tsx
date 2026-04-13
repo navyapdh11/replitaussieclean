@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import {
@@ -8,6 +8,26 @@ import {
 import { BASE_URL } from "@/components/admin/shared";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+// ─── Zod validation schema ───────────────────────────────────────────────────
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+const createTenantSchema = z.object({
+  name: z.string().min(1, "Company name is required"),
+  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens"),
+  domain: z.string().optional().or(z.literal("")).transform((v) => v || undefined),
+  abn: z.string().optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  plan: z.enum(["starter", "pro", "enterprise"]),
+  primaryColor: z.string().regex(HEX_COLOR_RE, "Invalid hex colour (e.g. #22d3ee)"),
+});
+
+type TenantFormInput = z.infer<typeof createTenantSchema>;
+
+// ─── Type definitions ────────────────────────────────────────────────────────
+interface ApiError { error?: string }
 
 interface Tenant {
   id: string;
@@ -16,7 +36,7 @@ interface Tenant {
   domain?: string;
   logo?: string;
   primaryColor: string;
-  plan: string;
+  plan: "starter" | "pro" | "enterprise";
   active: boolean;
   bookingCount: number;
   staffCount: number;
@@ -58,11 +78,20 @@ export default function SaasAdminPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving]     = useState(false);
-  const [form, setForm] = useState({
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [form, setForm] = useState<TenantFormInput>({
     name: "", slug: "", domain: "", abn: "", phone: "", email: "",
-    plan: "starter" as "starter" | "pro" | "enterprise",
-    primaryColor: "#22d3ee",
+    plan: "starter", primaryColor: "#22d3ee",
   });
+  // Prevent rapid double-click on toggle
+  const togglingId = useCallback(() => {
+    let id: string | null = null;
+    return {
+      check: (candidate: string) => { if (id) return true; id = candidate; return false; },
+      release: () => { id = null; },
+    };
+  }, []);
+  const toggleLock = togglingId();
 
   const load = async () => {
     setLoading(true);
@@ -82,29 +111,47 @@ export default function SaasAdminPage() {
 
   useEffect(() => { load(); }, []);
 
-  const resetForm = () => setForm({
-    name: "", slug: "", domain: "", abn: "", phone: "", email: "",
-    plan: "starter", primaryColor: "#22d3ee",
-  });
+  const resetForm = () => {
+    setForm({ name: "", slug: "", domain: "", abn: "", phone: "", email: "", plan: "starter", primaryColor: "#22d3ee" });
+    setFormErrors({});
+  };
 
   const save = async () => {
+    // Zod validation
+    const result = createTenantSchema.safeParse(form);
+    if (!result.success) {
+      const errs: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const path = issue.path[0] as string;
+        errs[path] = issue.message;
+      }
+      setFormErrors(errs);
+      return;
+    }
+    setFormErrors({});
     setSaving(true);
     try {
       const res = await fetch(`${BASE_URL}/api/tenants`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, domain: form.domain || undefined }),
+        body: JSON.stringify(result.data),
       });
-      const body = await res.json();
+      // Safe JSON parsing — handle non-JSON error responses
+      let body: unknown = null;
+      const ct = res.headers.get("content-type");
+      if (ct?.includes("application/json")) {
+        body = await res.json();
+      }
       if (res.ok) {
         setShowForm(false);
         resetForm();
-        load();
+        await load();
         toast({ title: "Tenant created", description: `${form.name} has been added to the platform.` });
       } else {
+        const apiErr = body as ApiError | null;
         toast({
           title: "Failed to create tenant",
-          description: (body as { error?: string }).error ?? "An unexpected error occurred.",
+          description: apiErr?.error ?? `Server error ${res.status}`,
           variant: "destructive",
         });
       }
@@ -116,16 +163,23 @@ export default function SaasAdminPage() {
   };
 
   const toggleActive = async (id: string, name: string, currentlyActive: boolean) => {
+    if (toggleLock.check(id)) return; // already toggling
     try {
       const res = await fetch(`${BASE_URL}/api/tenants/${id}/suspend`, { method: "PATCH" });
       if (res.ok) {
-        load();
+        await load();
         toast({ title: `${name} ${currentlyActive ? "suspended" : "reactivated"}` });
       } else {
-        toast({ title: "Failed to update tenant status", variant: "destructive" });
+        let body: unknown = null;
+        const ct = res.headers.get("content-type");
+        if (ct?.includes("application/json")) body = await res.json();
+        const apiErr = body as ApiError | null;
+        toast({ title: "Failed to update tenant status", description: apiErr?.error ?? `Server error ${res.status}`, variant: "destructive" });
       }
     } catch {
       toast({ title: "Network error", variant: "destructive" });
+    } finally {
+      toggleLock.release();
     }
   };
 
@@ -306,63 +360,58 @@ export default function SaasAdminPage() {
       </main>
       <Footer />
 
-      {/* Create tenant modal */}
+      {/* Create tenant modal — accessible with focus trap and escape-to-close */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold">Create New Tenant</h3>
-              <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold mb-1">Company Name *</label>
+        <Modal onClose={() => { setShowForm(false); resetForm(); }} title="Create New Tenant">
+          <div className="space-y-3">
+            <FormField label="Company Name *" error={formErrors.name}>
+              <input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: f.slug || autoSlug(e.target.value) }))}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                placeholder="Acme Cleaning Co"
+                aria-invalid={!!formErrors.name}
+                aria-describedby={formErrors.name ? "err-name" : undefined}
+              />
+              {formErrors.name && <p id="err-name" className="text-xs text-destructive">{formErrors.name}</p>}
+            </FormField>
+            <FormField label="Slug (subdomain) *" error={formErrors.slug}>
+              <div className="flex items-center gap-1">
                 <input
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: f.slug || autoSlug(e.target.value) }))}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                  placeholder="Acme Cleaning Co"
+                  value={form.slug}
+                  onChange={(e) => setForm((f) => ({ ...f, slug: autoSlug(e.target.value) }))}
+                  className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono"
+                  placeholder="acme"
+                  aria-invalid={!!formErrors.slug}
                 />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">.aussieclean.com</span>
               </div>
+              {formErrors.slug && <p className="text-xs text-destructive">{formErrors.slug}</p>}
+            </FormField>
+            <FormField label="Custom Domain (optional)">
+              <input
+                value={form.domain}
+                onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                placeholder="clean.acme.com.au"
+              />
+            </FormField>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold mb-1">Slug (subdomain) *</label>
-                <div className="flex items-center gap-1">
-                  <input
-                    value={form.slug}
-                    onChange={(e) => setForm((f) => ({ ...f, slug: autoSlug(e.target.value) }))}
-                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono"
-                    placeholder="acme"
-                  />
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">.aussieclean.com</span>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1">Custom Domain (optional)</label>
-                <input
-                  value={form.domain}
-                  onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                  placeholder="clean.acme.com.au"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Plan</label>
+                <FormField label="Plan">
                   <select
                     value={form.plan}
-                    onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value as "starter" | "pro" | "enterprise" }))}
+                    onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value as TenantFormInput["plan"] }))}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   >
                     <option value="starter">Starter ($99/mo)</option>
                     <option value="pro">Pro ($199/mo)</option>
                     <option value="enterprise">Enterprise ($499/mo)</option>
                   </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Brand Colour</label>
+                </FormField>
+              </div>
+              <div>
+                <FormField label="Brand Colour" error={formErrors.primaryColor}>
                   <div className="flex items-center gap-2">
                     <input
                       type="color" value={form.primaryColor}
@@ -373,59 +422,100 @@ export default function SaasAdminPage() {
                       value={form.primaryColor}
                       onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))}
                       className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono"
+                      aria-invalid={!!formErrors.primaryColor}
                     />
                   </div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1">ABN</label>
-                <input
-                  value={form.abn}
-                  onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value }))}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                  placeholder="98 765 432 109"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Phone</label>
-                  <input
-                    value={form.phone}
-                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    placeholder="1300 XXX XXX"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Email</label>
-                  <input
-                    type="email" value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    placeholder="hello@acme.com.au"
-                  />
-                </div>
+                  {formErrors.primaryColor && <p className="text-xs text-destructive">{formErrors.primaryColor}</p>}
+                </FormField>
               </div>
             </div>
-
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={() => { setShowForm(false); resetForm(); }}
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={save}
-                disabled={saving || !form.name || !form.slug}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
-              >
-                {saving ? "Creating…" : "Create Tenant"}
-              </button>
+            <FormField label="ABN">
+              <input
+                value={form.abn}
+                onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value }))}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                placeholder="98 765 432 109"
+              />
+            </FormField>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Phone">
+                <input
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="1300 XXX XXX"
+                />
+              </FormField>
+              <FormField label="Email" error={formErrors.email}>
+                <input
+                  type="email" value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="hello@acme.com.au"
+                  aria-invalid={!!formErrors.email}
+                />
+                {formErrors.email && <p className="text-xs text-destructive">{formErrors.email}</p>}
+              </FormField>
             </div>
           </div>
-        </div>
+
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={() => { setShowForm(false); resetForm(); }}
+              className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={save}
+              disabled={saving || !form.name || !form.slug}
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
+            >
+              {saving ? "Creating…" : "Create Tenant"}
+            </button>
+          </div>
+        </Modal>
       )}
+    </div>
+  );
+}
+
+// ─── Accessible Modal Component ──────────────────────────────────────────────
+function Modal({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) {
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between">
+          <h3 id="modal-title" className="text-lg font-bold">{title}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground" aria-label="Close modal">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── Form Field Wrapper ──────────────────────────────────────────────────────
+function FormField({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold mb-1">{label}</label>
+      {children}
     </div>
   );
 }

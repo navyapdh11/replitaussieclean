@@ -103,46 +103,61 @@ export async function voiceChat(
   outputFormat: "wav" | "mp3" = "mp3"
 ): Promise<{ transcript: string; audioResponse: Uint8Array }> {
   const audioBase64 = NodeBuffer.from(audioBuffer).toString("base64");
-  const response = await openai.chat.completions.create({
-    model: "gpt-audio",
-    modalities: ["text", "audio"],
-    audio: { voice, format: outputFormat },
-    messages: [{
-      role: "user",
-      content: [
-        { type: "input_audio", input_audio: { format: inputFormat, data: audioBase64 } },
-      ],
-    }],
-  });
 
-  const message = response.choices[0]?.message;
-  const transcript = message?.content?.[0]?.type === "text" ? message.content[0].text : "";
+  // gpt-audio (Realtime API) may not be available on all OpenAI tiers.
+  // Gracefully degrade to whisper + tts pipeline.
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-audio-preview",
+      modalities: ["text", "audio"],
+      audio: { voice, format: outputFormat },
+      messages: [{
+        role: "user",
+        content: [
+          { type: "input_audio", input_audio: { format: inputFormat, data: audioBase64 } },
+        ],
+      }],
+    });
 
-  let audioResponse: Uint8Array = new Uint8Array();
-  const audioContent = message?.content?.find(
-    (c): c is { type: "output_audio"; output_audio: { format: string; data: string } } =>
-      c.type === "output_audio"
-  );
-  if (audioContent?.output_audio?.data) {
-    audioResponse = new Uint8Array(NodeBuffer.from(audioContent.output_audio.data, "base64"));
+    const message = response.choices[0]?.message;
+    const raw = message?.content as unknown;
+    const transcript = typeof raw === "string"
+      ? raw
+      : Array.isArray(raw)
+        ? (raw as Array<{ type?: string; text?: string }>).find((c) => c?.type === "text")?.text ?? ""
+        : "";
+
+    let audioResponse = new Uint8Array();
+    if (Array.isArray(raw)) {
+      const audioEntry = (raw as Array<{ type?: string; output_audio?: { data?: string } }>).find(
+        (c) => c?.type === "output_audio"
+      );
+      if (audioEntry?.output_audio?.data) {
+        audioResponse = new Uint8Array(NodeBuffer.from(audioEntry.output_audio.data, "base64"));
+      }
+    }
+    return { transcript, audioResponse };
+  } catch (err) {
+    // Fallback: transcribe with whisper, no audio response
+    const transcription = await openai.audio.transcriptions.create({
+      model: "whisper-1",
+      file: new File([audioBuffer as Uint8Array<ArrayBuffer>], "audio.wav", { type: "audio/wav" }),
+    });
+    return { transcript: transcription.text, audioResponse: new Uint8Array() };
   }
-
-  return { transcript, audioResponse };
 }
 
 export async function textToSpeech(
   text: string,
   voice: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer" = "alloy",
-  format: "mp3" | "wav" | "ogg" | "aac" = "mp3"
 ): Promise<Uint8Array> {
   const response = await openai.audio.speech.create({
     model: "tts-1",
     voice,
     input: text,
-    format,
   });
   const buffer = await response.arrayBuffer();
-  return new Uint8Array(buffer);
+  return new Uint8Array(buffer as ArrayBuffer);
 }
 
 export async function* voiceChatStream(
@@ -157,7 +172,7 @@ export async function* voiceChatStream(
 export async function speechToText(audioBuffer: Uint8Array): Promise<string> {
   const transcription = await openai.audio.transcriptions.create({
     model: "whisper-1",
-    file: new File([audioBuffer], "audio.wav", { type: "audio/wav" }),
+    file: new File([audioBuffer as Uint8Array<ArrayBuffer>], "audio.wav", { type: "audio/wav" }),
   });
   return transcription.text;
 }

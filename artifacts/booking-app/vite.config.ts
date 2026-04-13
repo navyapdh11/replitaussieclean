@@ -13,5 +13,19 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split heavy vendor libs into separate chunks
+          "react-vendor": ["react", "react-dom", "wouter"],
+          "ui-vendor": ["framer-motion", "lucide-react", "class-variance-authority"],
+          "chart-vendor": ["recharts"],
+          "map-vendor": ["leaflet", "react-leaflet"],
+          "date-vendor": ["date-fns"],
+          "query-vendor": ["@tanstack/react-query"],
+        },
+      },
+    },
   },
 });

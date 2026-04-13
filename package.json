@@ -10,6 +10,7 @@
   "vercel-build": "pnpm run build",
   "private": true,
   "devDependencies": {
+    "@types/node": "^25.3.3",
     "typescript": "~5.9.2",
     "prettier": "^3.8.1"
   },

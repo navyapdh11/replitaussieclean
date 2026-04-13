@@ -231,7 +231,8 @@ const STATES = ["All Areas", "NSW", "VIC", "QLD", "WA", "SA"];
 
 export default function Home() {
   const [activeFilter, setActiveFilter] = useState<ServiceId | "all">("all");
-  const [locationFilter, setLocationFilter] = useState("All Areas");
+  // TODO: Wire locationFilter to service-area availability check
+  const [_locationFilter, setLocationFilter] = useState("All Areas");
 
   useEffect(() => {
     analytics.capture("page_view", { page: "home" });
@@ -453,7 +454,7 @@ export default function Home() {
                 <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
                 <select
                   id="location-filter"
-                  value={locationFilter}
+                  value={_locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
                   className="rounded-full border border-border bg-background px-3 py-2 text-sm font-semibold text-muted-foreground hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary cursor-pointer"
                 >

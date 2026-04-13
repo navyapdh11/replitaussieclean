@@ -32,6 +32,9 @@ export function AIChatWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const msgCountRef = useRef(0);
+  // Ref to always access latest messages without stale closures
+  const messagesRef = useRef<Message[]>(messages);
+  messagesRef.current = messages;
   const nextId = useCallback(() => String(++msgCountRef.current), []);
 
   useEffect(() => {
@@ -61,7 +64,7 @@ export function AIChatWidget() {
     try {
       // Exclude the static welcome message and cap history to prevent
       // unbounded request growth as the conversation grows.
-      const history = [...messages, userMessage]
+      const history = [...messagesRef.current, userMessage]
         .filter((m) => m.id !== "welcome")
         .slice(-MAX_HISTORY_MESSAGES)
         .map((m) => ({ role: m.role, content: m.content }));
@@ -137,7 +140,7 @@ export function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 w-[360px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="fixed bottom-24 right-6 z-50 w-[min(360px,calc(100vw-2rem))] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
             style={{ maxHeight: "520px" }}
           >
             <div className="p-4 border-b border-slate-700 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 flex items-center gap-3">

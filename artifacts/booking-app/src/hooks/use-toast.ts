@@ -170,16 +170,20 @@ function toast({ ...props }: Toast) {
 
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
+  // Use a ref so we don't re-subscribe on every state change
+  const stateRef = React.useRef(state);
+  stateRef.current = state;
 
   React.useEffect(() => {
-    listeners.push(setState)
+    const listener = () => setState(stateRef.current);
+    listeners.push(listener);
     return () => {
-      const index = listeners.indexOf(setState)
+      const index = listeners.indexOf(listener);
       if (index > -1) {
-        listeners.splice(index, 1)
+        listeners.splice(index, 1);
       }
-    }
-  }, [state])
+    };
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps — subscription setup only
 
   return {
     ...state,

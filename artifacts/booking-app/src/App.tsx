@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,24 +7,25 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AIChatWidget } from "@/components/AIChatWidget";
 import { initAnalytics } from "@/lib/analytics";
 
-import Home from "@/pages/home";
-import BookingFlow from "@/pages/booking/index";
-import Dashboard from "@/pages/dashboard";
-import Admin from "@/pages/admin";
-import SaasAdmin from "@/pages/saas-admin";
-import Success from "@/pages/success";
-import Cancelled from "@/pages/cancelled";
-import NotFound from "@/pages/not-found";
-import { BookingDetailPage } from "@/pages/booking-detail";
-import SuburbPage from "@/pages/suburb";
-import SuburbSeasonPage from "@/pages/suburb-season";
-import SitemapPage from "@/pages/sitemap-page";
-import PrivacyPolicy from "@/pages/privacy";
-import TermsAndConditions from "@/pages/terms";
-import AccessibilityStatement from "@/pages/accessibility";
-import RefundPolicy from "@/pages/refund-policy";
-import ReferralPage from "@/pages/referral";
-import StaffDashboard from "@/pages/staff";
+// Code-split heavy admin/dashboard pages — loaded on demand
+const Home = lazy(() => import("@/pages/home"));
+const BookingFlow = lazy(() => import("@/pages/booking/index"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Admin = lazy(() => import("@/pages/admin"));
+const SaasAdmin = lazy(() => import("@/pages/saas-admin"));
+const Success = lazy(() => import("@/pages/success"));
+const Cancelled = lazy(() => import("@/pages/cancelled"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+const BookingDetailPage = lazy(() => import("@/pages/booking-detail"));
+const SuburbPage = lazy(() => import("@/pages/suburb"));
+const SuburbSeasonPage = lazy(() => import("@/pages/suburb-season"));
+const SitemapPage = lazy(() => import("@/pages/sitemap-page"));
+const PrivacyPolicy = lazy(() => import("@/pages/privacy"));
+const TermsAndConditions = lazy(() => import("@/pages/terms"));
+const AccessibilityStatement = lazy(() => import("@/pages/accessibility"));
+const RefundPolicy = lazy(() => import("@/pages/refund-policy"));
+const ReferralPage = lazy(() => import("@/pages/referral"));
+const StaffDashboard = lazy(() => import("@/pages/staff"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +38,15 @@ const queryClient = new QueryClient({
 
 function Router() {
   return (
-    <Switch>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground mt-3 text-sm">Loading...</p>
+        </div>
+      </div>
+    }>
+      <Switch>
       <Route path="/" component={Home} />
       <Route path="/booking" component={BookingFlow} />
       <Route path="/dashboard" component={Dashboard} />
@@ -57,6 +66,7 @@ function Router() {
       <Route path="/staff" component={StaffDashboard} />
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 

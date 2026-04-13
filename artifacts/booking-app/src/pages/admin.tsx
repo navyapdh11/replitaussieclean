@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SkipToContent } from "@/components/layout/SkipToContent";
@@ -74,22 +74,45 @@ export default function AdminDashboard() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  const { data: rawBookings, isLoading, isError, refetch } = useListBookings(
+  const { data: bookings, isLoading, isError, refetch } = useListBookings(
     appliedEmail ? { email: appliedEmail } : {},
-    { query: { retry: false } as never },
   );
 
-  const list = Array.isArray(rawBookings) ? rawBookings : [];
-  const filtered = list.filter((b) => statusFilter === "all" || b.status === statusFilter);
+  const list = useMemo(() => {
+    if (!bookings || !Array.isArray(bookings)) return [];
+    return bookings;
+  }, [bookings]);
 
-  const stats = {
-    total:     list.length,
-    confirmed: list.filter((b) => b.status === "confirmed").length,
-    pending:   list.filter((b) => b.status === "pending").length,
-    revenue:   list.reduce((s, b) => s + (b.quoteAmountCents ?? 0) + (b.gstAmountCents ?? 0), 0),
-  };
+  const filtered = useMemo(
+    () => list.filter((b) => statusFilter === "all" || b.status === statusFilter),
+    [list, statusFilter],
+  );
 
-  const MENU_GROUPS = [
+  const stats = useMemo(
+    () => ({
+      total:     list.length,
+      confirmed: list.filter((b) => b.status === "confirmed").length,
+      pending:   list.filter((b) => b.status === "pending").length,
+      revenue:   list.reduce((s, b) => s + (b.quoteAmountCents ?? 0) + (b.gstAmountCents ?? 0), 0),
+    }),
+    [list],
+  );
+
+  // Tab definitions — hoisted to constant to avoid runtime TABS reference error
+  const TABS = [
+    { id: "bookings" as const, label: "Bookings" },
+    { id: "dispatch" as const, label: "Dispatch" },
+    { id: "scheduling" as const, label: "Scheduling" },
+    { id: "pricing" as const, label: "Pricing" },
+    { id: "suburbs" as const, label: "Suburbs" },
+    { id: "seo" as const, label: "SEO Rankings" },
+    { id: "staff" as const, label: "Staff" },
+    { id: "ml" as const, label: "ML Forecast" },
+    { id: "observability" as const, label: "Observability" },
+    { id: "system" as const, label: "Admin Only" },
+  ];
+
+  const MENU_GROUPS = useMemo(() => [
     {
       id: "operations",
       label: "Operations",
@@ -128,7 +151,7 @@ export default function AdminDashboard() {
         { id: "system", label: "Admin Only", permission: "system:read" as Permission },
       ],
     },
-  ];
+  ], []); // eslint-disable-line react-hooks/exhaustive-deps — static config
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups(prev => {
