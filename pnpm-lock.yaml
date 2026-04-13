@@ -75,6 +75,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      openai:
+        specifier: ^6.27.0
+        version: 6.33.0(ws@8.18.3)(zod@4.3.6)
     devDependencies:
       '@types/node':
         specifier: ^25.3.3

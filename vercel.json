@@ -1,5 +1,8 @@
 {
   "buildCommand": "cd artifacts/booking-app && pnpm run build",
   "outputDirectory": "artifacts/booking-app/dist",
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "rewrites": [
+    { "source": "/api/ai/chat", "destination": "/api/ai/chat" }
+  ]
 }
