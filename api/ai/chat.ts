@@ -1,5 +1,4 @@
 import { OpenAI } from "openai";
-// @ts-expect-error JSON import — Vercel Edge Runtime handles this natively
 import knowledgeBase from "../../artifacts/api-server/src/lib/knowledge-base.json";
 
 export const runtime = "edge";
